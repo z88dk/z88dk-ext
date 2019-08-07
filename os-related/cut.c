@@ -61,6 +61,7 @@ int num_args;
 #define MAX_FIELDS_EXCEEDED_ERROR	106
 #define MAX_ARGS_EXCEEDED_ERROR		107
 
+#define BUFSIZ		255
 
 int  mode;			/* 0 = dump stdin to stdout, 1=-f, 2=-c */
 int  flag_i;			/* SET = -i set on command line         */
