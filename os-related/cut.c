@@ -216,7 +216,8 @@ int main(int argc, char *argv[])
 {
     int i = 1;
     int numberFilenames = 0;
-    name = argv[0];
+    //name = argv[0];
+	name = "cut";
 
     if (argc == 1)
 	cuterror(USAGE);
