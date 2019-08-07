@@ -1,0 +1,278 @@
+                    Data Compression Techniques
+                          Using SQ and USQ
+
+                           Mark DiVecchio
+                    San Diego IBM PC Users Group
+
+In any computer system, efficient management of the file storage
+space is important.  The two programs SQ and USQ reduce the size of
+data files by using the Huffman Data Compression Algorithm.
+
+A file is composed of a sequence of bytes.  A byte is composed of 8
+bits.  That byte can have a decimal value between 0 and 255.  A
+typical text file, like a C language program, is composed of the
+ASCII character set (decimal 0 to 127).  This character set only
+requires seven of the eight bits in a byte.  Just think -- if there
+were a way to use that extra bit for another character, you could
+reduce the size of the file by 12.5%.  For those of you who use
+upper case characters only, you use only about 100 of the ASCII
+codes from 0 to 255.  You could save 60% of your storage if the bits
+not needed within each byte could be used for other characters.
+What if you could encode the most frequently used characters in the
+file with only one bit?  For example, if you could store the letter
+"e" (the most commonly used letter in the English language) using
+only one bit :  "1", you could save 87.5% of the space that the "e"
+would normally take if it were stored as the ASCII "0110 0101"
+binary.
+
+The answer to these questions is the SQ and USQ programs.
+
+The SQ program uses the Huffman coding technique to search for the
+frequency of use of each of the 256 possible byte patterns, and it
+then assigns a translation for each character to a bit string.  All
+of these bit strings are placed end to end and written onto a disk
+file.  The encoding information is also put on the file since the
+USQ program needs to know the character distribution of the original
+file.
+
+The USQ program reads in the encoding information and then reads in
+the encoded file.  It is a simple matter to scan the encoded file
+and produce an output file which is identical to the file that SQ
+started with.
+
+                      Huffman Coding Technique
+
+This is by far the most popular encoding technique in use today.
+The Huffman encoding replaces fixed bit characters with variable
+length bit strings.  The length of the bit string is roughly
+inversely proportional to the frequency of occurrence of the
+character.  For those of you inclined to such symbolism:
+
+Length of bit  ~= log  (character
+     string          2  probability)
+
+The implementation of the algorithm which we will discuss encodes
+fixed bit strings of length 8.
+
+This algorithm requires two passes through the input file. The first
+pass builds a table of 256 entries showing the frequency of each
+occurrence of each of the 256 possible values for a byte of
+information.
+
+Once the counting is complete, the algorithm must decide which bit
+strings to associate with each of the 256 characters that were found
+in the file.  Note that if a particular byte value was never used,
+no string association is needed.
+
+The second pass through the input file converts each byte into its
+encoded string.  Remember that when the output file is created, the
+information used for encoding must also be written on the file for
+use by the decoding program.
+
+The decoding program reads the encoding information from the file
+and then starts reading the bit strings.  As soon as enough bits are
+read to interpret a character, that character is written onto the
+final output file.  See the next two sections on how SQ and USQ
+actually implement this.
+
+Even though this article primarily has addresses ASCII input files,
+there is nothing which restricts this algorithm to ASCII.  It will
+work on binary files (.COM or .EXE) as well. But since the length of
+the encoded bit string is approximately equal to the inverse of the
+frequency of occurrence of each 8 bit byte, a binary file may not
+compress very much.  This is because a binary file most likely has a
+uniform distribution over the 256 values in a byte.  A machine
+language program is not like the English language where the letter
+"e" is used far more than other letters.  If the distribution is
+uniform, the encoded bit strings will all be the same length and the
+encoded file could be longer than the original (because of the
+encoding information on the front of the file).  All of this has to
+be qualified, because machine language programs tend to use a lot of
+"MOV" instructions and have a lot of bytes of zeros so that encoding
+.COM and .EXE files does save some disk space.
+
+                                 SQ
+
+The SQ program is an example of the Huffman algorithm.
+
+The first thing that SQ does is read through the input file and
+create a distribution array for the 256 possible characters.  This
+array contains counts of the number of occurrences of each of the
+256 characters.  The program counts these values in a 16 bit number.
+It makes sure that, if you are encoding a big file, counts do not
+exceed a 16 bit value.  This is highly unlikely, but it must be
+accounted for.
+
+At the same time, SQ removes strings of identical characters and
+replaces them with the ASCII character DLE followed by a character
+count of 2-255.  SQ replaces the ASCII DLE with the pair of
+characters:  DLE DLE.  This is not related to the Huffman algorithm
+but just serves to compress the file a little more.
+
+Once SQ has scanned the input file, it creates a binary tree
+structure containing this frequency occurrence information. The most
+frequently occurring characters have the shortest path from the root
+to the node, and the least frequently occurring characters have the
+longest path.  For example, if your file were:
+
+ABRACADABRA   (a very simple and
+               magical example)
+
+The table of frequency of occurrences would be:
+
+Letter         # of Occurrences
+------         ---------------
+  A                 5
+  B                 2
+  C                 1
+  D                 1
+  R                 2
+  all the rest      0
+
+Since the letter "A" occurs most often, it should have the shortest
+encoded bit string.  The letters "C" and "D" should have the
+longest.  The other characters which don't appear in the input file
+don't need to be considered.
+
+SQ would create a binary tree to represent this information. The
+tree might look something like this (for purposes of discussion
+only):
+
+             root    <---Computer trees are
+          /    \      always upside down!
+        1       0   <-- This is called a
+      /       /   \        node.
+     A      1       0
+          /       /   \  <--This is called
+        B       1       0    branch.
+              /       /   \
+            C       1       0
+                  /           \
+                D               R  <-This
+                                     is a
+                                     leaf
+
+
+From this our encoded bit strings which are kept in a translation
+table would be:
+
+  Table Entry  Character  Binary
+  -----------  ---------  ------
+       1           A      1
+       2           B      01
+       3           C      001
+       4           D      0001
+       5           R      0000
+
+
+The output file would be:
+
+
+    A B  R    A C   A D    A B  R    A
+    ----------------------------------
+    1 01 0000 1 001 1 0001 1 01 0000 1
+    (binary)
+
+    A1 31 A1
+    (hex)
+
+
+We have reduced the size of your file from ten bytes to three bytes
+for a 70% savings.  For this simple example, things aren't that well
+off since we must put the binary tree encoding information onto the
+file as well.  So the file size grew a lot.  But consider a file
+with the word ABRACADABRA repeated 100,000 times.  Now the encoding
+information is going to be a very very small percentage of the
+output file and the file will shrink tremendously.
+
+SQ opens the output file and writes out the binary tree information.
+Then SQ rewinds the input file and rereads it from the beginning.
+As it reads each character, it looks into the translation table and
+outputs the corresponding bit string.
+
+SQ is a little more complicated than what I have outlined since it
+must operate in the real world of hardware, but this is a fairly
+complete description of the algorithm.
+
+                                USQ
+
+The USQ program is very straightforward.  It reads in the encoding
+information written out by SQ and builds the identical binary tree
+that SQ used to encode the file.
+
+USQ then reads the input file as if it were a string of bits.
+Starting at the root of the tree, it traverses one branch of the
+tree with each input bit.  If it has reached a leaf, it has a
+character and that character is written to the output file.  USQ
+then starts at the root again with the next bit from the input file.
+
+                       What does it all mean?
+
+Now that we understand the algorithm and a little about how the SQ
+and USQ programs work, we can use that knowledge to help us run our
+systems a little more efficiently.  (So all of this theory is worth
+something after all!).
+
+1.  Files must be above a threshold size, or else the output file
+will be longer than the input file because of the decoding
+information put at the beginning of the compressed data.  We don't
+know the exact size of the threshold because the encoding binary
+tree information depends on the distribution of the characters in a
+file.  At least we know to check the size of the encoded file after
+we run SQ to make sure our file didn't grow.
+
+2.  Some files will not compress well if they have a uniform
+distribution of byte values, for example, .COM or .EXE files. This
+is because of the way SQ builds the tree.  Remember that bytes with
+the same frequency of occurrence are at the same depth (usually) in
+the tree.  So if all of the bytes have the same depth, the output
+strings are all the same length.
+
+3.  SQ reads the input file twice.  If you can, use RAM disk at
+least for the input file and for both files if you have the room.
+The next best case is to use two floppy drives, one for input and
+one for output.  This will cause a lot of disk starts and stops but
+not much head movement.  Worst case is to use one floppy drive for
+both input and output.  This will cause a lot of head movement as
+the programs alternate between the input and output files.
+
+                    Other Compression Techniques
+
+                        RUN-LENGTH ENCODING
+
+Run-length encoding is a technique whereby sequences of identical
+bytes are replaced by the repeated byte and a byte count.  As you
+might guess, this method is effective only on very specialized
+files.  One good candidate is a screen display buffer.  A screen is
+made up mostly of "spaces".  A completely blank line could be
+reduced from 80 bytes of spaces to one space followed by a value of
+80.  To go from 80 bytes down to two bytes is a savings of almost
+98%.  You might guess that for text files or binary files, this
+technique does not work well at all.
+
+                        ADAPTIVE COMPRESSION
+
+This technique replaces strings of characters of code.  For example,
+the string "ABRACADABRA" would be replaced by a code.  Typical
+algorithms use a 12 bit code.  The algorithm is unique in that it
+only requires a single pass through the input file as the encoding
+is taking place.  The current incarnation of this procedure is
+called the LZW method (after co-inventors; A.  Lempel, J.  Ziv and
+T.  Welch).  This algorithm claims a savings of 66% on machine
+language files and up to 83% on COBOL files.
+
+                           Other Reading
+
+If you are interested in reading more about data compression
+techniques, you may be interested in these articles:
+
+
+H.K. Reghbati, "An Overview of Data Compression Techniques,"
+Computer Magazine, Vol. 14, No. 4, April 1981, pp. 71-76.
+
+T.A. Welch, "A Technique for High-Performance Data Compression",
+Computer Magazine, Vol 17, No. 6, June 1984, pp. 8-19.
+
+J. Ziv and A. Lempel, "A Universal Algorithm for Sequential Data
+Compression," IEEE Transactions on Information Theory, Vol. It-23,
+No.3, May 1977, pp. 337-343.
