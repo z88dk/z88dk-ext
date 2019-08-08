@@ -4,7 +4,7 @@
 
 ; To build:
 ;              z80asm -b -oUSQ.COM -DZ80 usq.asm
-;              (z80asm -b -oUSQ.COM usq.asm for 8080 mode)
+;              (z80asm -b -oUSQ.COM usq.asm for 8080 CPU)
 ;
 
 ; Original program size (for 8080 CPU):  1920 bytes.
