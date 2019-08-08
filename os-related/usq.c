@@ -1,14 +1,18 @@
-
 /* Program to unsqueeze files formed by sq.com
  *
- * Build (z88dk - OSCA):
- * zcc +osca -ousq.exe -lflosxdos -O3 -ousq usq.c
- * 
- * Build (z88dk - CP/M):
- * zcc +cpm -create-app -O3 -ousq usq.c
+ * Build hints (z88dk - OSCA):
+ * zcc +osca -ousq -O3 -create-app --opt-code-size -lflosxdos -DWILDCARD usq.c 
+ *
+ * Build hints (z88dk - CP/M):
+ * zcc +cpm -ousq -create-app -O3 --opt-code-size -DWILDCARD usq.c
  * 
  * Build (gcc):
  * gcc -ousq usq.c
+ *
+ *
+ * The original compiled program size was 12288, z88dk, with a bit of tweaking, can produce smaller programs 
+ * or with comparable sizes when the support for wildcards is enabled.
+ *
  * 
  * 
  * Useage:
@@ -68,6 +72,10 @@
 #include <string.h>
 #include "sqcom.h"
 #define VERSION "3.2   23/03/2012"
+
+#ifdef __OSCA__
+#include "flos.h"
+#endif
 
 #define ERROR -1
 
@@ -133,7 +141,6 @@ void init_huff()
 int getuhuff(FILE *ib)
 {
 	int i;
-	int bitval;
 
 	/* Follow bit stream in tree to a leaf*/
 	i = 0;	/* Start at root of tree */
@@ -319,7 +326,7 @@ closein:
 
 void obey(char *p)
 {
-	char *q, cc;
+	char *q;
 
 	if(*p == '-') {
 		if(ffflag = ((*(p+1) == 'F') || (*(p+1) == 'f')))
