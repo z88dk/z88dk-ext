@@ -16,7 +16,7 @@
  * 
  *
  * The original compiled program size was 15744, z88dk, with a bit of tweaking, can produce smaller programs 
- * with the support for wildcards added.
+ * or with comparable sizes when the support for wildcards is enabled.
  *
  *
  * Typical compression rates are between 30 and 50 percent for text files.
