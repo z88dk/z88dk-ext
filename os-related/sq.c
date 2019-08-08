@@ -93,6 +93,10 @@
 #include <string.h>
 #include "sqcom.h"
 
+#ifdef __OSCA__
+#include "flos.h"
+#endif
+
 #define ERROR -1
 #define TRUE 1
 #define FALSE 0
