@@ -3,16 +3,16 @@
 ; converted to Z80 mnemonics with {z88dk}/support/8080/toZ80.awk
 
 ; To build:
-;              z80asm -b -oUSQ.COM usq.asm
+;              z80asm -b -oUSQ.COM -DZ80 usq.asm
+;              (z80asm -b -oUSQ.COM usq.asm for 8080 mode)
 ;
 
-; TO BE FIXED:
-; In the automatic conversion process the dynamic memory allocation was converted to static.
-; This makes the resulting program bigger (3160 vs the original 1920 bytes size).
-
+; Original program size (for 8080 CPU):  1920 bytes.
+; 
 
 
 		org	100h
+		
 
 DEFC true  =  -1 
 DEFC false  =  0
@@ -45,7 +45,7 @@ hell:
 		LD	(pract),A
 		LD	A,(buffer)
 		OR	a
-		JP	NZ,ok
+		jr	NZ,ok
 					;if no filespec, print instructions
 	
 inst:
@@ -66,7 +66,7 @@ in1:
 		call	bdos
 		LD	A,(buffer+1)
 		OR	a
-		JP	Z,in1
+		jr	Z,in1
 		LD	(buffer),A
 		LD 	e,a
 		LD 	d,0
@@ -80,12 +80,12 @@ in2:
 		LD 	a,(HL)
 		LD	(DE),A
 		OR	a
-		JP	Z,ok
+		jr	Z,ok
 		call	convuc
 		LD	(DE),A
 		INC	HL
 		INC	DE
-		JP	in2
+		jr	in2
 
 convuc:
 		CP	'a'
@@ -103,7 +103,7 @@ convuc:
 ok:
 		LD	A,(pract)
 		OR	a
-		JP	Z,nosel
+		jr	Z,nosel
 		LD 	a,13
 		call	bdos
 		LD	A,(current)
@@ -116,7 +116,11 @@ nosel:
 		LD	HL,80h
 		LD	DE,locl
 		LD	BC,80h
+IF Z80
+		ldir
+ELSE
 		call	ldir
+ENDIF
 		LD 	c,25
 		call	bdos
 		LD	(current),A
@@ -140,7 +144,7 @@ parse:
 		call	make_fcb	;make FCB please!
 		LD	A,(fcb+1)
 		CP	' '
-		JP	NZ,par2
+		jr	NZ,par2
 		call	ilprt
 		DEFM	13,10,"Output drive = ",0
 		LD	A,(fcb)
@@ -149,7 +153,7 @@ parse:
 		call	conout
 		call	ilprt
 		DEFM	":",0
-		JP	par1
+		jr	par1
 par2:
 		POP	HL
 		call	buildam		;build amb file table
@@ -164,24 +168,24 @@ pl1:
 		LD 	a,(HL)
 		CP	' '
 		INC	HL
-		JP	Z,pl2
+		jr	Z,pl2
 		OR	a
-		JP	Z,pl3
-		JP	pl1
+		jr	Z,pl3
+		jr	pl1
 pl2:
 		LD	(nxtchr),HL
 		EX	DE,HL
 		call	non_blnk
 pl3:
 		POP	HL
-		JP	NZ,parse		;all done?
+		jr	NZ,parse		;all done?
 
 gt1:
 					;Name ok, any wildcards match?
 		LD	HL,(max1)
 		LD 	a,l
 		OR	h
-		JP	NZ,cont		;yep, can continue
+		jr	NZ,cont		;yep, can continue
 		call	errext
 		DEFM	13,10,"No file(s) found.",0
 
@@ -212,7 +216,7 @@ cont:
 		DEC	h
 		LD 	a,h
 		OR	a
-		JP	NZ,memok
+		jr	NZ,memok
 		call	errext
 		DEFM	13,10,13,10,"Out of memory. Use more specific filenames.",0
 
@@ -235,19 +239,27 @@ main:
 main1:
 		LD	DE,ifcb
 		LD	BC,12
+IF Z80
+		ldir
+ELSE
 		call	ldir
+ENDIF
 		PUSH	HL
 		PUSH	DE
 		POP	HL
 		INC	DE
 		LD 	(HL),0
 		LD	BC,38-13
+IF Z80
+		ldir
+ELSE
 		call	ldir
+ENDIF
 		LD	DE,ifcb
 		LD 	c,15
 		call	bdos
 		INC	a
-		JP	Z,mainr
+		jr	Z,mainr
 sysok:
 		call	ilprt
 		DEFM	13,10,0
@@ -260,7 +272,7 @@ sysok:
 		LD	DE,0ff76h
 		call	cmpdehl
 		POP	HL
-		JP	Z,usq
+		jr	Z,usq
 		call	ilprt
 		DEFM	" is not a squeezed file.",13,10,0
 mainr:
@@ -271,7 +283,7 @@ mainr:
 		LD 	a,h
 		OR	l
 		POP	HL
-		JP	NZ,main1
+		jr	NZ,main1
 		JP	usq7
 
 
@@ -297,14 +309,14 @@ usq2:
 		POP	AF
 		LD 	a,b
 		LD 	(HL),a
-		JP	NZ,mainr
+		jr	NZ,mainr
 		OR	a
-		JP	Z,usq3
+		jr	Z,usq3
 		PUSH	HL
 		call	conout
 		POP	HL
 		INC	HL
-		JP	usq2
+		jr	usq2
 
 usq3:
 		LD	HL,buffer		;parse orig. name from
@@ -313,14 +325,22 @@ usq3:
 		LD	HL,fcb
 		LD	DE,dfcb
 		LD	BC,1+8+3
+IF Z80
+		ldir
+ELSE
 		call	ldir
+ENDIF
 		LD	A,(destd)
 		LD	(dfcb),A
 		LD	HL,dfcb+1+8+3
 		LD	DE,dfcb+1+8+3+1
 		LD	BC,38-13
 		LD 	(HL),0
+IF Z80
+		ldir
+ELSE
 		call	ldir
+ENDIF
 		LD	DE,dfcb
 		PUSH	DE
 		LD 	c,19
@@ -329,7 +349,7 @@ usq3:
 		LD 	c,22
 		call	bdos
 		INC	a
-		JP	NZ,usq3a
+		jr	NZ,usq3a
 		call	errext
 		DEFM	13,10,"No directory space. Aborting.",0
 usq3a:
@@ -337,7 +357,7 @@ usq3a:
 		LD	(numvals),HL
 		LD	DE,258
 		call	cmpdehl
-		JP	C,usq3b
+		jr	C,usq3b
 		call	errext
 		DEFM	13,10,"Files has illegal decode size. Aborting.",0
 usq3b:
@@ -346,7 +366,7 @@ usq4:
 		LD	(max),HL
 		LD 	a,h
 		OR	l
-		JP	Z,usq5
+		jr	Z,usq5
 		PUSH	DE
 		call	getw
 		POP	DE
@@ -366,7 +386,7 @@ usq4:
 		EX	DE,HL
 		LD	HL,(max)
 		DEC	HL
-		JP	usq4
+		jr	usq4
 
 usq5:
 		LD	HL,0
@@ -374,14 +394,14 @@ usq6:
 		PUSH	HL
 		call	getnxt
 		POP	HL
-		JP	NZ,usq8
+		jr	NZ,usq8
 		LD 	e,a
 		LD 	d,0
 		ADD	HL,DE
 		PUSH	HL
 		call	put1
 		POP	HL
-		JP	usq6
+		jr	usq6
 
 usq8:
 		EX	DE,HL
@@ -393,7 +413,7 @@ usq8:
 		LD 	c,16
 		call	bdos
 		INC	a
-		JP	NZ,usq9
+		jr	NZ,usq9
 		call	errext
 		DEFM	13,10,"Close failed...",0
 
@@ -418,11 +438,11 @@ errext:
 		POP	HL
 		LD 	a,(HL)
 		OR	a
-		JP	Z,usq7
+		jr	Z,usq7
 		INC	HL
 		PUSH	HL
 		call	conout
-		JP	errext
+		jr	errext
 
 conout:
 		AND	127
@@ -448,14 +468,14 @@ ilprt:
 		PUSH	HL
 		RET	Z
 		call	conout
-		JP	ilprt
+		jr	ilprt
 
 get1:
 		LD	HL,(eob)
 		EX	DE,HL
 		LD	HL,(sob)
 		call	cmpdehl
-		JP	Z,get1r
+		jr	Z,get1r
 		LD 	a,(HL)
 		INC	HL
 		LD	(sob),HL
@@ -476,20 +496,20 @@ get1r1:
 		call	bdos
 		POP	HL
 		OR	a
-		JP	NZ,get1r2
+		jr	NZ,get1r2
 		LD	DE,128
 		ADD	HL,DE
 		EX	DE,HL
 		LD	HL,(endmem)
 		call	cmpdehl
 		EX	DE,HL
-		JP	NC,get1r1
+		jr	NC,get1r1
 get1r2:
 		LD	(eob),HL
 		EX	DE,HL
 		LD	HL,(sob)
 		call	cmpdehl
-		JP	NZ,get1
+		jr	NZ,get1
 		LD 	a,255
 		OR	a
 		ret
@@ -502,7 +522,7 @@ put1:
 		EX	DE,HL
 		LD	HL,(sob1)
 		call	cmpdehl
-		JP	Z,put1s
+		jr	Z,put1s
 		LD 	(HL),c
 		INC	HL
 		LD	(sob1),HL
@@ -513,7 +533,7 @@ put1s:
 		call	flush
 		POP	BC
 		LD 	a,c
-		JP	put1
+		jr	put1
 
 flush:
 		LD	HL,(sob1a)
@@ -531,7 +551,7 @@ put1sa:
 		LD	DE,dfcb
 		call	bdos
 		OR	a
-		JP	NZ,put1sc
+		jr	NZ,put1sc
 		POP	HL
 		LD	DE,128
 		ADD	HL,DE
@@ -539,7 +559,7 @@ put1sa:
 		LD	HL,(sob1)
 		EX	DE,HL
 		call	cmpdehl
-		JP	C,put1sa
+		jr	C,put1sa
 		LD	HL,(sob1a)
 		LD	(sob1),HL
 		ret
@@ -552,10 +572,10 @@ put1sc:
 
 getw:
 		call	get1
-		JP	NZ,badr
+		jr	NZ,badr
 		PUSH	AF
 		call	get1
-		JP	NZ,badr
+		jr	NZ,badr
 		LD 	h,a
 		POP	AF
 		LD 	l,a
@@ -569,7 +589,7 @@ badr:
 getnxt:
 		LD	A,(rcnt)		;see if in the middle of
 		OR	a		;repeat sequence...
-		JP	Z,getn7
+		jr	Z,getn7
 		DEC	a
 		LD	(rcnt),A
 		LD	A,(last)
@@ -578,10 +598,10 @@ getnxt:
 getn7:
 		call	getn4
 		CP	dle
-		JP	NZ,getn5
+		jr	NZ,getn5
 		call	getn4
 		OR	a
-		JP	NZ,getn6
+		jr	NZ,getn6
 		LD 	a,dle		;dle is encoded as dle,0
 		CP	a
 		ret
@@ -605,10 +625,10 @@ getn4:
 getn1:
 		LD	A,(numlft)
 		OR	a
-		JP	NZ,getn2
+		jr	NZ,getn2
 		PUSH	DE
 		call	get1
-		JP	NZ,badr
+		jr	NZ,badr
 		POP	DE
 		LD 	c,a
 		LD 	a,8
@@ -619,7 +639,7 @@ getn2:
 		RRCA
 		LD 	c,a
 		LD	HL,table
-		JP	NC,getn3
+		jr	NC,getn3
 		INC	HL
 		INC	HL		;add 2 to point to right node
 getn3:
@@ -632,13 +652,13 @@ getn3:
 		LD 	d,(HL)
 		LD 	a,d
 		AND	128
-		JP	Z,getn1
+		jr	Z,getn1
 		LD 	a,c
 		LD	(char),A
 		LD 	a,d
 		CP	254		;is special eof?
 		LD 	a,eof
-		JP	Z,geteof		;yup
+		jr	Z,geteof		;yup
 		LD 	a,e
 		CPL
 		CP	a
@@ -658,7 +678,7 @@ DEFC buildam  =  $
 		PUSH	HL
 		LD	A,(fcb)
 		OR	a
-		JP	Z,build1
+		jr	Z,build1
 		LD 	e,a
 		DEC	e
 		LD 	c,14
@@ -670,7 +690,7 @@ build1:
 		POP	HL
 		POP	DE
 		INC	a		;any found?
-		JP	NZ,loop
+		jr	NZ,loop
 buildr:
 		PUSH	HL
 		PUSH	DE
@@ -701,6 +721,10 @@ loop:
 		LD	A,(fcb)
 		LD	(DE),A
 		INC	DE
+IF Z80
+		LD	BC,11
+		ldir
+ELSE
 		LD 	b,11
 ldir2:
 		LD 	a,(HL)
@@ -708,7 +732,8 @@ ldir2:
 		INC	HL
 		INC	DE
 		DEC	b
-		JP	NZ,ldir2
+		jr	NZ,ldir2
+ENDIF
 		EX	DE,HL
 		PUSH	HL
 		LD 	c,18
@@ -717,19 +742,19 @@ ldir2:
 		POP	HL
 		POP	DE
 		INC	a
-		JP	NZ,loop
-		JP	buildr
+		jr	NZ,loop
+		jr	buildr
 
 
 pfcb:
 		LD	A,(ifcb)
 		OR	a
-		JP	Z,print1
+		jr	Z,print1
 		LD 	b,a		;New!
 		LD	A,(current)
 		INC	a
 		CP	b
-		JP	Z,print1
+		jr	Z,print1
 		LD 	a,b		;New...
 		ADD	A,'A'-1
 		call	conout
@@ -743,14 +768,14 @@ print1a:
 		PUSH	BC
 		LD 	a,(HL)
 		CP	' '
-		JP	Z,print1b
+		jr	Z,print1b
 		call	conout
 print1b:
 	POP	BC
 		POP	HL
 		INC	HL
 		DEC	c
-		JP	NZ,print1a
+		jr	NZ,print1a
 		LD 	a,'.'
 		call	conout
 		LD	HL,ifcb+1+8
@@ -760,14 +785,14 @@ print2a:
 		PUSH	BC
 		LD 	a,(HL)
 		CP	' '
-		JP	Z,print2b
+		jr	Z,print2b
 		call	conout
 print2b:
 	POP	BC
 		POP	HL
 		INC	HL
 		DEC	c
-		JP	NZ,print2a
+		jr	NZ,print2a
 		ret
 
 ;
@@ -790,18 +815,18 @@ make_fcb:
 	POP	HL
 	LD	A,(DE)
 	OR	A
-	JP	Z,no_drv
+	jr	Z,no_drv
 	SBC	'0'
 	LD 	B,A
 	INC	DE
 	LD	A,(DE)
 	CP	':'
-	JP	Z,yes_drv
+	jr	Z,yes_drv
 	DEC	DE
 no_drv: LD	A,(current)
 	INC	a		;01.02
 	LD 	(HL),A
-	JP	get_name
+	jr	get_name
 ;
 yes_drv:
 	LD 	(HL),b
@@ -816,30 +841,30 @@ get_name:
 	LD 	B,8
 get1_name:
 	CALL	test_4_res
-	JP	Z,fill_spc
+	jr	Z,fill_spc
 	INC	HL
 	CP	'*'
-	JP	NZ,not_amb
+	jr	NZ,not_amb
 	LD 	(HL),3FH
-	JP	keep_cnt
+	jr	keep_cnt
 ;
 not_amb:
 	LD 	(HL),A
 	INC	DE
 keep_cnt:
 	DEC	B
-	JP	NZ,get1_name
+	jr	NZ,get1_name
 find_res:
 	CALL	test_4_res
-	JP	Z,put_byte
+	jr	Z,put_byte
 	INC	DE
-	JP	find_res
+	jr	find_res
 ;
 fill_spc:
 	INC	HL
 	LD 	(HL),' '
 	DEC	B
-	JP	NZ,fill_spc
+	jr	NZ,fill_spc
 ;
 ;The next three characters in the CCP$FCB are to be the
 ;file type.  Transfer the contents of CON$BUF checking
@@ -850,23 +875,23 @@ put_byte:
 	LD 	B,3
 	CP	'.'
 
-	JP	NZ,fil_2_spc
+	jr	NZ,fil_2_spc
 	INC	DE
 put2_type:
 	CALL	test_4_res
-	JP	Z,fil_2_spc
+	jr	Z,fil_2_spc
 	INC	HL
 	CP	'*'
-	JP	NZ,xfer_type
+	jr	NZ,xfer_type
 	LD 	(HL),'?'
-	JP	keep2_cnt
+	jr	keep2_cnt
 ;
 xfer_type:
 	LD 	(HL),A
 	INC	DE
 keep2_cnt:
 	DEC	B
-	JP	NZ,put2_type
+	jr	NZ,put2_type
 ;
 ;We have a FILENAME.TYPE, so now find the next reserved
 ;character in the command string so we can save NEXT$CHAR
@@ -874,15 +899,15 @@ keep2_cnt:
 ;
 find1_res:
 	CALL	test_4_res
-	JP	Z,fill_null
+	jr	Z,fill_null
 	INC	DE
-	JP	find1_res
+	jr	find1_res
 ;
 fil_2_spc:
 	INC	HL
 	LD 	(HL),' '
 	DEC	B
-	JP	NZ,fil_2_spc
+	jr	NZ,fil_2_spc
 ;
 ;Set the file extent (byte 12 of fcb) and the
 ;unused bytes (13 and 14) of the fcb to zero
@@ -893,7 +918,7 @@ fill1_null:
 	INC	HL
 	LD 	(HL),0
 	DEC	B
-	JP	NZ,fill1_null
+	jr	NZ,fill1_null
 ;
 ;We are almost finished.  Save pointer of the next character
 ;in the console buffer, count the number of ambigious char's
@@ -947,8 +972,11 @@ non_blnk:
 	CP	' '		;is it a space?
 	RET	NZ			;no, then get back
 	INC	DE		;bump the pointer
-	JP	non_blnk	;loop
+	jr	non_blnk	;loop
 
+IF Z80
+		; On a Z80 LDIR is directly used in place of this subroutine
+ELSE
 ldir:
 		LD 	a,(HL)
 		LD	(DE),A
@@ -957,62 +985,45 @@ ldir:
 		DEC	BC
 		LD 	a,b
 		OR	c
-		JP	NZ,ldir
+		jr	NZ,ldir
 		ret
+ENDIF
 
 
-numvals:
-	DEFW	0
-max:
-		DEFW	0
-numlft:
-		DEFM	0
-char:
-		DEFM	0
-last:
-		DEFM	0
-rcnt:
-		DEFM	0
-lastmem:
-	DEFW	0
-max1:
-		DEFW	0
-nxtchr:
-		DEFW	0
-current:
-	DEFM	0
-endmem:
-		DEFW	0
-topmem:
-		DEFW	0
-sob:
-		DEFW	0
-eob:
-		DEFW	0
-sob1:
-		DEFW	0
-sob1a:
-		DEFW	0
-eob1:
-		DEFW	0
-destd:
-		DEFM	0
-pract:
-		DEFM	0
-filecrc:
-	DEFW	0
 
-ifcb:
-		DEFS	40
-dfcb:
-		DEFS	40
+DEFVARS ASMPC+100h   ; Dynamic data structure
+{
+numvals		ds.w 1
+max			ds.w 1
+numlft		ds.b 1
+char		ds.b 1
+last		ds.b 1
+rcnt		ds.b 1
+lastmem		ds.w 1
+max1		ds.w 1
+nxtchr		ds.w 1
+current		ds.b 1
+endmem		ds.w 1
+topmem		ds.w 1
+sob			ds.w 1
+eob			ds.w 1
+sob1		ds.w 1
+sob1a		ds.w 1
+eob1		ds.w 1
+destd		ds.b 1
+pract		ds.b 1
+filecrc		ds.w 1
 
-locl:
-		DEFS	80h
+ifcb		ds.b 40
+dfcb		ds.b 40
+locl		ds.b 80h
 
-		DEFS	100
-DEFC stack  =  $ 
-table:
-		DEFS	258*4
-DEFC filespecs  =  $ 
+extra_foo	ds.b 100
+stack		ds.b 1
+
+table		ds.b 258*4
+
+filespecs	ds.b 1
+}
+
 
