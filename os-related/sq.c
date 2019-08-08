@@ -4,19 +4,19 @@
  *
  *
  * Build (z88dk - OSCA):
- * zcc +osca -osq -O3 -create-app --opt-code-size -lflosxdos sq.c
- * zcc +osca -osq -O3 -create-app --opt-code-size  -lflosxdos -DWILDCARD sq.c 
+ * zcc +osca -osq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos sq.c
+ * zcc +osca -osq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD sq.c 
  *
  * Build (z88dk - CP/M):
- * zcc +cpm -osq -create-app -O3 --opt-code-size -DWILDCARD sq.c
+ * zcc +cpm -osq -create-app -O3 --opt-code-size-pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD sq.c
  * 
  * Build (gcc):
  * gcc -osq sq.c
  * 
  *
  * The original compiled program size for CP/M was 15744.
- * z88dk, with a bit of tweaking, can produce smaller programs 
- * or with comparable sizes (15704 during the tests) when the support for wildcards is enabled.
+ * z88dk, with a bit of tweaking, can produce smaller programs (14785 during the tests)
+ * or with comparable sizes (15692 during the tests) when the support for wildcards is enabled.
  *
  *
  * Typical compression rates are between 30 and 50 percent for text files.
