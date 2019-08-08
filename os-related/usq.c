@@ -1,17 +1,21 @@
 /* Program to unsqueeze files formed by sq.com
  *
  * Build hints (z88dk - OSCA):
- * zcc +osca -ousq -O3 -create-app --opt-code-size -lflosxdos -DWILDCARD usq.c 
+ * zcc +osca -ousq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD usq.c 
  *
  * Build hints (z88dk - CP/M):
- * zcc +cpm -ousq -create-app -O3 --opt-code-size -DWILDCARD usq.c
+ * zcc +cpm -ousq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD usq.c
  * 
  * Build (gcc):
  * gcc -ousq usq.c
  *
  *
- * The original compiled program size was 12288, z88dk, with a bit of tweaking, can produce smaller programs 
- * or with comparable sizes when the support for wildcards is enabled.
+ * The original compiled program size was 12288, 
+ * z88dk, with a bit of tweaking, can produce smaller programs (9032 during the tests)
+ * or with comparable sizes when the support for wildcards is enabled (9963 during the tests).
+ *
+ * Output redirection of the program messages is available.
+ * For printer spooling (>PRN:), add "-lcpmdevice" at compile time, it will increase the program size of about 1K.
  *
  * 
  * 
@@ -78,6 +82,8 @@
 #endif
 
 #define ERROR -1
+#define TRUE 1
+#define FALSE 0
 
 #define LARGE 30000
 
@@ -324,9 +330,52 @@ closein:
 }
 
 
+#ifdef WILDCARD
+/* 
+ * Wildcard comparison tool
+ * Found in the BDS C sources, (wildexp..),written by Leor Zolman.
+ * contributed by: W. Earnest, Dave Hardy, Gary P. Novosielski, Bob Mathias and others
+ * 
+*/
+
+int match(char *wildnam, char *filnam)
+{
+   char c;
+   while (c = *wildnam++)
+	if (c == '?')
+		if ((c = *filnam++) && c != '.')
+			continue;
+		else
+			return FALSE;
+	else if (c == '*')
+	{
+		while (c = *wildnam)
+		{ 	wildnam++;
+			if (c == '.') break;
+		}
+		while (c = *filnam)
+		{	filnam++;
+			if (c == '.') break;
+		}
+	}
+	else if (c == *filnam++)
+	 	continue;
+	else return FALSE;
+
+   if (!*filnam)
+	return TRUE;
+   else
+	return FALSE;
+}
+#endif
+
+
 void obey(char *p)
 {
 	char *q;
+	#ifdef WILDCARD
+	int x;
+	#endif
 
 	if(*p == '-') {
 		if(ffflag = ((*(p+1) == 'F') || (*(p+1) == 'f')))
@@ -342,7 +391,16 @@ void obey(char *p)
 	/* Check for ambiguous (wild-card) name */
 	for(q = p; *q != '\0'; ++q)
 		if(*q == '*' || *q == '?') {
-			printf("\nCan't accept ambiguous name %s", p);
+		#ifdef WILDCARD
+			if ((x=dir_move_first())!=0) return;
+			while (x == 0) {
+				if (match(p,dir_get_entry_name()))
+					obey(dir_get_entry_name());
+				x = dir_move_next();
+			}
+		#else
+			printf("\nAmbiguous name %s ignored", p);
+		#endif
 			return;
 		}
 
