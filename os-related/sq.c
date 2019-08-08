@@ -2,16 +2,22 @@
  * The "usq" program is required to unsqueeze the file
  * before it can be used.
  *
+ *
  * Build (z88dk - OSCA):
- * zcc +osca -osq -O3 -create-app --opt-code-size -lflosxdos sq.c
- * 
+ * zcc +osca -osq -O3 -create-app --opt-code-size --pragma-define-nostrings -lflosxdos sq.c
+ * zcc +osca -osq -O3 -create-app --opt-code-size  --pragma-define-nostrings -lflosxdos -DWILDCARD sq.c 
+ *
  * Build (z88dk - CP/M):
- * zcc +cpm -osq -create-app -O3 --opt-code-size sq.c
- * zcc +cpm -osq -create-app -compiler=sdcc --max-allocs-per-node200000 --opt-code-size sq.c
+ * zcc +cpm -osq -create-app -O3 --opt-code-size -DWILDCARD sq.c
+ * zcc +cpm -osq -create-app -compiler=sdcc --max-allocs-per-node200000 --opt-code-size -pragma-define:nostreams sq.c
  * 
  * Build (gcc):
  * gcc -osq sq.c
  * 
+ *
+ * The original compiled program size was 15744, z88dk, with a bit of tweaking, can produce smaller programs 
+ * with the support for wildcards added.
+ *
  *
  * Typical compression rates are between 30 and 50 percent for text files.
  *
@@ -322,7 +328,6 @@ void bld_tree(int list[], int len)
 	int freenode;		/* next free node in tree */
 	int lch, rch;		/* temporaries for left, right children */
 	struct nd *frnp;	/* free node pointer */
-	int i;
 
 	/* Initialize index to next available (non-leaf) node.
 	 * Lower numbered nodes correspond to leaves (data values).
@@ -372,7 +377,7 @@ void bld_tree(int list[], int len)
 void scale(unsigned int ceil)
 /* ceil: upper limit on total weight */
 {
-	int c, ovflw, divisor, i;
+	int ovflw, divisor, i;
 	unsigned int w, sum;
 	char increased;		/* flag */
 
@@ -650,7 +655,7 @@ void wrt_head(FILE *ob, char *infile)
 int gethuff(FILE *ib)
 {
 	unsigned int rbyte;	/* Result byte value */
-	char need, take;	/* numbers of bits */
+	char need;	/* numbers of bits */
 
 	rbyte = 0;
 	need = 8;		/* build one byte per call */
@@ -758,7 +763,7 @@ int getcnr(FILE *iob)
 
 void squeeze(char *infile, char *outfile)
 {
-	int i, c,c2;
+	int c;
 	FILE *inbuff;
 	FILE *outbuff;		/* file buffers */
 
@@ -803,11 +808,53 @@ closeout:
 	fclose(outbuff);
 }
 
+#ifdef WILDCARD
+/* 
+ * Wildcard comparison tool
+ * Found in the BDS C sources, (wildexp..),written by Leor Zolman.
+ * contributed by: W. Earnest, Dave Hardy, Gary P. Novosielski, Bob Mathias and others
+ * 
+*/
+
+int match(char *wildnam, char *filnam)
+{
+   char c;
+   while (c = *wildnam++)
+	if (c == '?')
+		if ((c = *filnam++) && c != '.')
+			continue;
+		else
+			return FALSE;
+	else if (c == '*')
+	{
+		while (c = *wildnam)
+		{ 	wildnam++;
+			if (c == '.') break;
+		}
+		while (c = *filnam)
+		{	filnam++;
+			if (c == '.') break;
+		}
+	}
+	else if (c == *filnam++)
+	 	continue;
+	else return FALSE;
+
+   if (!*filnam)
+	return TRUE;
+   else
+	return FALSE;
+}
+#endif
+
 
 void obey(char *p)
 {
 	char *q;
 	char outfile[128];	/* output file spec. */
+	#ifdef WILDCARD
+	int x;
+	#endif
 
 	if(*p == '-') {
 		/* toggle debug option */
@@ -818,7 +865,16 @@ void obey(char *p)
 	/* Check for ambiguous (wild-card) name */
 	for(q = p; *q != '\0'; ++q)
 		if(*q == '*' || *q == '?') {
+		#ifdef WILDCARD
+			if ((x=dir_move_first())!=0) return;
+			while (x == 0) {
+				if (match(p,dir_get_entry_name()))
+					obey(dir_get_entry_name());
+				x = dir_move_next();
+			}
+		#else
 			printf("\nAmbiguous name %s ignored", p);
+		#endif
 			return;
 	}
 	/* First build output file name */
@@ -858,7 +914,7 @@ void obey(char *p)
 }
 
 
-main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
 	int i,c;
 	char inparg[128];	/* parameter from input */
