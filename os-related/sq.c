@@ -573,8 +573,7 @@ int buildenc(int level, int root)
 		 * Ensures unused code bits are zero.
 		 */
 		codelen[root] = level;
-		//code[root] = tcode & ((unsigned int)(~0) >> ((sizeof(int) * 8) - level));
-		code[root] = tcode & ((unsigned int)(65535) >> ((sizeof(int) * 8) - level));
+		code[root] = tcode & ((unsigned int)(~0) >> ((sizeof(int) * 8) - level));
 #ifdef DEBUG
 		if (debug) printf("  codelen[%d]=%d,code[%d]=%02x\n",root,codelen[root],root,code[root]);
 #endif
