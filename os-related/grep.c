@@ -1,11 +1,4 @@
 /*
-
-
-see also:
-    https://github.com/z88dk/z88dk/wiki/grep
-
-
-
  * The  information  in  this  document  is  subject  to  change
  * without  notice  and  should not be construed as a commitment
  * by Digital Equipment Corporation or by DECUS.
@@ -25,24 +18,39 @@ see also:
  */
 
 #include <stdio.h>
+#include <unistd.h>
 
 /*
- * grep.
- *
- * Runs on the Decus compiler or on vms.
- *
- * On vms, define as:
- *
- *      grep :== "$disk:[account]grep"      (native)
- *      grep :== "$disk:[account]grep grep" (Decus)
- *
- * See below for more information.
+*  Build with hand-knit file redirection
+*  (add the following line: #pragma output noredir=1)
+*  zcc +osca -lflosxdos -O3 -DWILDCARD -DREDIR -create-app -ogrep grep.c
+*  zcc +cpm -O3 -DWILDCARD -create-app -ogrep grep.c
+* 
+*  Build with Internal z88dk file redirection
+*  zcc +osca -lflosxdos -O3 -DWILDCARD -create-app -ogrep grep.c
+*  zcc +cpm -DWILDCARD -O3 -create-app -ogrep grep.c
+*  
+*  No file redirection at all (faster and smaller):
+*  (add the following line: #pragma output noredir=1)
+*  zcc +osca -lflosdos -DFLOS -O3 -create-app -ogrep grep.c
+*/
+
+/*
+ * Wildcards are supported by z88dk on FLOS and CP/M
  */
+#ifdef WILDCARD
+int x;
+#endif
 
 char    *documentation[] = {
-"grep searches a file for a given pattern",
-"Execute by:",
+//"grep searches a file for a given pattern",
+//"Execute by:",
+"",
+#ifdef REDIR
+"  grep [flg] reg_expr file_list [>ofile]",
+#else
 "  grep [flags] regular_expr file_list",
+#endif
 "",
 "Flags are single chars preceeded by '-':",
 " -c  Print count of matching lines",
@@ -70,18 +78,25 @@ char    *patdoc[] = {
 #define PMAX    256
 
 #define CHAR    1
+
 #define BOL     2
 #define EOL     3
+
 #define ANY     4
 #define CLASS   5
+
 #define NCLASS  6
 #define STAR    7
+
 #define PLUS    8
 #define MINUS   9
+
 #define ALPHA   10
 #define DIGIT   11
+
 #define NALPHA  12
 #define PUNCT   13
+
 #define RANGE   14
 #define ENDPAT  15
 
@@ -114,6 +129,38 @@ char *argv[];
    gotpattern = 0;
    for (i=1; i < argc; ++i) {
       p = argv[i];
+#ifdef	REDIR
+		/*
+		 * Hand-knit I/O redirection for vms
+		 */
+		if (*p == '<') {
+			if (p[1]==0) {
+				fprintf(stderr, "Invalid input file\n");
+				exit (0);
+			} else
+				freopen(&p[1], "r", stdin);
+			argv[i] = NULL;
+			continue;
+		}
+		if (*p == '>') {
+			if (p[1] == '>')
+				if (p[2]==0) {
+					fprintf(stderr, "Invalid output file\n");
+					exit (0);
+				} else {
+					freopen(&p[2], "a", stdout);
+				}
+			else
+				if (p[1]==0) {
+					fprintf(stderr, "Invalid output file\n");
+					exit (0);
+				} else {
+					freopen(&p[1], "w", stdout);
+				}
+			argv[i] = NULL;
+			continue;
+		}
+#endif
       if (*p == '-') {
          ++p;
          while (c = *p++) {
@@ -164,19 +211,38 @@ char *argv[];
    if (!gotpattern)
       usage("No pattern");
    if (nfile == 0) {
-		usage("No arguments");
-       //grep(stdin, 0);
-		return(0);
+      if (isatty(stdin))
+		usage("No input file given");
+      else
+		grep(stdin, 0);
+      return(0);
 	} else {
       fflag = fflag ^ (nfile > 0);
       for (i=1; i < argc; ++i) {
          if (p = argv[i]) {
-            if ((f=fopen(p, "r")) == NULL)
-               cant(p);
-            else {
-               grep(f, p);
-               fclose(f);
-            }
+#ifdef WILDCARD
+
+			if ((x=dir_move_first())!=0) return(0);
+
+			while (x == 0) {
+				if (wcmatch(p,dir_get_entry_name())) {
+					if (!dir_get_entry_type()) {
+						f = fopen(dir_get_entry_name(), "r");
+						grep(f, dir_get_entry_name());
+						fclose(f);
+					}
+				}
+				x = dir_move_next();
+			}
+#else
+
+			if ((f=fopen(p, "r")) == NULL)
+			   cant(p);
+			else {
+			   grep(f, p);
+			   fclose(f);
+			}
+#endif
          }
       }
    }
@@ -414,8 +480,8 @@ char       *fn;       /* File name (for -f option)  */
                fn = 0;
             }
             if (nflag)
-               printf("%d\t", lno);
-            printf("%s\n", lbuf);
+               fprintf(stdout,"%d\t", lno);
+            fprintf(stdout,"%s\n", lbuf);
          }
       }
    }
