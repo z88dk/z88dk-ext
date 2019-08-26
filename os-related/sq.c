@@ -15,7 +15,7 @@
  * 
  *
  * The original compiled program size for CP/M was 15744.
- * z88dk with a bit of tweaking can produce smaller programs (13211 during the tests, or less getting rid of wildcard support).
+ * z88dk with a bit of tweaking can produce smaller programs (15705 during the tests, or less getting rid of wildcard support).
  *
  *
  * Typical compression rates are between 30 and 50 percent for text files.
