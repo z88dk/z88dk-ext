@@ -14,7 +14,10 @@
  * included and reference made to  the  fact  that  reproduction
  * privileges were granted by DECUS.
  *
- * Compile command: cc grep -fop
+ *
+ * Original authors:
+ *    David Conroy, Martin Minow.
+ * 
  */
 
 #include <stdio.h>
