@@ -8,7 +8,7 @@
  * zcc +osca -osq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD sq.c 
  *
  * Build (z88dk - CP/M):
- * zcc +cpm -osq -create-app -O3 --opt-code-size-pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD sq.c
+ * zcc +cpm -osq -create-app -O3 --opt-code-size-pragma -define:CRT_INITIALIZE_BSS=0 -DWILDCARD sq.c
  * 
  * Build (gcc):
  * gcc -osq sq.c
