@@ -1,3 +1,4 @@
+
 /*
 		MazezaM
 
@@ -18,7 +19,9 @@
 	Build examples (NOT ONLY CP/M!!):
 
 	zcc +cpm -DVT52 -DSCREENWIDTH=40 mazezam.c -o mazezam -create-app -O3
-	zcc +zx -create-app -clib=ansi -lndos mazezam.c
+	zcc +zx -create-app -clib=ansi -pragma-define:ansicolumns=42 -lndos mazezam.c
+	zcc +zx81 -create-app -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=42 mazezam.c
+	
 	
 
 	This code may be used
@@ -28,6 +31,7 @@
 
 */
 
+#pragma output hrgpage = 36096
 
 #include <stdio.h> // We use printf(); putchar();
 #include <string.h> // strlen for the Level name centering.
