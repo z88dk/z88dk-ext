@@ -8,23 +8,42 @@
 **     (UUCP: alane@wozzle.linet.org, FIDO: 1:272/38.473)
 */
 
+#if defined(MSDOS) || defined(__MSDOS__)
+ #define READ_BINARY "rb"
+#else
+ #define READ_BINARY "r"
+#endif
+
+
 #include        <stdio.h>
 #include        <stdlib.h>
 #include        <string.h>
 #define         DEC(c)  (char)(((c)-' ')&077)
 
-int main()
+int main(int argc, char *argv[])
 {
       int     n;
       char    buf[128],a,b,c,d;
 	  char	*token;
 
+      if (argc == 2)
+      {
+            /* Use binary mode */
+            if ((freopen(argv[1], READ_BINARY, stdin)) == NULL)
+            {
+                  //perror(argv[1]);
+				  printf("Error opening file: %s\n",argv[1]);
+                  exit(1);
+            }
+      }
+	  
+
       //scanf("begin %o ", &n);
-      gets(buf);                              /* filename */
+      fgets(buf,128,stdin);                              /* filename */
 	  strtok(buf, " ");
 	  token = strtok(NULL, " ");
 	  token = strtok(NULL, " ");
-	  printf ("%s/n",token);
+	  printf ("Creating file: %s/n",token);
 	  
       if (!freopen(token, "wb", stdout))         /* oops.. */
       {
