@@ -27,9 +27,9 @@
 *  Build with hand-knit file redirection
 *  (add the following line: #pragma output noredir=1)
 *  zcc +osca -lflosxdos -O3 -DWILDCARD -DREDIR -create-app -ogrep grep.c
-*  zcc +cpm -O3 -DWILDCARD -create-app -ogrep grep.c
+*  zcc +cpm -O3 -DWILDCARD -DREDIR -create-app -ogrep grep.c
 * 
-*  Build with Internal z88dk file redirection
+*  Build with Internal z88dk file redirection (preferred option)
 *  zcc +osca -lflosxdos -O3 -DWILDCARD -create-app -ogrep grep.c
 *  zcc +cpm -DWILDCARD -O3 -create-app -ogrep grep.c
 *  
