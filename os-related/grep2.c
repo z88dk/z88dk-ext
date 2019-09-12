@@ -1,3 +1,6 @@
+/* THIS grep VARIANT BARELY WORKS ON Z88DK
+   IT IS PROBABLY A CONSEQUENCE OF ITS CRAP regexp FUNCTION */
+
 /* grep - search a file for a pattern	Author: Norbert Schlenker */
 
 /* Norbert Schlenker (nfs@princeton.edu)  1990-02-08
