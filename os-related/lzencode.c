@@ -1,8 +1,7 @@
 
 /*
-	NOTE: When built with z88dk THE DECOMPRESSION STILL FAILS !
-	at the moment a CP/M or OSCA system can COMPRESS the files only,
-	this program can still have some use to transfer files to a modern computer.
+	To build with z88dk:
+	zcc +cpm -create-app -lm -O3 lzencode.c
 */
 
 /* +++Date last modified: 05-Jul-1997 */
