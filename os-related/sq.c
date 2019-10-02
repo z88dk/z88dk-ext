@@ -44,24 +44,28 @@
  */
 
 /* CHANGE HISTORY:
- * 1.3	Close files properly in case of error exit.
- * 1.4	Break up long introductory lines.
- * 1.4	Send introduction only to console.
- * 1.4	Send errors only to console.
+ * 1.3  Close files properly in case of error exit.
+ * 1.4  Break up long introductory lines.
+ * 1.4  Send introduction only to console.
+ * 1.4  Send errors only to console.
  * 1.5  Fix BUG that caused a rare few squeezed files
- *	to be incorrect and fail the USQ crc check.
- *	The problem was that some 17 bit codes were
- *	generated but are not supported by other code.
- *	THIS IS A MAJOR CHANGE affecting TR2.C and SQ.H and
- *	requires recompilation of all files which are part
- *	of SQ. Two basic changes were made: tree depth is now
- *	used as a tie breaker when weights are equal. This
- *	makes the tree shallower. Although that may always be
- *	sufficient, an error trap was added to cause rescaling
- *	of the counts if any code > 16 bits long is generated.
- * 1.5	Add debugging displays option '-'.
+ *      to be incorrect and fail the USQ crc check.
+ *      The problem was that some 17 bit codes were
+ *      generated but are not supported by other code.
+ *      THIS IS A MAJOR CHANGE affecting TR2.C and SQ.H and
+ *      requires recompilation of all files which are part
+ *      of SQ. Two basic changes were made: tree depth is now
+ *      used as a tie breaker when weights are equal. This
+ *      makes the tree shallower. Although that may always be
+ *      sufficient, an error trap was added to cause rescaling
+ *      of the counts if any code > 16 bits long is generated.
+ * 1.5  Add debugging displays option '-'.
  * 1.6  Fixed to work correctly under MP/M II.  Also shortened
  *      signon message.
+ * 1.7  (CP/M only retrofit, merge of changes found in SQ-17.C) 
+ *      Add checkurk() memory check, changed credits 8-14-83 -CAF
+ *      Check for proper linking and sufficient memory to execute
+ *      Made inbuff and outbuff global for speed gain.
  * 2.0	New version for use with CI-C86 compiler (CP/M-86 and MS-DOS)
  * 2.1  Converted for use in MLINK
  * 2.2  Converted for use with optimizing CI-C86 compiler (MS-DOS)
@@ -83,7 +87,7 @@
 /* #define UNIX				/* comment out for CP/M, MS-DOS versions */
 #define SQMAIN
 
-#define VERSION "3.3   23/03/2012"
+#define VERSION "3.3   02/10/2019"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -102,7 +106,29 @@
 
 #pragma output noredir
 #pragma output nogfxglobals
+
+#ifdef __CPM__
+
+#include <bdscio.h>
+
 #pragma output noprotectmsdos
+unsigned Sentinel;	/* be sure this doesn't get munged ! */
+#define SENTINEL	055555
+
+/*
+ * Check for proper linking and sufficient memory to execute
+ */
+checkurk()
+{
+//	if (codend() > externs() 	/* check for bad -e value! */
+//	 || (topofmem()-1000) < endext() ) {
+	if ((topofmem()-1000) < endext() ) {
+		printf("checkurk(): bad memory layout\n");
+		exit(2);
+	}
+}
+
+#endif
 
 /* Definitions and external declarations */
 
@@ -166,6 +192,8 @@ unsigned int ccode;	/* Current code shifted so next code bit is at right */
 static char obuf[128];
 static int oblen = 0;
 
+FILE *inbuff;
+FILE *outbuff;		/* file buffers */
 
 
 /* -- DEBUGGING TOOLS -- */
@@ -766,8 +794,6 @@ int getcnr(FILE *iob)
 void squeeze(char *infile, char *outfile)
 {
 	int c;
-	FILE *inbuff;
-	FILE *outbuff;		/* file buffers */
 
 	printf("%s -> %s: ", infile, outfile);
 
@@ -921,6 +947,11 @@ void main(int argc, char *argv[])
 	int i,c;
 	char inparg[128];	/* parameter from input */
 
+#ifdef __CPM__
+	checkurk();		/* check for armageddon */
+	Sentinel = SENTINEL;	/* unlikely value */
+#endif
+	
 	debug = FALSE;
 	printf("File squeezer version %s   (original author: R. Greenlaw)\n\n", VERSION);
 
@@ -947,6 +978,9 @@ void main(int argc, char *argv[])
 				obey(inparg);
 		} while(inparg[0] != '\0');
 	}
+#ifdef __CPM__
+	if (Sentinel != SENTINEL)
+		printf("out of memory: translation suspect\007\n");
+#endif
 }
-
 
