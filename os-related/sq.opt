@@ -1,0 +1,167 @@
+	ld	hl,_obuf
+	push	hl
+	ld	hl,(_oblen)
+	inc	hl
+	ld	(_oblen),hl
+	dec	hl
+	pop	de
+	add	hl,de
+	push	hl
+	ld	hl,6	;const
+	call	l_gintsp	;
+=
+	call	sq_sub1
+	call	l_gintsp	;
+
+	pop	de
+	ld	a,l
+	ld	(de),a
+	ld	hl,(_oblen)
+	ld	de,128
+	ex	de,hl
+	call	l_ge
+	jp	nc,%1
+	pop	bc
+	pop	hl
+	push	hl
+	push	bc
+	push	hl
+	call	_oflush
+	pop	bc
+.%1
+=
+	call	sq_sub2
+
+	ld	hl,_node
+	push	hl
+	ld	hl,%1	;const
+	add	hl,sp
+	call	l_gint7de	;
+	inc	hl
+	inc	hl
+	call	l_gchar
+	push	hl
+	ld	hl,_node
+	push	hl
+	ld	hl,%1	;const
+	add	hl,sp
+	call	l_gint7de	;
+	inc	hl
+	inc	hl
+	call	l_gchar
+=
+	ld	bc,%1
+	call	sq_sub3
+
+	add	hl,sp
+	inc	(hl)
+	ld	a,(hl)
+	inc	hl
+	jr	nz,ASMPC+3
+	inc	(hl)
+=
+	add	hl,sp
+	call	sq_sub4
+
+	push	hl
+	ld	hl,%1	;const
+	add	hl,sp
+	call	l_gint7de	;
+	call	l_gint	;
+=
+	ld	de,%1+2
+	call	sq_sub5
+
+	ld	hl,1	;const
+	add	hl,sp
+	push	hl
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	ld	hl,(_ccode)
+	push	hl
+	ld	hl,6	;const
+	call	l_gcharsp	;
+	ld	de,8
+	ex	de,hl
+	and	a
+	sbc	hl,de
+	pop	de
+	call	l_asl
+	pop	de
+	call	l_or
+	call	l_pint_pop
+=
+	ld	hl,1	;const
+	add	hl,sp
+	call	sq_sub6
+
+	add	hl,hl
+	pop	de
+	add	hl,de
+	call	l_gint	;
+=
+	call	sq_sub7
+
+	ld	hl,%1	;const
+	call	l_gintspsp	;
+	ld	hl,%2	;const
+	call	l_gintsp	;
+=
+	ld	l,%1
+	ld	h,%2
+	call	sq_sub8
+
+	xor	a
+	ld	(hl),a
+	inc	hl
+	ld	(hl),a
+=
+	ld	(hl),0
+
+	ld	de,65535
+	and	a
+	sbc	hl,de
+=
+	call	sq_sub9
+
+	call	sq_sub9
+	scf
+=
+	call	sq_sub9
+
+	add	hl,sp
+	dec	(hl)
+	ld	a,(hl)
+	inc	hl
+	cp	255
+	jr	nz,ASMPC+3
+	dec	(hl)
+	ld	h,(hl)
+	ld	l,a
+=
+	add	hl,sp
+	call	sq_sub10
+
+	ld	hl,_node
+	push	hl
+	ld	hl,%1	;const
+	add	hl,sp
+	call	l_gint7de	;
+	ld	bc,5
+	add	hl,bc
+=
+	ld	de,%1
+	call	sq_sub11
+
+	push	hl
+	ld	hl,16	;const
+	call	l_gintsp	;
+	push	hl
+	call	_putwe
+	pop	bc
+	pop	bc
+=
+	call	sq_sub12
+
