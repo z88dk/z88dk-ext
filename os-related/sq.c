@@ -9,6 +9,8 @@
  *
  * Build (z88dk - CP/M):
  * zcc +cpm -osq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD sq.c
+ * Extra program size reduction:
+ * zcc +cpm -osq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -custom-copt-rules sq.opt -DCOMPACT sq.c
  * 
  * Build (gcc):
  * gcc -osq sq.c
@@ -83,6 +85,15 @@
  * or not.
  */
 
+
+/* z88dk specific option, to squeeze your program at most.. may become slower */
+/* in must be used in conjunction with the extra "-custom-copt-rules sq.opt" setting on zcc */
+
+#ifdef COMPACT
+#include "sq_opt.c"
+#endif
+
+
 #define FNM_LEN 12
 /* #define UNIX				/* comment out for CP/M, MS-DOS versions */
 #define SQMAIN
@@ -107,6 +118,7 @@
 #pragma output noredir
 #pragma output nogfxglobals
 
+#ifndef COMPACT
 #ifdef __CPM__
 
 #include <bdscio.h>
@@ -128,6 +140,7 @@ checkurk()
 	}
 }
 
+#endif
 #endif
 
 /* Definitions and external declarations */
@@ -947,9 +960,11 @@ void main(int argc, char *argv[])
 	int i,c;
 	char inparg[128];	/* parameter from input */
 
+#ifndef COMPACT
 #ifdef __CPM__
 	checkurk();		/* check for armageddon */
 	Sentinel = SENTINEL;	/* unlikely value */
+#endif
 #endif
 	
 	debug = FALSE;
@@ -978,9 +993,11 @@ void main(int argc, char *argv[])
 				obey(inparg);
 		} while(inparg[0] != '\0');
 	}
+#ifndef COMPACT
 #ifdef __CPM__
 	if (Sentinel != SENTINEL)
 		printf("out of memory: translation suspect\007\n");
+#endif
 #endif
 }
 
