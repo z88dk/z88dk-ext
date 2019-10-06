@@ -6,7 +6,6 @@
  *
  *
  *
- 
  *
  * Create an archive in ancient PDP11 format
  *
@@ -15,11 +14,13 @@
  * Build example:
  * zcc +cpm -create-app -O3 -Dunix -DAMALLOC -oarch arch.c
  *
+ * CP/M emulators note:
+ *    only text files created by CP/M programs will be processed correctly!
  */
 
 
 /* Temporary workaround for the z88dk bug on fputs */
-#ifdef Z80
+#ifdef Z88DK_BEFORE_OCT2019
 #define do_fputs(a,b)	fprintf(b,"%s",a)
 #else
 #define do_fputs(a,b) fputs(a,b)
