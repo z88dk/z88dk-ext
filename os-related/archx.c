@@ -24,7 +24,7 @@
 
 
 /* Temporary workaround for the z88dk bug on fputs */
-#ifdef Z80
+#ifdef Z88DK_BEFORE_OCT2019
 #define do_fputs(a,b)	fprintf(b,"%s",a)
 #else
 #define do_fputs(a,b) fputs(a,b)
