@@ -206,7 +206,7 @@ FILE		*newfd		= NULL;	/* New archive			*/
 FILE		*logfd;			/* Log output			*/
 int		newarchive	= FALSE; /* True if create from scratch	*/
 int		logging		= FALSE; /* True if log file enabled	*/
-char		text[513];		/* Working text			*/
+char		text[255];		/* Working text			*/
 char		arname[81];		/* Current archive member name	*/
 char		filename[81];		/* Working file name		*/
 char		arfilename[81];		/* Archive file name		*/
