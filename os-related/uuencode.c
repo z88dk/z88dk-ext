@@ -29,7 +29,7 @@ BITNET: kneller@ucsfcgl.BITNET
  #endif
 #endif
 
-#if defined(MSDOS) || defined(__MSDOS__)
+#if defined(MSDOS) || defined(__MSDOS__) || defined(Z80)
  #define READ_BINARY "rb"
 #else
  #define READ_BINARY "r"
