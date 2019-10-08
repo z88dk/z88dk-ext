@@ -1,4 +1,8 @@
-/* Ported to Z88DK  in 2019 */
+/*  Ported to Z88DK  in 2019  */
+
+/*  zcc +cpm -create-app -O3 -ouudecode uudecode.c  */
+
+
 
 /* +++Date last modified: 05-Jul-1997 */
 
@@ -8,7 +12,7 @@
 **     (UUCP: alane@wozzle.linet.org, FIDO: 1:272/38.473)
 */
 
-#if defined(MSDOS) || defined(__MSDOS__)
+#if defined(MSDOS) || defined(__MSDOS__) || defined(Z80)
  #define READ_BINARY "rb"
 #else
  #define READ_BINARY "r"
@@ -17,14 +21,13 @@
 
 #include        <stdio.h>
 #include        <stdlib.h>
-#include        <string.h>
+
 #define         DEC(c)  (char)(((c)-' ')&077)
 
 int main(int argc, char *argv[])
 {
       int     n;
       char    buf[128],a,b,c,d;
-	  char	*token;
 
       if (argc == 2)
       {
@@ -38,16 +41,13 @@ int main(int argc, char *argv[])
       }
 	  
 
-      //scanf("begin %o ", &n);
-      fgets(buf,128,stdin);                              /* filename */
-	  strtok(buf, " ");
-	  token = strtok(NULL, " ");
-	  token = strtok(NULL, " ");
-	  printf ("Creating file: %s/n",token);
+      scanf("begin %o ", &n);
+      gets(buf);                              /* filename */
+	  printf ("Creating file: %s\n",buf);
 	  
-      if (!freopen(token, "wb", stdout))         /* oops.. */
+      if (!freopen(buf, "wb", stdout))         /* oops.. */
       {
-			printf("Error creating output file.. %s\n",token);
+			printf("Error creating output file.. %s\n",buf);
             exit(1);
       }
 	  
