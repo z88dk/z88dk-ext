@@ -3,8 +3,8 @@
 /* zcc +cpm  -O3 -create-app -ountar untar.c */
 
 /* TODO: subfolder support for the OSCA target, 
-         options for files to be extracted (wildcards?)
-         options to pick also files in archive's subfolders (e.g. useful in CP/M) */
+         options to limit files to be extracted (wildcards?)
+*/
 
 
 /*
@@ -97,6 +97,7 @@ static void
 untar(FILE *a, const char *path)
 {
 	char buff[512];
+	char *fname;
 	FILE *f = NULL;
 	size_t bytes_read;
 	int filesize;
@@ -121,29 +122,33 @@ untar(FILE *a, const char *path)
 		filesize = parseoct(buff + 124, 12);
 		switch (buff[156]) {
 		case '1':
-			printf(" Ignoring hardlink %s\n", buff);
+			printf(" Ignoring hardlink '%s'\n", buff);
 			break;
 		case '2':
-			printf(" Ignoring symlink %s\n", buff);
+			printf(" Ignoring symlink '%s'\n", buff);
 			break;
 		case '3':
-			printf(" Ignoring character device %s\n", buff);
+			printf(" Ignoring character device '%s'\n", buff);
 				break;
 		case '4':
-			printf(" Ignoring block device %s\n", buff);
+			printf(" Ignoring block device '%s'\n", buff);
 			break;
 		case '5':
-			printf(" Skipping dir creation %s\n", buff);
+			printf(" Skipping dir creation '%s'\n", buff);
 			//create_dir(buff, parseoct(buff + 100, 8));
 			filesize = 0;
 			break;
 		case '6':
-			printf(" Ignoring FIFO %s\n", buff);
+			printf(" Ignoring FIFO '%s'\n", buff);
 			break;
 		default:
-			printf(" Extracting file %s\n", buff);
+			(fname = strrchr(buff, '/')) ? ++fname : (fname = buff);  // Unix style
+			if ( strcmp(buff,fname) )
+				printf(" Extracting file '%s' (from %s)\n", fname, buff);
+			else
+				printf(" Extracting file '%s'\n", buff);
 			//f = create_file(buff, parseoct(buff + 100, 8));
-			f = fopen(buff, "wb+");
+			f = fopen(fname, "wb+");
 			break;
 		}
 		while (filesize > 0) {
@@ -201,4 +206,3 @@ main(int argc, char **argv)
 
 	return (0);
 }
-
