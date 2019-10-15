@@ -1,5 +1,6 @@
 
-/*  zcc +zx -lndos -create-app -clib=ansi -pragma-define:ansicolumns=80 hanoi.c  */
+/*  zcc +zx -lndos -create-app -DINTERACTIVE -clib=ansi -pragma-define:ansicolumns=80 hanoi.c  */
+/*  zcc +zx81 -lndos -create-app -DINTERACTIVE -clib=wrxansi -subtype=wrx -pragma-define:ansicolumns=80 hanoi.c  */
 
 
 /*
@@ -210,12 +211,14 @@ char *argv[];
 {
 	register int n;
 
-	if (argc == 0) {
+#ifdef INTERACTIVE
 		printf ("%c Enter number of rings: ",12);
 		n = atoi(gets(inbuf));
-//		argc = 2;
-//		argv[0] = "hanoi";
-//		argv[1] = "5";
+#else
+	if (argc == 0) {
+		argc = 2;
+		argv[0] = "hanoi";
+		argv[1] = "5";
 	}
 		else {
 		if (argc < 2) {
@@ -231,6 +234,7 @@ char *argv[];
 #ifndef Z80
 	if ((vt_fd = fopen("ti:", "wn")) == NULL)
 		error("Can't open terminal");
+#endif
 #endif
 	setup(n);
 	hanoi(n, 0, 2, 1);
