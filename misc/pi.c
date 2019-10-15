@@ -2,6 +2,14 @@
 
 /* zcc +cpm -create-app -O3 -lm -DAMALLOC pi.c */
 
+#ifdef Z80
+#define FAR
+#define PASCAL
+#define Size_T size_t
+#define mlloc(x,y) calloc(x,y)
+#endif
+
+
 /*
 **  PI.C - Computes Pi to an arbitrary number of digits
 **
