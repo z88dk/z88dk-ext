@@ -5,7 +5,7 @@
    and some output is already visible if the program is located in certain RAM positions,
    the computer is solving the maze, and the maze size is kept very small. */
 
-/* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY -zorg=27000 maze.c */
+/* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY maze.c */
 
 /*
  *	Amazing demonstration program
@@ -47,10 +47,12 @@ FILE	*fd;
  * Conroy's compiler does not permit constant expressions in array
  * definitions, so the sizes must be worked out by hand:
  */
-#define WSIZE		39		/* Columns in the maze		*/
+ 
+ /* Constants for the ZX Spectrum on z88dk*/
+#define WSIZE		31		/* Columns in the maze		*/
 #define LSIZE		11		/* Rows in the maze		*/
 
-#define	LINESIZE	82		/* Input text line size		*/
+#define	LINESIZE	31		/* Input text line size		*/
 
 /*
  * Character definitions (and constants for video terminal output)
@@ -201,9 +203,9 @@ static FLAG wall[]	 =  {	EBIT,	 SBIT,	WBIT,	 NBIT,	0 };
 /*
  *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *	*								*
- *	*	    M a n g l e   t h e   M a z e			*
- *	*								*
+ *	*                                                               *
+ *	*               M a n g l e   t h e   M a z e                   *
+ *	*                                                               *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  */
@@ -214,7 +216,7 @@ resetmaze()
  * Initialize the maze (slightly ugly since C lacks structure assignment)
  */
 {
-	register struct square	*mp;
+	struct square	*mp;
 	
 	for (mp = &maze[0][0]; mp <= &maze[LSIZE-1][WSIZE-1]; mp++) {
 		mp->flag = EBIT | SBIT | WBIT | NBIT;
@@ -230,7 +232,7 @@ clearmarks()
  * Make sure nobody thinks we've been anywhere in the maze
  */
 {
-	register struct square	*mp;
+	struct square	*mp;
 	
 	for (mp = &maze[0][0]; mp <= &maze[LSIZE-1][WSIZE-1]; mp++)
 		mp->flag &= ~HERE;
@@ -262,9 +264,9 @@ struct sqrptr	*x;
 
 /*
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *	*								*
- *	*		C o n s t r u c t   a   M a z e			*
- *	*								*
+ *	*                                                               *
+ *	*               C o n s t r u c t   a   M a z e                 *
+ *	*                                                               *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  */
@@ -300,7 +302,6 @@ DIRECTION	d;		/* Which wall to remove			*/
  */
 {
 	struct sqrptr		nearby;
-	//struct square		*movesquare();
 
 	maze[x->row][x->col].flag &= ~wall[d];
 	(movesquare(&current, &nearby, d))->flag &= ~rwall[d];
@@ -423,9 +424,9 @@ BOOLEAN		display;	/* Show handiwork if set		*/
  *
  */
 {
-	register int	count;		/* How many squares visited	*/
-	register int	size;		/* How many squares to visit	*/
-	register DIRECTION compass;
+	unsigned int	count;		/* How many squares visited	*/
+	unsigned int	size;		/* How many squares to visit	*/
+	DIRECTION compass;
 	int		pathmax;	/* Possible path maximum	*/
 	int		pathlen;	/* Current path length		*/
 	int		somewhere;	/* Random place in the maze	*/
@@ -471,9 +472,9 @@ BOOLEAN		display;	/* Show handiwork if set		*/
 
 /*
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *	*								*
- *	*		M a z e   O u t p u t				*
- *	*								*
+ *	*                                                               *
+ *	*                    M a z e   O u t p u t                      *
+ *	*                                                               *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  */
@@ -516,7 +517,8 @@ report()
 
 
 
-char blobstring[]	=	{ DOT };
+//char blobstring[]	=	{ DOT };
+char blobstring[]	=	{ '*' };
 
 blob(x, offset)
 struct sqrptr	*x;
@@ -536,7 +538,7 @@ showpath()
  * Write the path through the maze (The maze is linked from start to finish)
  */
 {
-	register DIRECTION	d;
+	DIRECTION	d;
 	struct sqrptr		next;
 /*	struct square		*movesquare();	-- A compiler objected	*/
 
@@ -581,8 +583,8 @@ showreverse()
  * Write the path through the maze (The maze is linked from finish to start)
  */
 {
-	register DIRECTION	d;
-	register struct square	*mp;
+	DIRECTION	d;
+	struct square	*mp;
 	struct sqrptr		next;
 /*	struct square		*movesquare();	-- A compiler complaint	*/
 
@@ -626,7 +628,7 @@ BOOLEAN	hack;		/* Special case for the top line.		*/
  * The hack flag leaves an opening at the top of the maze.
  */
 {
-	register int	i;
+	unsigned int	i;
 
 	dca(oldrow*2 + 2, oldcol*2);
 	if (hack) {
@@ -651,7 +653,7 @@ int	newrow;
  */
 {
 
-	register int	i;
+	unsigned int	i;
 
 	dca(oldrow*2, oldcol*2 + 2);
 	for (i = oldrow; i <= newrow; i++)
@@ -666,9 +668,9 @@ DIRECTION	dir;		/* Which wall (SOUTH or NORTH)		*/
  * Draw the horizontal information
  */
 {
-	register int		j;
-	register int		k;
-	register DIRECTION	d;
+	unsigned int		j;
+	unsigned int		k;
+	DIRECTION	d;
 
 	d = dir;
 	for (j = 0; j < width;) {
@@ -694,9 +696,9 @@ DIRECTION	dir;		/* Which wall (SOUTH or NORTH)		*/
  * Draw the vertical information
  */
 {
-	register int		j;
-	register int		k;
-	register DIRECTION	d;
+	unsigned int		j;
+	unsigned int		k;
+	DIRECTION	d;
 
 	d = dir;
 	for (j = 0; j < length;) {
@@ -721,10 +723,9 @@ showmaze()
  * Write the maze on the screen
  */
 {
-	register int	i;
+	unsigned int	i;
 
-	//erase();
-	fputc_cons(12);
+	erase();
 
 	for (i = 0; i < length; i++)
 		horizontal(i, SOUTH);
@@ -734,9 +735,6 @@ showmaze()
 		vertical(i, WEST);
 	vertical(width-1, EAST);
 }
-
-
-
 
 
 
@@ -751,22 +749,22 @@ char unwest[]	= { ' ', WESTWARD,  ' ' };
 char unnorth[]	= { ' ', NORTHWARD, ' ' };
 
 struct undraw {
-	char	*str;
-	int	len;
+	char *str;
+	int  len;
 };
 
 static struct undraw xout[] = {
-	{ &unxeast,	2	},
-	{ &unxsouth,	3 },
-	{ &unxwest,	3	},
-	{ &unxnorth,	3	}
+	{ &unxeast,  2 },
+	{ &unxsouth, 3 },
+	{ &unxwest,  3 },
+	{ &unxnorth, 3 }
 };
 
 static struct undraw whiteout[] = {
-	{ &uneast,	2	},
-	{ &unsouth,	3 },
-	{ &unwest,	3	},
-	{ &unnorth,	3	}
+	{ &uneast,  2 },
+	{ &unsouth, 3 },
+	{ &unwest,  3 },
+	{ &unnorth, 3 }
 };
 
 /*
@@ -806,9 +804,9 @@ struct sqrptr	*x;
 /*
  *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *	*								*
- *	*    F i n d   a   P a t h   T h r o u g h   t h e   M a z e	*
- *	*								*
+ *	*                                                               *
+ *	*    F i n d   a   P a t h   T h r o u g h   t h e   M a z e    *
+ *	*                                                               *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  */
@@ -835,10 +833,10 @@ BOOLEAN		display;	/* Show the maze if set			*/
  *		
  */
 {
-	register DIRECTION	compass;
-	register BOOLEAN	soluble;
-	register struct square	*mp;
-	//struct square		*movesquare();
+	DIRECTION	compass;
+	BOOLEAN	soluble;
+	struct square	*mp;
+	
 	BOOLEAN			clearahead();
 	DIRECTION		randompath();
 
@@ -892,11 +890,11 @@ isolve()
 		resetmaze();		/* Clean it out			*/
 		buildmaze(showoff);	/* Make a maze			*/
 	
-		showmaze();		/* Display the maze		*/
+		showmaze();  /* Display the maze		*/
 		findpath(TRUE);		/* Find a path (display it)	*/
 	
 		if (showxpath) {	/* If the display is unclean	*/
-			showmaze();	/* Display the maze		*/
+			showmaze();     /* Display the maze		*/
 			showreverse();	/* And the path			*/
 		}
 		sleep(10);		/* Show the amazing result	*/
@@ -918,11 +916,10 @@ yousolve()
  */
 {
 
-	register DIRECTION	compass;
-	register struct square	*mp;
-	register BOOLEAN	errflag;
+	DIRECTION	compass;
+	struct square	*mp;
+	BOOLEAN	errflag;
 	DIRECTION		getmove();
-	//struct square		*movesquare();
 	
 	for (;;) {			/* Forever, ...			*/
 		erase();
@@ -1036,9 +1033,9 @@ DIRECTION		d;	/* Where we are trying to get to	*/
  * Test whether we can go in the desired direction
  */
 {
-	register BOOLEAN	blocked;
-	register struct square	*mp;
-	//struct square		*movesquare();
+	BOOLEAN	blocked;
+	struct square	*mp;
+
 	struct sqrptr		nearby;
 
 	blocked = (maze[x->row][x->col].flag & wall[d]) != 0;
@@ -1064,9 +1061,9 @@ BOOLEAN		(*goodpath)();		/* Function called from here	*/
  */
 {
 
-	register int i;
-	register int j;
-	register DIRECTION temp;
+	unsigned int i;
+	unsigned int j;
+	DIRECTION temp;
 
 	for (i = 1; i < 4; i++) {	/* Shuffle the path vector	*/
 		//j = irand(i);		/* Locate a random one to do	*/
@@ -1091,7 +1088,7 @@ DIRECTION getmove()
  * Return UNKNOWN if CTRL/C or CTRL/Z struck.
  */
 {
-	register int	c;
+	unsigned int	c;
 	BOOLEAN		flag;
 
 	flag = TRUE;			/* Looking for an ESCAPE	*/
@@ -1132,9 +1129,9 @@ DIRECTION getmove()
 
 /*
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *	*								*
- *	*		T e r m i n a l   I / O				*
- *	*								*
+ *	*                                                               *
+ *	*                   T e r m i n a l   I / O                     *
+ *	*                                                               *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  */
@@ -1152,8 +1149,8 @@ int		max;		/* Maximum value to accept, see below	*/
  * Note:  getvalue(row, text, 1, 0) accepts any input value.
  */
 {
-	register BOOLEAN	allok;
-	register int		value;
+	BOOLEAN	allok;
+	unsigned int		value;
 	char			line[LINESIZE];
 
 	allok = (min == 1) && (max == 0);	/* Accept anything	*/
@@ -1183,8 +1180,8 @@ char		*assume;	/* Assumed answer			*/
  * Prompt and get a yes/no answer
  */
 {
-	register char	*lp;
-	char		line[LINESIZE];
+	char	*lp;
+	char	line[LINESIZE];
 
 	for (;;) {
 		dca(row, 0);
@@ -1207,16 +1204,16 @@ char		*assume;	/* Assumed answer			*/
 
 /*
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- *	*								*
- *	*		M a i n   P r o g r a m				*
- *	*								*
+ *	*                                                               *
+ *	*                   M a i n   P r o g r a m                     *
+ *	*                                                               *
  *	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
  */
 
 main(argc, argv)
-int		argc;		/* Number of arguments			*/
-char		*argv[];	/* Argument pointer array		*/
+int 	argc;		/* Number of arguments			*/
+char	*argv[];	/* Argument pointer array		*/
 {
 
 #ifdef	rsx
@@ -1226,14 +1223,14 @@ char		*argv[];	/* Argument pointer array		*/
 
 	erase();
 #ifdef	vms
-	printf("\n");			/* Prime the I/O package	*/
+	printf("\n");            /* Prime the I/O package */
 #endif
 	length = getvalue(23, "Maze length", 2, LSIZE);
 	width  = getvalue(22, "Maze width",  2, WSIZE);	
-	start.row  = 0;			/* The maze			*/
-	start.col  = width - 1;		/*   starts here		*/
-	finish.row = length-1;		/*     and it			*/
-	finish.col = 0;			/*       ends here.		*/
+	start.row  = 0;          /* The maze           */
+	start.col  = width - 1;  /*   starts here      */
+	finish.row = length-1;   /*     and it         */
+	finish.col = 0;          /*       ends here.   */
 
 	showoff = getyesno(21, "Show internal maze building process", "No");
 
@@ -1250,8 +1247,8 @@ char		*argv[];	/* Argument pointer array		*/
 
 #ifdef	rsx
 ttyput(buffer, buflen)
-char		*buffer;	/* What to output			*/
-int		buflen;		/* Number of bytes to output		*/
+char	*buffer;	/* What to output			*/
+int 	buflen;		/* Number of bytes to output	*/
 /*
  * Output to the terminal.  RSX mode.
  */
@@ -1353,4 +1350,5 @@ register int	count;
 	}
 }	
 #endif
+
 
