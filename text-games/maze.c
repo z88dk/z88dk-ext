@@ -1,11 +1,9 @@
 
-/* This is an unfinished port to z88dk of what looks a nice piece of history (around 1982).
-   Memory overflows happen and the program is unstable.
-   Nevertheless, the ANSI VT emulation is close to the original  program requirements,
-   and some output is already visible if the program is located in certain RAM positions,
-   the computer is solving the maze, and the maze size is kept very small. */
+/* This is the port to z88dk of what looks a nice piece of history (around 1982).
+   Keyboard is adapted to work with keys QAOP.
+   The ANSI VT emulation is close to the original program requirements.
 
-/* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY -DJOYSTICK maze.c */
+/* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY -DQAOP maze.c */
 
 /*
  *	Amazing demonstration program
@@ -939,6 +937,29 @@ DIRECTION getmove()
 	return(UNKNOWN);
 
 #else
+	
+#ifdef QAOP
+	for (;;) {
+		
+		c = getch();
+
+		switch (c) {
+			
+		case 'q':	return(NORTH);
+
+		case 'a':	return(SOUTH);
+
+		case 'p':	return(EAST);
+
+		case 'o':	return(WEST);
+		
+		}
+		
+		return(UNKNOWN);
+
+	}
+#else
+
 	BOOLEAN		flag;
 	
 	flag = TRUE;			/* Looking for an ESCAPE	*/
@@ -972,6 +993,7 @@ DIRECTION getmove()
 				flag = TRUE;
 		}
 	}
+#endif
 #endif
 }
 
