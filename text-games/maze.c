@@ -4,7 +4,7 @@
    The ANSI VT emulation is close to the original program requirements.
 
 /* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY -DQAOP maze.c */
-/* zcc +zx81 -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY -DQAOP -clib=ansi -subtype=wrx maze.c */
+/* zcc +zx81 -create-app -O3 --opt-code-size -lndos -clib=ansi -subtype=wrx -DHAVEGOTOXY -DQAOP maze.c */
 
 /*
  *	Amazing demonstration program
