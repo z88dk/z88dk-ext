@@ -5,7 +5,7 @@
    and some output is already visible if the program is located in certain RAM positions,
    the computer is solving the maze, and the maze size is kept very small. */
 
-/* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY maze.c */
+/* zcc +zx -create-app -O3 --opt-code-size -lndos -clib=ansi -DHAVEGOTOXY -DJOYSTICK maze.c */
 
 /*
  *	Amazing demonstration program
@@ -37,6 +37,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef JOYSTICK
+#include <games.h>
+int stick;
+#endif
+
 #ifdef	rsx
 FILE	*fd;
 #endif
@@ -66,6 +71,7 @@ FILE	*fd;
 #define	DOWN		ESC, 'B'
 #define	RIGHT		ESC, 'C'
 #define	LEFT		BS
+//#define	LEFT		ESC, 'D'
 #define ONGRAPH		ESC, 'F'	/* VT52 graphics mode, not used	*/
 #define OFFGRAPH	ESC, 'G'	/* VT52 graphics mode, not used	*/
 #define	HOME		ESC, 'H'
@@ -118,8 +124,8 @@ struct square {
 };
 
 struct sqrptr {
-	int	row;
-	int	col;
+	unsigned int	row;
+	unsigned int	col;
 };
 
 
@@ -322,8 +328,9 @@ static char *pathstring[] = {
 	&unknownpath
 };
 
+static int pathstrlen[5];
 /*
-static int pathlen[] = {
+static int pathstrlen[] = {
 	sizeof eastpath,
 	sizeof southpath,
 	sizeof westpath,
@@ -331,13 +338,6 @@ static int pathlen[] = {
 	sizeof unknownpath
 };
 */
-static int pathlen[] = {
-	3,
-	5,
-	5,
-	5,
-	1
-};
 
 
 
@@ -393,7 +393,7 @@ DIRECTION	d;
  */
 {
 	move(x);				/* Move to box's center	*/
-	ttyput(pathstring[d], pathlen[d]);	/* and draw the path	*/
+	ttyput(pathstring[d], pathstrlen[d]);	/* and draw the path	*/
 }
 
 
@@ -755,16 +755,16 @@ struct undraw {
 
 static struct undraw xout[] = {
 	{ &unxeast,  2 },
-	{ &unxsouth, 3 },
-	{ &unxwest,  3 },
-	{ &unxnorth, 3 }
+	{ &unxsouth, 6 },
+	{ &unxwest,  6 },
+	{ &unxnorth, 6 }
 };
 
 static struct undraw whiteout[] = {
 	{ &uneast,  2 },
-	{ &unsouth, 3 },
-	{ &unwest,  3 },
-	{ &unnorth, 3 }
+	{ &unsouth, 6 },
+	{ &unwest,  6 },
+	{ &unnorth, 6 }
 };
 
 /*
@@ -910,6 +910,72 @@ static char *dirname[] = {
 	"North "
 };
 
+
+
+
+DIRECTION getmove()
+/*
+ * Read a move from the terminal (using the VT52 arrow keys).
+ * Note: this requires single-character input (enbspc()).
+ * Return UNKNOWN if CTRL/C or CTRL/Z struck.
+ */
+{
+
+	unsigned int	c;
+	
+#ifdef JOYSTICK
+    
+	while ( c=joystick(stick) == 0 ) {}
+	while ( joystick(stick) != 0 ) {}
+
+	switch (c) {
+	case MOVE_RIGHT:  return(EAST);
+	case MOVE_LEFT:   return(WEST);
+	case MOVE_UP:     return(NORTH);
+	case MOVE_DOWN:   return(SOUTH);
+	default:	return(UNKNOWN);
+	}
+	
+	return(UNKNOWN);
+
+#else
+	BOOLEAN		flag;
+	
+	flag = TRUE;			/* Looking for an ESCAPE	*/
+	for (;;) {
+#ifdef	rt11
+		c = ttyin() & 0177;
+#endif
+#ifdef	vms
+		c = kbgetc();
+#endif
+		if (c == ('C' - 0100) || c == ('Z' - 0100)) {
+#ifdef	rt11
+			disspc();
+#endif
+			return(UNKNOWN);
+		}
+		if (c == 0 || c == 0177) continue;
+		if (flag && c == (ESC & 0177)) {
+			flag = FALSE;
+			continue;
+		}
+		switch (c) {
+		case 'A':	return(NORTH);
+
+		case 'B':	return(SOUTH);
+
+		case 'C':	return(EAST);
+
+		case 'D':	return(WEST);
+		default:
+				flag = TRUE;
+		}
+	}
+#endif
+}
+
+
 yousolve()
 /*
  * The human solves the maze.
@@ -919,7 +985,7 @@ yousolve()
 	DIRECTION	compass;
 	struct square	*mp;
 	BOOLEAN	errflag;
-	DIRECTION		getmove();
+	//DIRECTION		getmove();
 	
 	for (;;) {			/* Forever, ...			*/
 		erase();
@@ -1081,48 +1147,6 @@ BOOLEAN		(*goodpath)();		/* Function called from here	*/
 
 
 
-DIRECTION getmove()
-/*
- * Read a move from the terminal (using the VT52 arrow keys).
- * Note: this requires single-character input (enbspc()).
- * Return UNKNOWN if CTRL/C or CTRL/Z struck.
- */
-{
-	unsigned int	c;
-	BOOLEAN		flag;
-
-	flag = TRUE;			/* Looking for an ESCAPE	*/
-	for (;;) {
-#ifdef	rt11
-		c = ttyin() & 0177;
-#endif
-#ifdef	vms
-		c = kbgetc();
-#endif
-		if (c == ('C' - 0100) || c == ('Z' - 0100)) {
-#ifdef	rt11
-			disspc();
-#endif
-			return(UNKNOWN);
-		}
-		if (c == 0 || c == 0177) continue;
-		if (flag && c == (ESC & 0177)) {
-			flag = FALSE;
-			continue;
-		}
-		switch (c) {
-		case 'A':	return(NORTH);
-
-		case 'B':	return(SOUTH);
-
-		case 'C':	return(EAST);
-
-		case 'D':	return(WEST);
-		default:
-				flag = TRUE;
-		}
-	}
-}
 
 
 
@@ -1216,9 +1240,27 @@ int 	argc;		/* Number of arguments			*/
 char	*argv[];	/* Argument pointer array		*/
 {
 
+pathstrlen[0] = sizeof eastpath;
+pathstrlen[1] = sizeof southpath;
+pathstrlen[2] = sizeof westpath;
+pathstrlen[3] = sizeof northpath;
+pathstrlen[4] = sizeof unknownpath;
+
 #ifdef	rsx
 	if ((fd = fopen("ti:", "wun")) == NULL)
 		error("Can't open ti:");
+#endif
+
+#ifdef JOYSTICK
+	erase();
+	int i;
+
+	for (i=0 ; i!=GAME_DEVICES; i++)
+		printf("%u - %s\n",i+1,joystick_type[i]);
+		
+	stick=0;
+	while ((stick<1) || (stick>GAME_DEVICES))
+		stick=getk()-48;
 #endif
 
 	erase();
