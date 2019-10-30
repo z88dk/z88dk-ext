@@ -1,8 +1,8 @@
 
-/* With z88dk, library editing does not work (random access limits?) */
-/* the 'Reorganize' option even destroys the library file !          */
-/* 'NOEDIT' will disable risky stuff                                 */
+/* With z88dk, library editing may not work on some target    */
+/* 'NOEDIT' will limit the tool (and its size) in those cases */
 
+/* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER lar.c */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DNOEDIT lar.c */
 
 
@@ -38,7 +38,7 @@ Stephen Hemminger,  Mitre Corp. Bedford MA
  *	e - Extract files from library
  *	p - Print files in library
  *	d - Delete files in library
- *	r - Reorginize library
+ *	r - Reorganize library
  *  Other keys:
  *	v - Verbose
  *
@@ -123,9 +123,6 @@ char	*cmdname;
 
 //char   *getfname(), *sprintf();
 int	table(), extract(), print();
-#ifndef NOEDIT
-int	update(), reorg(), del_entry();
-#endif
 
 
 /* print error message and exit */
@@ -328,8 +325,11 @@ putdir (f)
 FILE *f;
 {
 
-	//if (fseek(f, 0L, SEEK_SET) == -1)   //<< workaround for gcc
+#ifdef __GNUC__
+	if (fseek(f, 0L, SEEK_SET) == -1)   //<< workaround for gcc
+#else
     if (rewind(f) == -1)
+#endif
         error("Can't rewind the library file\n");
 
     if (fwrite ((char *) ldir, DSIZE, nslots, f) != nslots)
@@ -512,7 +512,7 @@ FILE *lfd;
     FILE	*ifd;
     register int secoffs, numsecs;
     register int i;
-
+	
     if ((ifd = fopen (name, "rb")) == NULL) {
 	fprintf (stderr, "%s: can't find to add\n",name);
 	errcnt++;
@@ -535,7 +535,7 @@ FILE *lfd;
     ldir[i].l_stat = ACTIVE;
     putname (ldir[i].l_name, name);
     VOID fseek(lfd, 0L, SEEK_END);		/* append to end */
-    secoffs = ftell(lfd) / SECTOR;
+    secoffs = ftell(lfd) / 128L;
 
     itow (ldir[i].l_off, secoffs);
     numsecs = fcopy (ifd, lfd);
@@ -550,8 +550,7 @@ char   *name;
     FILE *lfd;
     register int    i;
 
-    if ((lfd = fopen (name, "rb+")) == NULL) {
-	if ((lfd = fopen (name, "wb+")) == NULL)
+    if ((lfd = fopen (name, "r+b")) == NULL) {
 	    cant (name);
 	initdir (lfd);
     }
@@ -577,13 +576,14 @@ char   *lname;
     char *unixnm;
     register int    i;
 
-    if ((f = fopen (lname, "rb+")) == NULL)
+    if ((f = fopen (lname, "r+b")) == NULL)
 	cant (lname);
 
     if (nfiles <= 0)
 	error("Filename to delete from Library was not specified");
 
     getdir (f);
+	
     for (i = 0; i < nslots; i++) {
         unixnm = getfname (ldir[i].l_name, ldir[i].l_ext);
 	if (!filarg (unixnm))
@@ -646,9 +646,10 @@ char  *name;
     int oldsize;
     register int i, j;
     struct ludir odir[MAXFILES];
-    char tmpname[SECTOR];
+    //char tmpname[SECTOR];
+	char tmpname[]="lutemp.tmp";
 
-    strcpy(tmpname,name);
+    //strcpy(tmpname,name);
 
     if( (olib = fopen(name,"rb")) == NULL)
 	cant(name);
@@ -675,25 +676,26 @@ char  *name;
 		fprintf(stderr, "Not enough room in new library\n");
 		break;
 	    }
-        }
+	}
 
     VOID fclose(olib);
     putdir(nlib);
     VOID fclose (nlib);
 
     if(errcnt == 0) {
-	;
 /*
 **	if ( unlink(name) < 0 || link(tmpname, name) < 0) {
 **	    VOID unlink(tmpname);
 **	    cant(name);
 **       }
 */
-    }
-    else
+		VOID remove(name);
+		VOID rename(tmpname, name);
+    } else {
 	fprintf(stderr,"Errors, library not updated\n");
     //VOID delete(tmpname);
 	VOID remove(tmpname);
+	}
 
 }
 #endif
