@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*Macro definition - ensure letter is lower case*/
 #define tolower(c) (((c)>='A' && (c)<='Z')?(c)-('A'-'a'):(c))
@@ -377,6 +378,10 @@ int suff;		/*suffix byte represented by this entry*/
  returns pointer to token within string if found, NULL otherwise
 */
 
+#ifdef Z80
+#define cisubstr(s,t) strstr(s,t)
+#else
+	
 char *cisubstr(s, t)
 char *s,*t;
 {
@@ -394,6 +399,7 @@ for(ss=s; *s; s++)
 return NULL;
 }
 
+#endif
 
 
 
