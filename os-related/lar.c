@@ -1,9 +1,13 @@
 
 /* With z88dk, library editing may not work on some target    */
-/* 'NOEDIT' will limit the tool (and its size) in those cases */
+/* '-DNOEDIT' will limit the tool (and its size) in those cases            */
 
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER lar.c */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DNOEDIT lar.c */
+
+/* NEW option: auto-extraction of files, Stefano Bodrato, Oct - 2019 */
+/* '-DUSQ' will add the automatic UNSQUEEZing of the file when appropriate */
+/* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DUSQ lar.c */
 
 
 /*% /bin/env - /bin/ncc -O lar.c -o lar
@@ -73,11 +77,281 @@ Stephen Hemminger,  Mitre Corp. Bedford MA
  *  ** CP/M is a trademark of Digital Research.
  */
 
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <fcntl.h>
+
+
+
+/*  USQ function extracted from source version 3.2, 23/03/2012
+	..in turn derived from the historical version 3.1 (12/19/84)  */
+
+#ifdef USQ
+
+#define SPEOF 256	/* special endfile token */
+#define NUMVALS 257	/* 256 data values plus SPEOF*/
+
+#define ERROR -1
+#define DLE 0x90
+#define RECOGNIZE 0xFF76	/* unlikely pattern */
+
+#define LARGE 30000
+
+unsigned int crc;	/* error check code */
+
+
+/* Decoding tree */
+struct {
+	int children[2];	/* left, right */
+} dnode[NUMVALS - 1];
+
+int bpos;	/* last bit position read */
+int curin;	/* last byte value read */
+
+/* Variables associated with repetition decoding */
+int repct;	/*Number of times to retirn value*/
+int value;	/*current byte value or EOF */
+
+/* This must follow all include files */
+unsigned int dispcnt;	/* How much of each file to preview */
+char	ffflag;		/* should formfeed separate preview from different files */
+
+
+/* get 16-bit word from file */
+int getw16(FILE *iob)
+{
+int temp;
+
+temp = getc(iob);		/* get low order byte */
+temp |= getc(iob) << 8;
+if (temp & 0x8000) temp |= (~0) << 15;	/* propogate sign for big ints */
+return temp;
+
+}
+
+/* get 16-bit (unsigned) word from file */
+int getx16(FILE *iob)
+{
+int temp;
+
+temp = getc(iob);		/* get low order byte */
+return temp | (getc(iob) << 8);
+
+}
+
+
+/* initialize decoding functions */
+
+void init_cr()
+{
+	repct = 0;
+}
+
+void init_huff()
+{
+	bpos = 99;	/* force initial read */
+}
+
+
+/* Decode file stream into a byte level code with only
+ * repetition encoding remaining.
+ */
+
+int getuhuff(FILE *ib)
+{
+	int i;
+
+	/* Follow bit stream in tree to a leaf*/
+	i = 0;	/* Start at root of tree */
+	do {
+		if(++bpos > 7) {
+			if((curin = getc(ib)) == ERROR)
+				return ERROR;
+			bpos = 0;
+			/* move a level deeper in tree */
+			i = dnode[i].children[1 & curin];
+		} else
+			i = dnode[i].children[1 & (curin >>= 1)];
+	} while(i >= 0);
+
+	/* Decode fake node index to original data value */
+	i = -(i + 1);
+	/* Decode special endfile token to normal EOF */
+	i = (i == SPEOF) ? EOF : i;
+	return i;
+}
+
+/* Get bytes with decoding - this decodes repetition,
+ * calls getuhuff to decode file stream into byte
+ * level code with only repetition encoding.
+ *
+ * The code is simple passing through of bytes except
+ * that DLE is encoded as DLE-zero and other values
+ * repeated more than twice are encoded as value-DLE-count.
+ */
+
+int getcr(FILE *ib)
+{
+	int c;
+
+	if(repct > 0) {
+		/* Expanding a repeated char */
+		--repct;
+		return value;
+	} else {
+		/* Nothing unusual */
+		if((c = getuhuff(ib)) != DLE) {
+			/* It's not the special delimiter */
+			value = c;
+			if(value == EOF)
+				repct = LARGE;
+			return value;
+		} else {
+			/* Special token */
+			if((repct = getuhuff(ib)) == 0)
+				/* DLE, zero represents DLE */
+				return DLE;
+			else {
+				/* Begin expanding repetition */
+				repct -= 2;	/* 2nd time */
+				return value;
+			}
+		}
+	}
+}
+
+
+
+void unsqueeze(char *infile)
+{
+	FILE *inbuff, *outbuff;	/* file buffers */
+	int i, c;
+	char cc;
+
+	char *p;
+	unsigned int filecrc;	/* checksum */
+	int numnodes;		/* size of decoding tree */
+	char outfile[128];	/* output file name */
+	unsigned int linect;	/* count of number of lines previewed */
+	char obuf[128];		/* output buffer */
+	int oblen;		/* length of output buffer */
+	static char errmsg[] = "ERROR - write failure in %s\n";
+
+	if(!(inbuff=fopen(infile, "rb"))) {
+		printf("Can't open %s\n", infile);
+		return;
+	}
+	/* Initialization */
+	linect = 0;
+	crc = 0;
+	init_cr();
+	init_huff();
+
+	/* Process header */
+	if(getx16(inbuff) != RECOGNIZE) {
+		printf(" is not a squeezed file\n");
+		goto closein;
+	}
+
+	filecrc = getw16(inbuff);
+
+	/* Get original file name */
+	p = outfile;			/* send it to array */
+	do {
+		*p = getc(inbuff);
+	} while(*p++ != '\0');
+
+	printf("-> %s: ", outfile);
+
+
+	numnodes = getw16(inbuff);
+
+	if(numnodes < 0 || numnodes >= NUMVALS) {
+		printf("%s has invalid decode tree size\n", infile);
+		goto closein;
+	}
+
+	/* Initialize for possible empty tree (SPEOF only) */
+	dnode[0].children[0] = -(SPEOF + 1);
+	dnode[0].children[1] = -(SPEOF + 1);
+
+	/* Get decoding tree from file */
+	for(i = 0; i < numnodes; ++i) {
+		dnode[i].children[0] = getw16(inbuff);
+		dnode[i].children[1] = getw16(inbuff);
+	}
+
+	if(dispcnt) {
+		/* Use standard output for previewing */
+		putchar('\n');
+		while(((c = getcr(inbuff)) != EOF) && (linect < dispcnt)) {
+			cc = 0x7f & c;	/* strip parity */
+			if((cc < ' ') || (cc > '~'))
+				/* Unprintable */
+				switch(cc) {
+				case '\r':	/* return */
+					/* newline will generate CR-LF */
+					goto next;
+				case '\n':	/* newline */
+					++linect;
+				case '\f':	/* formfeed */
+				case '\t':	/* tab */
+					break;
+				default:
+					cc = '.';
+				}
+			putchar(cc);
+		next: ;
+		}
+		if(ffflag)
+			putchar('\f');	/* formfeed */
+	} else {
+		/* Create output file */
+		if(!(outbuff=fopen(outfile, "wb"))) {
+			printf("Can't create %s\n", outfile);
+			goto closeall;
+		}
+		printf("unsqueezing,");
+		/* Get translated output bytes and write file */
+		oblen = 0;
+		while((c = getcr(inbuff)) != EOF) {
+			crc += c;
+			obuf[oblen++] = c;
+			if (oblen >= sizeof(obuf)) {
+				if(!fwrite(obuf, sizeof(obuf), 1, outbuff)) {
+					printf(errmsg, outfile);
+					goto closeall;
+				}
+				oblen = 0;
+			}
+		}
+		if (oblen && !fwrite(obuf, oblen, 1, outbuff)) {
+			printf(errmsg, outfile);
+			goto closeall;
+		}
+
+		if((filecrc && 0xFFFF) != (crc && 0xFFFF))
+			printf("ERROR - checksum error in %s\n", outfile);
+		else	printf(" done.\n");
+
+	closeall:
+		fclose(outbuff);
+	}
+
+closein:
+	fclose(inbuff);
+}
+
+
+#endif  // USQ
+
+
+
+
 
 #define ACTIVE	00
 #define UNUSED	0xff
@@ -462,6 +736,10 @@ bool	pflag;
 	    acopy (lfd, ofd, wtoi (ldir[i].l_len));
 	    if (ofd != stdout)
 		VOID fclose (ofd);
+#ifdef USQ
+		unsqueeze(unixname);
+#endif
+
 	}
 	putc('\n', stderr);
     }
