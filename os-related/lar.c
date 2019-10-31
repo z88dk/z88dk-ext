@@ -1232,19 +1232,23 @@ bool	pflag;
 	if (ofd == NULL) {
 	    fprintf (stderr, "  - can't create");
 	    errcnt++;
-	}
-	else {
+	} else {
 	    VOID fseek (lfd, (long) wtoi (ldir[i].l_off) * SECTOR, SEEK_SET);
 	    acopy (lfd, ofd, wtoi (ldir[i].l_len));
-	    if (ofd != stdout)
-		VOID fclose (ofd);
+	    if (ofd != stdout) {
+			VOID fclose (ofd);
 #ifdef USQ
-		unsqueeze(unixname);
+			unsqueeze(unixname);
 #endif
 #ifdef UNCRUNCH
-		uncrunch(unixname);
+			uncrunch(unixname);
 #endif
+		}
+		
 	}
+	// extra close() call, to fix z88dk compiled programs behavior
+	if (ofd != stdout)
+		VOID fclose (ofd);
 	putc('\n', stderr);
     }
     VOID fclose (lfd);
