@@ -92,6 +92,16 @@ Stephen Hemminger,  Mitre Corp. Bedford MA
 
 #ifdef USQ
 
+/* z88dk specific optimizations */
+#ifdef Z80
+int getw16(FILE *iob) __z88dk_fastcall;
+int getx16(FILE *iob) __z88dk_fastcall;
+int getuhuff(FILE *ib) __z88dk_fastcall;
+int getcr(FILE *ib) __z88dk_fastcall;
+void unsqueeze(char *infile) __z88dk_fastcall;
+#endif
+
+
 #define SPEOF 256	/* special endfile token */
 #define NUMVALS 257	/* 256 data values plus SPEOF*/
 
@@ -378,7 +388,11 @@ typedef struct {
     unsigned char   hibyte;
 } word;
 
+
+
+
 /* convert word to int */
+
 #define wtoi(w) ( (w.hibyte<<8) + w.lobyte)
 #define itow(dst,src)	dst.hibyte = (src & 0xff00) >> 8; dst.lobyte = src & 0xff;
 
@@ -395,9 +409,16 @@ int     errcnt, nfiles, nslots;
 bool	verbose = false;
 char	*cmdname;
 
+/* z88dk specific optimizations */
+#ifdef Z80
+int error (char *str) __z88dk_fastcall;
+int cant (char *name) __z88dk_fastcall;
+int getdir (FILE *f) __z88dk_fastcall;
+int filarg (char *name) __z88dk_fastcall;
+#endif
+
 //char   *getfname(), *sprintf();
 int	table(), extract(), print();
-
 
 /* print error message and exit */
 help () {
