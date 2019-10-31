@@ -67,6 +67,16 @@
  */
 
 
+/* z88dk specific optimizations */
+#ifdef Z80
+int getw16(FILE *iob) __z88dk_fastcall;
+int getx16(FILE *iob) __z88dk_fastcall;
+int getuhuff(FILE *ib) __z88dk_fastcall;
+int getcr(FILE *ib) __z88dk_fastcall;
+void unsqueeze(char *infile) __z88dk_fastcall;
+#endif
+
+
 #define SQMAIN
 
 #include <stdio.h>
