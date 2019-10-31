@@ -389,12 +389,19 @@ typedef struct {
 } word;
 
 
-
-
 /* convert word to int */
 
-#define wtoi(w) ( (w.hibyte<<8) + w.lobyte)
-#define itow(dst,src)	dst.hibyte = (src & 0xff00) >> 8; dst.lobyte = src & 0xff;
+//#define wtoi(w) ( (w.hibyte<<8) + w.lobyte)
+int wtoi(word w) {
+	return ((w.hibyte<<8) + w.lobyte);
+};
+
+//#define itow(dst,src)	dst.hibyte = (src & 0xff00) >> 8; dst.lobyte = src & 0xff;
+void itow(word dst,int src) {
+	dst.hibyte = (src & 0xff00) >> 8;
+	dst.lobyte = src & 0xff;
+};
+
 
 struct ludir {			/* Internal library ldir structure */
     unsigned char   l_stat;	/*  status of file */
@@ -404,6 +411,7 @@ struct ludir {			/* Internal library ldir structure */
     word    l_len;		/*  lengty of file */
     char    l_fill[16];		/*  pad to 32 bytes */
 } ldir[MAXFILES];
+
 
 int     errcnt, nfiles, nslots;
 bool	verbose = false;
