@@ -1,13 +1,22 @@
 
-/* With z88dk, library editing may not work on some target    */
-/* '-DNOEDIT' will limit the tool (and its size) in those cases            */
+/* With z88dk, library editing may not work on some target      */
+/* '-DNOEDIT' will limit the tool (and its size) in those cases */
 
-/* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER lar.c */
+/* FULL program */
+/* zcc +cpm -create-app -O3 --opt-code-size -DUNCRUNCH -DUSQ -DTOUPPER lar.c */
+
+/* MINIMAL program */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DNOEDIT lar.c */
+
+/* --Unix/Windows/MAC version--
+   gcc -DUNCRUNCH -DUSQ lar.c */
+
+
 
 /* Auto-expansion of compressed files, Stefano Bodrato, Oct - 2019 */
 /* '-DUSQ' will add the automatic UNSQUEEZing of the file when appropriate */
 /* '-DUNCRUNCH' will add the automatic UNCRUNCHing of the file when appropriate */
+/* '-DAMALLOC -DHAVE_CALLOC': NOT YET WORKING, TO BE FIXED ! */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DUSQ -DUNCRUNCH lar.c */
 
 
@@ -86,12 +95,15 @@ Stephen Hemminger,  Mitre Corp. Bedford MA
 #include <ctype.h>
 #include <fcntl.h>
 
-
+#ifdef HAVE_CALLOC
+#include <malloc.h>
+#endif
 
 /*  USQ function extracted from source version 3.2, 23/03/2012
 	..in turn derived from the historical version 3.1 (12/19/84)  */
 
 #ifdef USQ
+
 
 /* z88dk specific optimizations */
 #ifdef Z80
@@ -114,11 +126,16 @@ void unsqueeze(char *infile) __z88dk_fastcall;
 
 unsigned int crc;	/* error check code */
 
-
+#ifdef	HAVE_CALLOC
+struct {
+	int children[2];	/* left, right */
+} *dnode;
+#else
 /* Decoding tree */
 struct {
 	int children[2];	/* left, right */
 } dnode[NUMVALS - 1];
+#endif
 
 int bpos;	/* last bit position read */
 int curin;	/* last byte value read */
@@ -252,6 +269,14 @@ void unsqueeze(char *infile)
 	int oblen;		/* length of output buffer */
 	static char errmsg[] = "ERROR - write failure in %s\n";
 
+#ifdef	HAVE_CALLOC
+	dnode=calloc((size_t) NUMVALS, sizeof(dnode));
+	if (!dnode) { 
+		printf(" -->  out of memory");
+		return;
+		}
+#endif
+
 	if(!(inbuff=fopen(infile, "rb"))) {
 		printf("Can't open %s\n", infile);
 		return;
@@ -347,7 +372,10 @@ void unsqueeze(char *infile)
 
 		if((filecrc && 0xFFFF) != (crc && 0xFFFF))
 			printf("ERROR - checksum error in %s\n", outfile);
-		else	printf(" done.\n");
+		else {
+			printf(" done.");
+			remove(infile);
+		}
 
 	closeall:
 		fclose(outbuff);
@@ -355,11 +383,13 @@ void unsqueeze(char *infile)
 
 closein:
 	fclose(inbuff);
+#ifdef HAVE_CALLOC
+	free(dnode);
+#endif
 }
 
 
 #endif  // USQ
-
 
 
 
@@ -384,14 +414,14 @@ closein:
 
 #define REPEAT_CHARACTER 0x90	/*following byte is repeat count*/
 
-#ifdef	DUMBLINKER
+#ifdef	HAVE_CALLOC
 
   /*main lzw table and it's structure*/
   struct entry {
 	short predecessor;	/*index to previous entry, if any*/
 	unsigned char suffix;		/*character suffixed to previous entries*/
   } *lzw_table;
-
+  
   /*auxilliary physical translation table*/
   /*translates hash to main table index*/
   short *xlatbl;
@@ -723,11 +753,41 @@ char *filename;
 
 	/*initialize variables for uncrunching a file*/
 	intram();
+	
+#ifdef	HAVE_CALLOC
+	lzw_table=calloc((size_t) TABLE_SIZE, sizeof(lzw_table));
+	if (!lzw_table) {
+		printf(" -->  out of memory");
+		return;
+		}
+	xlatbl=calloc((size_t)XLATBL_SIZE, (size_t)sizeof(short));
+	if (!xlatbl) {
+		printf(" -->  out of memory");
+#ifdef HAVE_CALLOC
+		free(lzw_table);
+#endif
+		return;
+		}
+	stack = calloc((size_t)TABLE_SIZE, (size_t)sizeof(char));
+	if (!stack) {
+		printf(" -->  out of memory");
+#ifdef HAVE_CALLOC
+		free(lzw_table);
+		free(xlatbl);
+#endif
+		return;
+		}
+#endif
 
 	/*open input file*/
 	if ( 0 == (infd = fopen(filename,"rb")) )
 		{
 		printf("***** can't open %s\n", filename);
+#ifdef HAVE_CALLOC
+		free(lzw_table);
+		free(xlatbl);
+		free(stack);
+#endif
 		return;
 		}
 
@@ -735,19 +795,30 @@ char *filename;
 	if (getc(infd) != 0x76 || getc(infd) != 0xfe)
 		{
 		//printf("***** %s is not a crunched file\n",filename);
+#ifdef HAVE_CALLOC
+		free(lzw_table);
+		free(xlatbl);
+		free(stack);
+#endif
 		return;
 		}
 
 	/*extract and build output file name*/
-	printf("%s --> ",filename);
+	//printf("%s --> ",filename);
+	printf(" --> ");
 	for(p=outfn; (*p=getc(infd))!='\0'; p++) *p=tolower(*p);
 	*(cisubstr(outfn,".")+4)='\0'; /*truncate non-name portion*/
-	printf("%s\n",outfn);
+	printf("%s",outfn);
 
 	/*open output file*/
 	if ( 0 == (outfd =fopen( outfn,"wb")) )
 		{
 		printf("***** can't create %s\n",outfn);
+#ifdef HAVE_CALLOC
+		free(lzw_table);
+		free(xlatbl);
+		free(stack);
+#endif
 		return;
 		}
 
@@ -763,6 +834,11 @@ char *filename;
 		{
 		printf("***** this version of UNCR cannot process %s!\n",
 			filename);
+#ifdef HAVE_CALLOC
+		free(lzw_table);
+		free(xlatbl);
+		free(stack);
+#endif
 		return;
 		}
 
@@ -828,6 +904,11 @@ char *filename;
 	fclose(outfd);
 
 	/*all done this file*/
+#ifdef HAVE_CALLOC
+	free(lzw_table);
+	free(xlatbl);
+	free(stack);
+#endif
 	return;
 	}
 	
@@ -1237,11 +1318,11 @@ bool	pflag;
 	    acopy (lfd, ofd, wtoi (ldir[i].l_len));
 	    if (ofd != stdout) {
 			VOID fclose (ofd);
-#ifdef USQ
-			unsqueeze(unixname);
-#endif
 #ifdef UNCRUNCH
 			uncrunch(unixname);
+#endif
+#ifdef USQ
+			unsqueeze(unixname);
 #endif
 		}
 		
