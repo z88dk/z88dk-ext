@@ -51,44 +51,43 @@
 // This is for the RC2014 when it has any CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
 // Drive 0:
-//#include <arch/rc2014.h>             /* Declarations of IDE functions */
-//#include <lib/rc2014/ff.h>           /* Declarations of FatFs API */
-//#include <arch/rc2014/diskio.h>      /* Declarations of diskio functions */
+//#include <arch/rc2014.h>            /* Declarations of IDE functions */
+//#include <lib/rc2014/ff.h>          /* Declarations of FatFs API */
+//#include <arch/rc2014/diskio.h>     /* Declarations of diskio functions */
 
-//#elif __RC2014
 // zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff lut_calc.c -o lut_calc -create-app
 // This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The program is loaded in the monitor, and started by g100.
-// Drive 2: (or which ever is nominated by hbios).
+// Drive 2: (or whichever is nominated by hbios).
 #include <arch/rc2014.h>            /* Declarations of IDE functions */
 #include <arch/hbios.h>             /* Declarations of HBIOS functions */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of diskio functions */
-//#pragma output CRT_ORG_BSS = 0x8400 // move bss origin to address 0x8400 (check to confirm there is no overlap between data and bss sections, and set as needed)
+#pragma output CRT_ORG_BSS = 0x9000 // move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
-//#elif __SCZ180
+#elif __SCZ180
 // zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff lut_calc.c -o lut_calc -create-app
 // Drive 0: (as we're not using hbios api, but calling SD directly)
 //#include <arch/scz180.h>           /* Declarations of SD functions */
 //#include <lib/scz180/ff.h>         /* Declarations of FatFs API */
 //#include <lib/scz180/diskio_sd.h>  /* Declarations of diskio functions */
+//#pragma output CRT_ORG_BSS = 0x8400 // move bss origin to address 0x8400 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
-#elif __SCZ180
 // zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff lut_calc.c -o lut_calc -create-app
 // This is for the SCZ180 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The program is loaded in the monitor, and started by g100.
-// Drive 2: (or which ever is nominated by hbios).
+// Drive 2: (or whichever is nominated by hbios).
 #include <arch/scz180.h>
 #include <arch/hbios.h>             /* Declarations of HBIOS functions */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of diskio functions */
-//#pragma output CRT_ORG_BSS = 0x8400 // move bss origin to address 0x8400 (check to confirm there is no overlap between data and bss sections, and set as needed)
+#pragma output CRT_ORG_BSS = 0x8400 // move bss origin to address 0x8400 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __HBIOS
 // zcc +hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff lut_calc.c -o lut_calc -create-app
 // This is for any RetroBrew target when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The program is loaded in the monitor, and started by g100.
-// Drive 2: (or which ever is nominated by hbios).
+// Drive 2: (or whichever is nominated by hbios).
 #include <arch/hbios.h>             /* Declarations of HBIOS functions */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of diskio functions */
@@ -98,10 +97,15 @@
 #warning - no FatFs library available
 #endif
 
-#pragma printf = "%s %c %u %li %lu"     // enables %s, %c, %u, %li, %lu only
+// PRAGMAS
+
+#pragma printf = "%s %c %u %li %lu" // enables %s, %c, %u, %li, %lu only
+
+// DEFINES
 
 #define BUFFER_SIZE 256             /* size of working buffers (on heap) */
 
+// GLOBALS
 
 static FIL FileHi, FileLo;          /* File object needed for each open file */
 static FATFS * FatFs;               /* FatFs work area needed for each volume */
