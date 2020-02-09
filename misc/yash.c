@@ -13,6 +13,9 @@
 // https://brennan.io/2015/01/16/write-a-shell-in-c/
 // https://github.com/brenns10/lsh
 //
+// RC2014 Forum Post
+// https://groups.google.com/d/msg/rc2014-z80/FIw9F8fNnIo/91isliSAAwAJ
+//
 // This example application demonstrates how to open and write files
 // using the ChaN FatFS library.
 //
