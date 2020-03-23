@@ -67,7 +67,7 @@
 
 // zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
-// The program is loaded in the monitor, and started by g100.
+// The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
 // Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
 //#include <arch/rc2014.h>            /* Declarations of IDE functions */
@@ -86,7 +86,7 @@
 
 // zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the SCZ180 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
-// The program is loaded in the monitor, and started by g100.
+// The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
 // Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
 #include <arch/scz180.h>
@@ -98,7 +98,7 @@
 #elif __HBIOS
 // zcc +hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for any RetroBrew target when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
-// The program is loaded in the monitor, and started by g100.
+// The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
 // Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
 #include <arch/hbios.h>             /* Declarations of HBIOS functions */
