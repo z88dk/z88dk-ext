@@ -5,10 +5,10 @@
 ; "cp" is an extremely simple file copy program.
 ;
 ; It is as fast as CP/M PIP, but not slower.
-; 
+;
 ; Usage:  cp [destination][source]
 ;
-; zcc +cpm --list -m cp.asm -ocp -create-app
+; zcc +cpm --list cp.asm -ocp -create-app
 ;
 DEFC    REBOOT      =   00000H  ;system reboot
 DEFC    IOBYTE      =   00003H  ;i/o definition byte
@@ -166,20 +166,21 @@ copy_loop:
 
 ;   set dma address
     ld      de,udma
+
+read_loop:
     call    setdma
 
-read_loop:  
     ld      de,sfcb         ;source
     call    read            ;read next record
     or      a               ;end of file?
     jr      NZ,file_end     ;skip to fileend if so
- 
+
     ld      a,(rdsek)
     inc     a
     ld      (rdsek),a
     cp      BUFFER/128-1    ;number of buffers we have
     jp      NC,write_start
-    
+
     ld      l,a             ;ready to shift
     xor     a
     rr      l               ;shift left 7, for 128 bytes sectors
@@ -188,27 +189,30 @@ read_loop:
     ld      l,a
 
     ld      de,udma
-    add     hl,de           ;create new destination dma
+    add     hl,de           ;create new destination dma address
     ex      de,hl
-    call    setdma
-    
+
     jp      read_loop
+
 
 file_end:
     ld      a,1             ;set end of file flag
     ld      (endof),a
 
 write_start:
+    ld      hl,rdsek        ;preincrement so we can decrement before test.
+    inc     (hl)
+
 ;   set dma address
     ld      de,udma
-    call    setdma
 
 write_loop:
+    call    setdma
+
     ld      a,(rdsek)
-    or      a
-    jr      Z,copy_loop     ;reached end of file before end of buffers
-    dec     a 
+    dec     a
     ld      (rdsek),a
+    jr      Z,copy_loop     ;reached end of file before end of buffers
 
     ld      de,dfcb         ;destination
     call    write           ;write record
@@ -230,10 +234,9 @@ write_loop:
     ld      l,a
 
     ld      de,udma
-    add     hl,de           ;create new source dma
+    add     hl,de           ;create new source dma address
     ex      de,hl
-    call    setdma
-    
+
     jp      write_loop      ;loop until buffer
 
 
