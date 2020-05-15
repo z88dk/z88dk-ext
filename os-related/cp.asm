@@ -158,7 +158,7 @@ copy_loop:
     xor     a
     ld      hl,endof
     or      (hl)
-    jp      NZ,eofile       ;jump to end of file
+    jr      NZ,eofile       ;jump to end of file
 
 ;   zero the sector indexes
     ld      (rdsek),a
@@ -179,7 +179,7 @@ read_loop:
     inc     a
     ld      (rdsek),a
     cp      BUFFER/128-1    ;number of buffers we have
-    jp      NC,write_start
+    jr      NC,write_start
 
     ld      l,a             ;ready to shift
     xor     a
@@ -218,13 +218,13 @@ write_loop:
     call    write           ;write record
     ld      de,fspace       ;no free space message
     or      a               ;0 if write OK
-    jp      NZ,exit         ;end if so
+    jr      NZ,exit         ;end if so
 
     ld      a,(wrsek)
     inc     a
     ld      (wrsek),a
     cp      BUFFER/128-1    ;number of buffers we have
-    jp      NC,copy_loop
+    jr      NC,copy_loop
 
     ld      l,a             ;ready to shift
     xor     a
