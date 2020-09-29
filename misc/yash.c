@@ -44,44 +44,45 @@
 #error Do you have time?
 #endif
 
+// Note that since z88dk-lib only copies ONE header file automatically to the library header locations, the ffconf.h file needs to be ADDED MANUALLY to the 
+// It should be located in the correct directory (along with ff.h) as per the examples provided below.
 
 #if __YAZ180
 // zcc +yaz180 -subtype=app -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
 // This is for the YAZ180, using the 82C55 IDE interface. There is only one drive supported. The program is loaded and run from the monitor.
 // Drive 0:
 #include <arch/yaz180.h>
+#include <lib/yaz180/ffconf.h>      /* Declarations of FatFs configuration */
 #include <lib/yaz180/ff.h>          /* Declarations of FatFs API */
 #include <arch/yaz180/diskio.h>     /* Declarations of diskio & IDE functions */
 
 #elif __RC2014
-// zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/rc2014/time -llib/rc2014/ff yash.c -o yash -create-app
-// zcc +rc2014 -subtype=cpm -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/rc2014/time -llib/rc2014/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node100000 -llib/rc2014/time -llib/rc2014/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
 // Drive 0:
-#include <arch/rc2014.h>            /* Declarations of IDE functions */
-#include <arch/hbios.h>             /* Declarations of HBIOS functions */
+#include <lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
 #include <lib/rc2014/ff.h>          /* Declarations of FatFs API */
 #include <arch/rc2014/diskio.h>     /* Declarations of diskio functions */
-#pragma output CRT_ORG_BSS = 0x9000 // move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 // zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
 // Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
-//#include <arch/rc2014.h>            /* Declarations of IDE functions */
 //#include <arch/hbios.h>             /* Declarations of HBIOS functions */
+//#include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 //#include <lib/hbios/ff.h>           /* Declarations of FatFs API */
-//#include <lib/hbios/diskio_hbios.h> /* Declarations of diskio functions */
+//#include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
 //#pragma output CRT_ORG_BSS = 0x9000 // move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __SCZ180
 // zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
 // Drive 0: (as we're not using hbios api, but calling SD directly)
 //#include <arch/scz180.h>           /* Declarations of SD functions */
+//#include <lib/scz180/ffconf.h>     /* Declarations of FatFs configuration */
 //#include <lib/scz180/ff.h>         /* Declarations of FatFs API */
-//#include <lib/scz180/diskio_sd.h>  /* Declarations of diskio functions */
+//#include <lib/scz180/diskio_sd.h>  /* Declarations of SD diskio functions */
 //#pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 // zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
@@ -91,8 +92,9 @@
 // Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
 #include <arch/scz180.h>
 #include <arch/hbios.h>             /* Declarations of HBIOS functions */
+#include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
-#include <lib/hbios/diskio_hbios.h> /* Declarations of diskio functions */
+#include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
 #pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __HBIOS
@@ -102,8 +104,9 @@
 // Drive 2: (or whichever is nominated by hbios).
 // Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
 #include <arch/hbios.h>             /* Declarations of HBIOS functions */
+#include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
-#include <lib/hbios/diskio_hbios.h> /* Declarations of diskio functions */
+#include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
 #pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #else
@@ -122,6 +125,8 @@
 
 // GLOBALS
 
+extern uint32_t cpm_dsk0_base[4];
+
 static FATFS *fs;                   /* FatFs work area needed for each volume */
                                     /* Pointer to the filesystem object (on heap) */
 
@@ -133,10 +138,13 @@ static FIL File[MAX_FILES];         /* File object needed for each open file */
 static void * buffer;               /* create a scratch buffer on heap later */
                                     /* for romwbw hbios buffer must be in bss (which is above 0x8000) */
 
+
 /*
   Function Declarations for built-in shell commands:
  */
 
+// CP/M related functions
+int8_t ya_cmount(char **args);      // mount a CP/M drive
 
 // system related functions
 int8_t ya_md(char **args);          // memory dump
@@ -170,6 +178,16 @@ int8_t ya_date(char **args);        // print the local time in US: Sun Mar 23 01
 static void put_rc (FRESULT rc);    // print error codes to defined error IO
 static void put_dump (const uint8_t *buff, uint32_t ofs, uint8_t cnt);
 
+// CP/M-IDE stores four LBA bases from cpm_dsk0_base.
+// Adjust this base to suit the current build.
+static void dsk0_helper (void);
+static void dsk0_helper(void) __naked
+{
+    __asm
+        PUBLIC _cpm_dsk0_base
+        defc _cpm_dsk0_base = 0xF6C0
+    __endasm;
+}
 
 /*
   List of builtin commands.
@@ -183,6 +201,8 @@ struct Builtin {
 };
 
 struct Builtin builtins[] = {
+  // CP/M related functions
+    { "cmount", &ya_cmount, "drive: [path]file - mount a drive"},
 
 // system related functions
     { "md", &ya_md, "- [origin] - memory dump"},
@@ -218,10 +238,44 @@ uint8_t ya_num_builtins() {
 }
 
 
-/*
-  system related functions
- */
+// CP/M related functions
 
+/**
+   @brief Builtin command:
+   @param args List of args.  args[0] is "cmount". args[1] drive letter. [2] drive file.
+   @return Always returns 1, to continue executing.
+ */
+int8_t ya_cmount(char **args)    // mount a drive on CP/M
+{
+    FRESULT res;
+    uint8_t i = 0;
+
+    if (args[1] == NULL || args[2] == NULL) {
+        fprintf(stdout, "Expected 2 arguments to \"cmount\"\n");
+#if __RC2014
+    } else {
+
+        res = f_mount(fs, (const TCHAR*)"", 0);
+        if (res != FR_OK) { put_rc(res); return 1; }
+
+        // set up CPM drive LBA location
+        i = ((uint8_t)*args[1]&0b11011111) - 'A';
+        if (i > 3) { fprintf(stdout,"Disk %u doesn't exit\n", i); return 1; }    // maximum 4 drives in CP/M-IDE
+        fprintf(stdout,"Mounting \"%s\" on %c:", args[2], (uint8_t)*args[1]);
+
+        res = f_open(&File[0], (const TCHAR *)args[2], FA_OPEN_EXISTING | FA_READ);
+        if (res != FR_OK) { put_rc(res); return 1; }
+        cpm_dsk0_base[i] = (&File[0])->obj.fs->database + ((&File[0])->obj.fs->csize * ((&File[0])->obj.sclust - 2));
+        fprintf(stdout," at LBA %lu\n", cpm_dsk0_base[i]);
+
+        f_close(&File[0]);
+#endif
+    }
+    return 1;
+}
+
+
+// system related functions
 
 /**
    @brief Builtin command:
@@ -267,7 +321,6 @@ int8_t ya_help(char **args)
     for (i = 0; i < ya_num_builtins(); ++i) {
         fprintf(stdout,"  %s %s\n", builtins[i].name, builtins[i].help);
     }
-
     return 1;
 }
 
@@ -332,6 +385,9 @@ int8_t ya_ls(char **args)
     FRESULT res;
     uint32_t p1;
     uint16_t s1, s2;
+    
+    res = f_mount(fs, (const TCHAR*)"", 0);
+    if (res != FR_OK) { put_rc(res); return 1; }
 
     if(args[1] == NULL) {
         res = f_opendir(dir, (const TCHAR*)".");
@@ -741,7 +797,6 @@ int8_t ya_execute(char **args)
             return (*builtins[i].func)(args);
         }
     }
-
     return 1;
 }
 
@@ -759,7 +814,7 @@ char **ya_split_line(char *line)
     char *token;
     char **tokens, **tokens_backup;
 
-    tokens = (char **)malloc(sizeof(char*)*bufsize);
+    tokens = (char **)malloc(bufsize * sizeof(char*));
 
     if (tokens && line)
     {
@@ -772,7 +827,7 @@ char **ya_split_line(char *line)
             if (position >= bufsize) {
                 bufsize += YA_TOK_BUFSIZE;
                 tokens_backup = tokens;
-                tokens = (char **)realloc(tokens, sizeof(char*)*bufsize);
+                tokens = (char **)realloc(tokens, bufsize * sizeof(char*));
                 if (tokens == NULL) {
                     free(tokens_backup);
                     fprintf(stdout, "yash: tokens realloc failure\n");
@@ -797,8 +852,10 @@ void ya_loop(void)
     char *line;
     uint16_t len;
 
-    line = (char *)malloc(sizeof(char)*LINE_SIZE);      /* Get work area for the line buffer */
+    line = (char *)malloc(LINE_SIZE * sizeof(char));    /* Get work area for the line buffer */
     if (line == NULL) return;
+
+    len = LINE_SIZE;
 
     do {
         fprintf(stdout,"\n> ");
