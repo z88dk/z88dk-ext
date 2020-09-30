@@ -144,7 +144,7 @@ static void * buffer;               /* create a scratch buffer on heap later */
  */
 
 // CP/M related functions
-int8_t ya_cmount(char **args);      // mount a CP/M drive
+int8_t ya_dmount(char **args);      // mount a CP/M drive
 
 // system related functions
 int8_t ya_md(char **args);          // memory dump
@@ -184,8 +184,8 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-        PUBLIC _cpm_dsk0_base
-        defc _cpm_dsk0_base = 0xF6C0
+        defc _cpm_dsk0_base = 0xF6C0    ; Uncomment for SIO Build
+;       defc _cpm_dsk0_base = 0xF808    ; Uncomment for ACIA Build
     __endasm;
 }
 
@@ -202,7 +202,7 @@ struct Builtin {
 
 struct Builtin builtins[] = {
   // CP/M related functions
-    { "cmount", &ya_cmount, "drive: [path]file - mount a drive"},
+    { "dmount", &ya_dmount, "drive: [path]file - mount a CP/M drive"},
 
 // system related functions
     { "md", &ya_md, "- [origin] - memory dump"},
@@ -242,16 +242,16 @@ uint8_t ya_num_builtins() {
 
 /**
    @brief Builtin command:
-   @param args List of args.  args[0] is "cmount". args[1] drive letter. [2] drive file.
+   @param args List of args.  args[0] is "dmount". args[1] drive letter. [2] drive file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_cmount(char **args)    // mount a drive on CP/M
+int8_t ya_dmount(char **args)    // mount a drive on CP/M
 {
     FRESULT res;
     uint8_t i = 0;
 
     if (args[1] == NULL || args[2] == NULL) {
-        fprintf(stdout, "Expected 2 arguments to \"cmount\"\n");
+        fprintf(stdout, "Expected 2 arguments to \"dmount\"\n");
 #if __RC2014
     } else {
 
@@ -259,14 +259,14 @@ int8_t ya_cmount(char **args)    // mount a drive on CP/M
         if (res != FR_OK) { put_rc(res); return 1; }
 
         // set up CPM drive LBA location
-        i = ((uint8_t)*args[1]&0b11011111) - 'A';
-        if (i > 3) { fprintf(stdout,"Disk %u doesn't exit\n", i); return 1; }    // maximum 4 drives in CP/M-IDE
-        fprintf(stdout,"Mounting \"%s\" on %c:", args[2], (uint8_t)*args[1]);
+        i = ((uint8_t)*args[1]&0b01011111) - 'A';
+        if (i > 3) { fprintf(stdout,"Drive %c: doesn't exit\n", (uint8_t)*args[1]&0b01011111); return 1; }    // maximum 4 drives in CP/M-IDE
+        fprintf(stdout,"Mounting \"%s\" on drive %c:", args[2], (uint8_t)*args[1]&0b01011111);
 
         res = f_open(&File[0], (const TCHAR *)args[2], FA_OPEN_EXISTING | FA_READ);
         if (res != FR_OK) { put_rc(res); return 1; }
         cpm_dsk0_base[i] = (&File[0])->obj.fs->database + ((&File[0])->obj.fs->csize * ((&File[0])->obj.sclust - 2));
-        fprintf(stdout," at LBA %lu\n", cpm_dsk0_base[i]);
+        fprintf(stdout," from LBA %lu\n", cpm_dsk0_base[i]);
 
         f_close(&File[0]);
 #endif
