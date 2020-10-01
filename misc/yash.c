@@ -48,7 +48,7 @@
 // It should be located in the correct directory (along with ff.h) as per the examples provided below.
 
 #if __YAZ180
-// zcc +yaz180 -subtype=app -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
+// zcc +yaz180 -subtype=cpm -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
 // This is for the YAZ180, using the 82C55 IDE interface. There is only one drive supported. The program is loaded and run from the monitor.
 // Drive 0:
 #include <arch/yaz180.h>
@@ -178,16 +178,27 @@ int8_t ya_date(char **args);        // print the local time in US: Sun Mar 23 01
 static void put_rc (FRESULT rc);    // print error codes to defined error IO
 static void put_dump (const uint8_t *buff, uint32_t ofs, uint8_t cnt);
 
-// CP/M-IDE stores four LBA bases from cpm_dsk0_base.
+// RC2014 CP/M-IDE & YAZ180 CP/M stores four LBA bases from cpm_dsk0_base.
 // Adjust this base to suit the current build.
 static void dsk0_helper (void);
+#if __RC2014
 static void dsk0_helper(void) __naked
 {
     __asm
-        defc _cpm_dsk0_base = 0xF6C0    ; Uncomment for SIO Build
-;       defc _cpm_dsk0_base = 0xF808    ; Uncomment for ACIA Build
+;       defc _cpm_dsk0_base = 0xF6C0    ; Uncomment for RC2014 SIO Build
+;       defc _cpm_dsk0_base = 0xF808    ; Uncomment for RC2014 ACIA Build
     __endasm;
 }
+#elif __YAZ180
+static void dsk0_helper(void) __naked
+{
+    __asm
+        defc _cpm_dsk0_base = 0x0040    ; Uncomment for YAZ180 Build
+    __endasm;
+}
+#else
+#warning - no disk 0 LBA base - dmount inoperative
+#endif
 
 /*
   List of builtin commands.
@@ -252,7 +263,7 @@ int8_t ya_dmount(char **args)    // mount a drive on CP/M
 
     if (args[1] == NULL || args[2] == NULL) {
         fprintf(stdout, "Expected 2 arguments to \"dmount\"\n");
-#if __RC2014
+#if __RC2014 || __YAZ180
     } else {
 
         res = f_mount(fs, (const TCHAR*)"", 0);
