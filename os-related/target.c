@@ -3,10 +3,11 @@
     //.C (TARGET.C)    David Kirkland, 20 October 1982
 	
 
-	Adapted to z88dk on 11/11/2020, by Stefano Bodrato
-	==============================
-	zcc +cpm  -create-app target.c
-	==============================
+    ..a nice example on accessing to BDOS directly,
+    adapted to z88dk on 11/11/2020, by Stefano Bodrato	
+    ==============================
+    zcc +cpm  -create-app target.c
+    ==============================
 
 
     This is a short submit program.  It is designed to be used 
@@ -16,7 +17,7 @@
 
 	B>TARGET ;command line 1 ;command line 2 ; ... command line n
 
-    or
+    or (adding -DINTERACTIVE when compiling)
 
 	B>TARGET
 	}command 1
@@ -139,6 +140,7 @@ int main (int argc, char *argv[])
 	block = 0;
 
 	if (argc<2)		/* prompt user format	*/
+#ifdef INTERACTIVE
 		while (1) {
 			putchar('}');
 			if (!fgets(line,128, stdin))
@@ -146,6 +148,7 @@ int main (int argc, char *argv[])
 			storeline(block++, line);
 			}
 	else {
+#endif
 		/* scan command line in low memory */
 		b = p = 0x80;
 		for (done=0; !done; p = b) {
@@ -156,7 +159,9 @@ int main (int argc, char *argv[])
 			*b = 0;
 			storeline(block++, p+1);
 			}
+#ifdef INTERACTIVE
 		}
+#endif
 
 	setfcb(ffcb,SUBNAME);
 	if (255==bdos(OPEN,ffcb) && 255==bdos(CREATE,ffcb)) {
