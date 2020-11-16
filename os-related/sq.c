@@ -4,13 +4,17 @@
  *
  *
  * Build (z88dk - OSCA):
- * zcc +osca -osq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos sq.c
- * zcc +osca -osq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD sq.c 
- *
+ * zcc +osca -osq -O3 -create-app --opt-code-size -lflosxdos sq.c
+ * zcc +osca -osq -O3 -create-app --opt-code-size -lflosxdos -DWILDCARD sq.c 
+ * Building with SDCC:
+ * zcc +osca -osq -create-app -SO3 --max-allocs-per-node400000 -lflosxdos -compiler=sdcc -DCOMPACT sq.c
+ * 
  * Build (z88dk - CP/M):
- * zcc +cpm -osq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD sq.c
+ * zcc +cpm -osq -create-app -O3 --opt-code-size -DWILDCARD sq.c
  * Extra program size reduction:
- * zcc +cpm -osq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -custom-copt-rules sq.opt -DCOMPACT sq.c
+ * zcc +cpm -osq -create-app -O3 --opt-code-size -custom-copt-rules sq.opt -DCOMPACT sq.c
+ * Building with SDCC (faster code):
+ * zcc +cpm -osq -create-app -SO3 --max-allocs-per-node400000 -compiler=sdcc -DCOMPACT -DWILDCARD sq.c
  * 
  * Build (gcc):
  * gcc -osq sq.c
@@ -90,7 +94,9 @@
 /* in must be used in conjunction with the extra "-custom-copt-rules sq.opt" setting on zcc */
 
 #ifdef COMPACT
+#ifdef SCCZ80
 #include "sq_opt.c"
+#endif
 #endif
 
 
@@ -248,6 +254,7 @@ void phuff()
 
 /* Get next byte from file and update checksum */
 
+
 int getc_crc(FILE *ib)
 {
 	int c;
@@ -259,6 +266,7 @@ int getc_crc(FILE *ib)
 }
 
 /* flush output buffer */
+
 void oflush(FILE *iob)
 {
 	if (oblen && !fwrite(obuf, oblen, 1, iob)) {
@@ -417,7 +425,6 @@ void bld_tree(int list[], int len)
  * the codes will fit in an unsigned integer. Rescaling is
  * used if necessary to limit the code length.
  */
-
 void scale(unsigned int ceil)
 /* ceil: upper limit on total weight */
 {
@@ -1000,4 +1007,3 @@ void main(int argc, char *argv[])
 #endif
 #endif
 }
-
