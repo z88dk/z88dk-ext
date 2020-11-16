@@ -1,11 +1,9 @@
 
 /* z88dk specific option, to squeeze the sq.c program at most.. may become slower */
-/* zcc +cpm -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -custom-copt-rules sq.opt -DCOMPACT sq.c */
+/* zcc +cpm -create-app -O3 --opt-code-size  -custom-copt-rules sq.opt -DCOMPACT sq.c */
+/* DO NOT USE -pragma-define:CRT_INITIALIZE_BSS=0 !! */
 
 #asm
-
-;  fix to avoid some odd overflow
-defs 100
 
 sq_sub1:
 	ld	hl,_obuf
