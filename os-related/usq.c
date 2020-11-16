@@ -2,13 +2,9 @@
  *
  * Build hints (z88dk - OSCA):
  * zcc +osca -ousq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD usq.c 
- * --or--
- * zcc +osca -ousq -create-app -SO3 --opt-code-size --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD -compiler=sdcc usq.c
  *
  * Build hints (z88dk - CP/M):
  * zcc +cpm -ousq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD usq.c
- *   -- or -- (slightly bigger)
- * zcc +cpm -ousq -create-app -SO3 --opt-code-size --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD -compiler=sdcc usq.c
  * 
  * Build (gcc):
  * gcc -ousq usq.c
