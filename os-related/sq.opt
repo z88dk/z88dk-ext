@@ -1,3 +1,37 @@
+	ld	hl,_obuf
+	push	hl
+	ld	hl,(_oblen)
+	inc	hl
+	ld	(_oblen),hl
+	dec	hl
+	pop	de
+	add	hl,de
+	push	hl
+	ld	hl,6	;const
+	call	l_gintsp	;
+=
+	call	sq_sub1
+	call	l_gintsp	;
+
+	pop	de
+	ld	a,l
+	ld	(de),a
+	ld	hl,(_oblen)
+	ld	de,128
+	ex	de,hl
+	call	l_ge
+	jp	nc,%1
+	pop	bc
+	pop	hl
+	push	hl
+	push	bc
+	push	hl
+	call	_oflush
+	pop	bc
+.%1
+=
+	call	sq_sub2
+
 	ld	hl,_node
 	push	hl
 	ld	hl,%1	;const
