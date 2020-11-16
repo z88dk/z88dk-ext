@@ -4,6 +4,9 @@
 
 #asm
 
+;  fix to avoid some odd overflow
+defs 100
+
 sq_sub1:
 	ld	hl,_obuf
 	push	hl
