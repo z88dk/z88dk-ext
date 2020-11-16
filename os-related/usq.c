@@ -80,7 +80,7 @@
 
 
 /* z88dk specific optimizations */
-#ifdef Z80
+#ifdef SCCZ80
 int getw16(FILE *iob) __z88dk_fastcall;
 int getx16(FILE *iob) __z88dk_fastcall;
 int getuhuff(FILE *ib) __z88dk_fastcall;
