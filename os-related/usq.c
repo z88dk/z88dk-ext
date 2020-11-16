@@ -2,9 +2,13 @@
  *
  * Build hints (z88dk - OSCA):
  * zcc +osca -ousq -O3 -create-app --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD usq.c 
+ * --or--
+ * zcc +osca -ousq -create-app -SO3 --opt-code-size --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 -lflosxdos -DWILDCARD -compiler=sdcc usq.c
  *
  * Build hints (z88dk - CP/M):
  * zcc +cpm -ousq -create-app -O3 --opt-code-size -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD usq.c
+ *   -- or -- (slightly bigger)
+ * zcc +cpm -ousq -create-app -SO3 --opt-code-size --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD -compiler=sdcc usq.c
  * 
  * Build (gcc):
  * gcc -ousq usq.c
@@ -79,15 +83,6 @@
 #define VERSION "3.2   23/03/2012"
 
 
-/* z88dk specific optimizations */
-#ifdef SCCZ80
-int getw16(FILE *iob) __z88dk_fastcall;
-int getx16(FILE *iob) __z88dk_fastcall;
-int getuhuff(FILE *ib) __z88dk_fastcall;
-int getcr(FILE *ib) __z88dk_fastcall;
-void unsqueeze(char *infile) __z88dk_fastcall;
-#endif
-
 
 #ifdef __OSCA__
 #include "flos.h"
@@ -116,8 +111,14 @@ unsigned int dispcnt;	/* How much of each file to preview */
 char	ffflag;		/* should formfeed separate preview from different files */
 
 
+
 /* get 16-bit word from file */
+
+#ifdef Z80
+int getw16(FILE *iob) __z88dk_fastcall
+#else
 int getw16(FILE *iob)
+#endif
 {
 int temp;
 
@@ -128,8 +129,14 @@ return temp;
 
 }
 
+
 /* get 16-bit (unsigned) word from file */
+
+#ifdef Z80
+int getx16(FILE *iob) __z88dk_fastcall
+#else
 int getx16(FILE *iob)
+#endif
 {
 int temp;
 
@@ -156,7 +163,11 @@ void init_huff()
  * repetition encoding remaining.
  */
 
+#ifdef Z80
+int getuhuff(FILE *ib) __z88dk_fastcall
+#else
 int getuhuff(FILE *ib)
+#endif
 {
 	int i;
 
@@ -189,7 +200,11 @@ int getuhuff(FILE *ib)
  * repeated more than twice are encoded as value-DLE-count.
  */
 
+#ifdef Z80
+int getcr(FILE *ib) __z88dk_fastcall
+#else
 int getcr(FILE *ib)
+#endif
 {
 	int c;
 
@@ -221,7 +236,11 @@ int getcr(FILE *ib)
 
 
 
+#ifdef Z80
+void unsqueeze(char *infile) __z88dk_fastcall
+#else
 void unsqueeze(char *infile)
+#endif
 {
 	FILE *inbuff, *outbuff;	/* file buffers */
 	int i, c;
@@ -452,4 +471,3 @@ int main(int argc, char *argv[])
 		} while(inparg[0] != '\0');
 	}
 }
-
