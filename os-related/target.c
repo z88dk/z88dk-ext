@@ -5,9 +5,9 @@
 
     ..a nice example on accessing to BDOS directly,
     adapted to z88dk on 11/11/2020, by Stefano Bodrato	
-    ==============================
-    zcc +cpm  -create-app target.c
-    ==============================
+    ====================================
+    zcc +cpm -create-app -lndos target.c
+    ====================================
 
 
     This is a short submit program.  It is designed to be used 
@@ -17,7 +17,7 @@
 
 	B>TARGET ;command line 1 ;command line 2 ; ... command line n
 
-    or (adding -DINTERACTIVE when compiling)
+    or (** the -DINTERACTIVE option is still NOT WORKING **)
 
 	B>TARGET
 	}command 1
