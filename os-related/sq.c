@@ -11,7 +11,7 @@
  * 
  * Build (z88dk - CP/M):
  * zcc +cpm -osq -create-app -O3 --opt-code-size -DWILDCARD sq.c
- * Extra program size reduction:
+ * Extra program size reduction (-DWILDCARD is still a valid option):
  * zcc +cpm -osq -create-app -O3 --opt-code-size -custom-copt-rules sq.opt -DCOMPACT sq.c
  * Building with SDCC (faster code):
  * zcc +cpm -osq -create-app -SO3 --max-allocs-per-node400000 -compiler=sdcc -DCOMPACT -DWILDCARD sq.c
