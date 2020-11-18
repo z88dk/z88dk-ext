@@ -1,15 +1,17 @@
 
 /* With z88dk, library editing may not work on some target      */
 /* '-DNOEDIT' will limit the tool (and its size) in those cases */
+/* MAXFILES is set to 64 to reduce the program size
 
 /* FULL program */
 /* zcc +cpm -create-app -O3 --opt-code-size -DUNCRUNCH -DUSQ -DTOUPPER lar.c */
+/* (not yet working) zcc +cpm -create-app -SO3 --max-allocs-per-node400000 -DUNCRUNCH -DUSQ -DTOUPPER -compiler=sdcc lar.c */
 
 /* MINIMAL program */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DNOEDIT lar.c */
 
 /* --Unix/Windows/MAC version--
-   gcc -DUNCRUNCH -DUSQ lar.c */
+   gcc -DUNCRUNCH -DUSQ -DTOUPPER lar.c */
 
 
 
@@ -105,16 +107,6 @@ Stephen Hemminger,  Mitre Corp. Bedford MA
 #ifdef USQ
 
 
-/* z88dk specific optimizations */
-#ifdef Z80
-int getw16(FILE *iob) __z88dk_fastcall;
-int getx16(FILE *iob) __z88dk_fastcall;
-int getuhuff(FILE *ib) __z88dk_fastcall;
-int getcr(FILE *ib) __z88dk_fastcall;
-void unsqueeze(char *infile) __z88dk_fastcall;
-#endif
-
-
 #define SPEOF 256	/* special endfile token */
 #define NUMVALS 257	/* 256 data values plus SPEOF*/
 
@@ -150,7 +142,11 @@ char	ffflag;		/* should formfeed separate preview from different files */
 
 
 /* get 16-bit word from file */
+#ifdef Z80
+int getw16(FILE *iob) __z88dk_fastcall
+#else
 int getw16(FILE *iob)
+#endif
 {
 int temp;
 
@@ -162,7 +158,11 @@ return temp;
 }
 
 /* get 16-bit (unsigned) word from file */
+#ifdef Z80
+int getx16(FILE *iob) __z88dk_fastcall
+#else
 int getx16(FILE *iob)
+#endif
 {
 int temp;
 
@@ -187,9 +187,12 @@ void init_huff()
 
 /* Decode file stream into a byte level code with only
  * repetition encoding remaining.
- */
-
+ */ 
+#ifdef Z80
+int getuhuff(FILE *ib) __z88dk_fastcall
+#else
 int getuhuff(FILE *ib)
+#endif
 {
 	int i;
 
@@ -221,8 +224,11 @@ int getuhuff(FILE *ib)
  * that DLE is encoded as DLE-zero and other values
  * repeated more than twice are encoded as value-DLE-count.
  */
-
+#ifdef Z80
+int getcr(FILE *ib) __z88dk_fastcall
+#else
 int getcr(FILE *ib)
+#endif
 {
 	int c;
 
@@ -253,8 +259,11 @@ int getcr(FILE *ib)
 }
 
 
-
+#ifdef Z80
+void unsqueeze(char *infile) __z88dk_fastcall
+#else
 void unsqueeze(char *infile)
+#endif
 {
 	FILE *inbuff, *outbuff;	/* file buffers */
 	int i, c;
@@ -278,7 +287,7 @@ void unsqueeze(char *infile)
 #endif
 
 	if(!(inbuff=fopen(infile, "rb"))) {
-		printf("Can't open %s\n", infile);
+		//printf("Can't open %s\n", infile);
 		return;
 	}
 	/* Initialization */
@@ -370,11 +379,16 @@ void unsqueeze(char *infile)
 			goto closeall;
 		}
 
+#ifdef Z80
+		if(filecrc != crc )
+#else
 		if((filecrc && 0xFFFF) != (crc && 0xFFFF))
+#endif
 			printf("ERROR - checksum error in %s\n", outfile);
 		else {
-			printf(" done.");
+			fclose(inbuff);
 			remove(infile);
+			printf(" done.");
 		}
 
 	closeall:
@@ -418,13 +432,13 @@ closein:
 
   /*main lzw table and it's structure*/
   struct entry {
-	short predecessor;	/*index to previous entry, if any*/
+	int predecessor;	/*index to previous entry, if any*/
 	unsigned char suffix;		/*character suffixed to previous entries*/
   } *lzw_table;
   
   /*auxilliary physical translation table*/
   /*translates hash to main table index*/
-  short *xlatbl;
+  unsigned int *xlatbl;
 
   /*byte string stack used by decode*/
   unsigned char *stack;
@@ -432,13 +446,13 @@ closein:
 #else
 
   struct entry {
-	short predecessor;	/*index to previous entry, if any*/
+	int predecessor;	/*index to previous entry, if any*/
 	unsigned char suffix;	/*character suffixed to previous entries*/
   } lzw_table[TABLE_SIZE];
 
   /*auxilliary physical translation table*/
   /*translates hash to main table index*/
-  short xlatbl[XLATBL_SIZE];
+  unsigned int xlatbl[XLATBL_SIZE];
 
   /*byte string stack used by decode*/
   unsigned char stack[TABLE_SIZE];
@@ -447,36 +461,49 @@ closein:
 
 /*other global variables*/
 unsigned char	codlen;		/*variable code length in bits (9-12)*/
-short	trgmsk;			/*mask for codes of current length*/
+int	trgmsk;			/*mask for codes of current length*/
 unsigned char	fulflg;		/*full flag - set once main table is full*/
-short	entry;			/*next available main table entry*/
+int	entry;			/*next available main table entry*/
 long	getbuf;			/*buffer used by getcode*/
-short	getbit;			/*residual bit counter used by getcode*/
+int	getbit;			/*residual bit counter used by getcode*/
 unsigned char	entflg; 	/*inhibit main loop from entering this code*/
 unsigned char	repeat_flag;	/*so send can remember if repeat required*/
 int	finchar;		/*first character of last substring output*/
 int	lastpr;			/*last predecessor (in main loop)*/
-short	cksum;			/*checksum of all bytes written to output file*/
+int	cksum;			/*checksum of all bytes written to output file*/
 
 FILE 	*infd;			/*currently open input file*/
 FILE 	*outfd;			/*currently open output file*/
 
 
 
+/*hash pred/suff into xlatbl pointer*/
+/*duplicates the hash algorithm used by CRUNCH 2.3*/
+unsigned int *hash(int pred,int suff,int *disploc)
+	{
+	unsigned int hashval;
+	
+	hashval=((((pred>>4) & 0xff) ^suff) | ((pred&0xf)<<8)) + 1;
+	*disploc=hashval-XLATBL_SIZE;
+	return (xlatbl + hashval);
+	}
+
 
 /*find an empty entry in xlatbl which hashes from this predecessor/suffix*/
 /*combo, and store the index of the next available lzw table entry in it*/
-figure(pred,suff)
-int pred;
-int suff;
+void figure(int pred, int suff)
 	{
-	short *hash();
+	//unsigned int *hash(int pred,int suff,int *disploc);
 	auto int disp;
-	register short *p;
+	unsigned int *p;
 	p=hash(pred,suff,&disp);
 
 	/*follow secondary hash chain as necessary to find an empty slot*/
+#ifdef Z80
+	while((*p) != EMPTY)
+#else
 	while(((*p)&0xffff) != EMPTY)
+#endif
 		{
 		p+=disp;
 		if(p<xlatbl || p > xlatbl+XLATBL_SIZE)
@@ -490,9 +517,9 @@ int suff;
 
 
 /*enter the next code into the lzw table*/
-enterx(pred,suff)
-int pred;		/*table index of predecessor*/
-int suff;		/*suffix byte represented by this entry*/
+void enterx(int pred, int suff)
+/* int pred;		table index of predecessor*/
+/* int suff;		suffix byte represented by this entry*/
 	{
 	register struct entry *ep;
 	ep = &lzw_table[entry];
@@ -502,7 +529,7 @@ int suff;		/*suffix byte represented by this entry*/
 	figure(pred,suff);
 
 	/*make the new entry*/
-	ep->predecessor = (short)pred;
+	ep->predecessor = (int)pred;
 	ep->suffix = (unsigned char)suff;
 	entry++;
 
@@ -529,7 +556,7 @@ int suff;		/*suffix byte represented by this entry*/
 
 
 /*initialize the lzw and physical translation tables*/
-initb2()
+void initb2()
 	{
 	register int i;
 	register struct entry *p;
@@ -547,23 +574,8 @@ initb2()
 
 
 
-/*hash pred/suff into xlatbl pointer*/
-/*duplicates the hash algorithm used by CRUNCH 2.3*/
-short *hash(pred,suff,disploc)
-int pred;
-int suff;
-int *disploc;
-	{
-	register int hashval;
-	
-	hashval=((((pred>>4) & 0xff) ^suff) | ((pred&0xf)<<8)) + 1;
-	*disploc=hashval-XLATBL_SIZE;
-	return (xlatbl + hashval);
-	}
-	
-
 /*initialize variables for each file to be uncrunched*/
-intram()
+void intram()
 	{
 	trgmsk=0x1ff;	/*nine bits*/
 	codlen=9;	/*    "    */
@@ -577,7 +589,7 @@ intram()
 
 
 /*return a code of length "codlen" bits from the input file bit-stream*/
-getcode()
+unsigned int getcode()
 	{
 	register int hole;
 	int code;
@@ -612,8 +624,11 @@ getcode()
 /*write a byte to output file*/
 /*repeat byte (0x90) expanded here*/
 /*checksumming of output stream done here*/
-send(c)
-register unsigned char c;
+#ifdef Z80
+void send(unsigned char c) __z88dk_fastcall
+#else
+void send(unsigned char c)
+#endif
 	{
 	static unsigned char savec;	/*previous byte put to output*/
 
@@ -654,8 +669,11 @@ register unsigned char c;
 	
 
 /*decode this code*/
-decode(code)
-short code;
+#ifdef Z80
+int decode(int code) __z88dk_fastcall
+#else
+int decode(int code)
+#endif
 	{
 	register unsigned char *stackp;		/*byte string stack pointer*/
 	register struct entry *ep;
@@ -693,22 +711,21 @@ short code;
 
 
 
-
 /*attempt to reassign an existing code which has*/
 /*been defined, but never referenced*/
-entfil(pred,suff)
-int pred;		/*table index of predecessor*/
-int suff;		/*suffix byte represented by this entry*/
+void entfil(int pred, int suff)
+/* int pred;		table index of predecessor*/
+/* int suff;		suffix byte represented by this entry*/
 	{
 	auto int disp;
 	register struct entry *ep;
-	short *hash();
-	short *p;
+	//unsigned int *hash(int pred,int suff,int *disploc);
+	unsigned int *p;
 	p=hash(pred,suff,&disp);
 
 	/*search the candidate codes (all those which hash from this new*/
 	/*predecessor and suffix) for an unreferenced one*/
-	while(*p!=(short)EMPTY){
+	while(*p!=(int)EMPTY){
 
 		/*candidate code*/
 		ep = &lzw_table[*p];
@@ -738,10 +755,13 @@ int suff;		/*suffix byte represented by this entry*/
 
 
 /*uncrunch a single file*/
-uncrunch(filename)
-char *filename;
+#ifdef Z80
+void uncrunch(char *filename) __z88dk_fastcall
+#else
+void uncrunch(char *filename)
+#endif
 	{
-	int c;			
+	//int c;			
 	unsigned char *p;
 	//char *cisubstr();
 	unsigned char outfn[80];	/*space to build output file name*/
@@ -749,7 +769,7 @@ char *filename;
 	unsigned char reflevel;		/*ref rev level from input file*/
 	unsigned char siglevel;		/*sig rev level from input file*/
 	unsigned char errdetect;	/*error detection flag from input file*/
-	short file_cksum;		/*checksum read from input file*/
+	int file_cksum;		/*checksum read from input file*/
 
 	/*initialize variables for uncrunching a file*/
 	intram();
@@ -760,7 +780,7 @@ char *filename;
 		printf(" -->  out of memory");
 		return;
 		}
-	xlatbl=calloc((size_t)XLATBL_SIZE, (size_t)sizeof(short));
+	xlatbl=calloc((size_t)XLATBL_SIZE, (size_t)sizeof(int));
 	if (!xlatbl) {
 		printf(" -->  out of memory");
 #ifdef HAVE_CALLOC
@@ -809,6 +829,7 @@ char *filename;
 	for(p=outfn; (*p=getc(infd))!='\0'; p++) *p=tolower(*p);
 	*(cisubstr(outfn,".")+4)='\0'; /*truncate non-name portion*/
 	printf("%s",outfn);
+	printf(": uncrunching,");
 
 	/*open output file*/
 	if ( 0 == (outfd =fopen( outfn,"wb")) )
@@ -892,10 +913,18 @@ char *filename;
 		{
 		file_cksum=getc(infd);
 		file_cksum|=getc(infd)<<8;
+#ifdef Z80
 		if(file_cksum!=cksum)
+#else
+		if(file_cksum!=(cksum & (0xffff)))
+#endif
 			{
 			printf("***** checksum error detected in ");
 			printf("%s!\n",filename);
+			} else {
+				fclose(infd);
+				remove(filename);
+				printf(" done.");
 			}
 		}
 
@@ -922,9 +951,10 @@ char *filename;
 #define DELETED 0xfe
 #define CTRLZ	0x1a
 
-#define MAXFILES 256
+#define MAXFILES 64
 #define SECTOR	 128
 #define DSIZE	( sizeof(struct ludir) )
+
 #define SLOTS_SEC (SECTOR/DSIZE)
 #define equal(s1, s2) ( strcmp(s1,s2) == 0 )
 /* if you don't have void type just define as blank */
@@ -944,17 +974,22 @@ typedef struct {
 
 
 /* convert word to int */
-
-//#define wtoi(w) ( (w.hibyte<<8) + w.lobyte)
+#ifdef SCCZ80
 int wtoi(word w) {
 	return ((w.hibyte<<8) + w.lobyte);
 };
+#else
+	#define wtoi(w) ((w.hibyte<<8) + w.lobyte)
+#endif
 
-//#define itow(dst,src)	dst.hibyte = (src & 0xff00) >> 8; dst.lobyte = src & 0xff;
+#ifdef SCCZ80
 void itow(word dst,int src) {
 	dst.hibyte = (src & 0xff00) >> 8;
 	dst.lobyte = src & 0xff;
 };
+#else
+	#define itow(dst,src)	dst.hibyte = (src & 0xff00) >> 8; dst.lobyte = src & 0xff;
+#endif
 
 
 struct ludir {			/* Internal library ldir structure */
@@ -971,19 +1006,12 @@ int     errcnt, nfiles, nslots;
 bool	verbose = false;
 char	*cmdname;
 
-/* z88dk specific optimizations */
-#ifdef Z80
-int error (char *str) __z88dk_fastcall;
-int cant (char *name) __z88dk_fastcall;
-int getdir (FILE *f) __z88dk_fastcall;
-int filarg (char *name) __z88dk_fastcall;
-#endif
 
 //char   *getfname(), *sprintf();
-int	table(), extract(), print();
+//int	table(), extract(), print();
 
 /* print error message and exit */
-help () {
+void help () {
     fprintf (stderr, "Usage: %s {utepdr}[v] library [files] ...\n", cmdname);
     fprintf (stderr, "Functions are:\n");
 #ifndef NOEDIT
@@ -1001,22 +1029,28 @@ help () {
 }
 
 
-conflict() {
+void conflict() {
    fprintf(stderr,"Conficting keys\n");
    help();
 }
 
 
-error (str)
-char   *str;
+#ifdef Z80
+void error (char *str) __z88dk_fastcall
+#else
+void error (char *str)
+#endif
 {
     fprintf (stderr, "%s: %s\n", cmdname, str);
-    exit (1);
+    exit(1);
 }
 
 
-cant (name)
-char   *name;
+#ifdef Z80
+void cant (char *name) __z88dk_fastcall
+#else
+void cant (char *name)
+#endif
 {
     //extern int  errno;
     //extern char *sys_errlist[];
@@ -1027,9 +1061,7 @@ char   *name;
 
 
 /* Get file names, check for dups, and initialize */
-filenames (ac, av)
-int   ac;
-char  **av;
+void filenames (int ac, char **av)
 {
     register int    i, j;
 
@@ -1051,25 +1083,38 @@ char  **av;
 }
 
 
-getdir (f)
-FILE *f;
+#ifdef Z80
+void getdir (FILE *f) __z88dk_fastcall
+#else
+void getdir (FILE *f)
+#endif
 {
+int entry;
 
     rewind(f);
-
+	
     if (fread ((char *) & ldir[0], DSIZE, 1, f) != 1)
 	error ("No directory\n");
 
     nslots = wtoi (ldir[0].l_len) * SLOTS_SEC;
 
-    if (fread ((char *) & ldir[1], DSIZE, nslots-1, f) != nslots-1)
-	error ("Can't read directory - is it a library?");
+//    if (fread ((char *) & ldir[1], DSIZE, nslots-1, f) != nslots-1)
+//	error ("Can't read directory - is it a library?");
+
+	// workaround for z88dk
+	for (entry=1; entry<=nslots; entry++) {
+		fread ((char *) & ldir[entry], DSIZE, 1, f);
+	}
+
 }
 
 
 /* filarg - check if name matches argument list */
-filarg (name)
-char   *name;
+#ifdef Z80
+int filarg (char *name) __z88dk_fastcall
+#else
+int filarg (char *name)
+#endif
 {
     register int    i;
 
@@ -1086,7 +1131,7 @@ char   *name;
 }
 
 
-not_found () {
+void not_found () {
     register int    i;
 
     for (i = 0; i < nfiles; i++)
@@ -1098,8 +1143,7 @@ not_found () {
 
 
 /* convert nm.ex to a Unix style string */
-char   *getfname (nm, ex)
-char   *nm, *ex;
+char *getfname (char *nm, char *ex)
 {
     static char namebuf[14];
     register char  *cp, *dp;
@@ -1128,8 +1172,8 @@ char   *nm, *ex;
 }
 
 
-table (lib)
-char   *lib;
+// used by setfunc(
+int table(char *lib)
 {
     FILE   *lfd;
     register int    i, total;
@@ -1178,8 +1222,7 @@ char   *lib;
 
 
 #ifndef NOEDIT
-putdir (f)
-FILE *f;
+void putdir (FILE *f)
 {
 
 #ifdef __GNUC__
@@ -1194,8 +1237,7 @@ FILE *f;
 }
 
 
-initdir (f)
-FILE *f;
+void initdir (FILE *f)
 {
     register int    i;
     int     numsecs;
@@ -1240,8 +1282,7 @@ FILE *f;
 #endif
 
 
-putname (cpmname, unixname)
-char   *cpmname, *unixname;
+void putname (char *cpmname, char *unixname)
 {
     register char  *p1, *p2;
 
@@ -1262,9 +1303,7 @@ char   *cpmname, *unixname;
 }
 
 
-acopy (fdi, fdo, nsecs)
-FILE *fdi, *fdo;
-register unsigned int nsecs;
+void acopy (FILE *fdi, FILE *fdo, unsigned int nsecs)
 {
     register int    i, c;
     int	    textfile = 1;
@@ -1287,9 +1326,7 @@ register unsigned int nsecs;
 }
 
 
-getfiles (name, pflag)
-char   *name;
-bool	pflag;
+void getfiles (char *name, bool pflag)
 {
     FILE *lfd, *ofd;
     register int    i;
@@ -1337,26 +1374,25 @@ bool	pflag;
 }
 
 
-extract(name)
-char *name;
+// used by setfunc(
+int extract(char *name)
 {
 	getfiles(name, false);
 }
 
 
-print(name)
-char *name;
+/// used by setfunc(
+int print(char *name)
 {
 	getfiles(name, true);
 }
 
 
 #ifndef NOEDIT
-fcopy (ifd, ofd)
-FILE *ifd, *ofd;
+int fcopy(FILE *ifd, FILE *ofd)
 {
-    register int total = 0;
-    register int i, n;
+    int total = 0;
+    int i, n;
     char sectorbuf[SECTOR];
 
 
@@ -1372,9 +1408,7 @@ FILE *ifd, *ofd;
 }
 
 
-addfil (name, lfd)
-char   *name;
-FILE *lfd;
+void addfil (char *name, FILE *lfd)
 {
     FILE	*ifd;
     register int secoffs, numsecs;
@@ -1410,9 +1444,8 @@ FILE *lfd;
     VOID fclose (ifd);
 }
 
-
-update (name)
-char   *name;
+// used by setfunc(
+int update(char *name)
 {
     FILE *lfd;
     register int    i;
@@ -1435,9 +1468,8 @@ char   *name;
     VOID fclose (lfd);
 }
 
-
-del_entry (lname)
-char   *lname;
+// used by setfunc(
+int del_entry(char *lname)
 {
     FILE *f;
     char *unixnm;
@@ -1470,6 +1502,8 @@ char   *lname;
 }
 
 
+#define copymem(dst,src,n) memcpy(dst,src,n)
+/*
 copymem(dst, src, n)
 register char *dst, *src;
 register unsigned int n;
@@ -1477,11 +1511,10 @@ register unsigned int n;
 	while(n-- != 0)
 		*dst++ = *src++;
 }
+*/
 
 
-copyentry( old, of, new, nf )
-struct ludir *old, *new;
-FILE *of, *nf;
+void copyentry(struct ludir *old, FILE *of, struct ludir *new, FILE *nf )
 {
     register int secoffs, numsecs;
     char buf[SECTOR];
@@ -1506,8 +1539,8 @@ FILE *of, *nf;
 }
 
 
-reorg (name)
-char  *name;
+// used by setfunc(
+int reorg(char *name)
 {
     FILE *olib, *nlib;
     int oldsize;
@@ -1568,9 +1601,7 @@ char  *name;
 #endif
 
 
-main (argc, argv)
-int	argc;
-char  **argv;
+int main (int argc, char **argv)
 {
     register char *flagp;
     char   *aname;			/* name of library file */
@@ -1631,4 +1662,3 @@ char  **argv;
 
     (*function)(aname);
 }
-
