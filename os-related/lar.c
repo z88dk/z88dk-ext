@@ -5,7 +5,7 @@
 
 /* FULL program */
 /* zcc +cpm -create-app -O3 --opt-code-size -DUNCRUNCH -DUSQ -DTOUPPER lar.c */
-/* (not yet working) zcc +cpm -create-app -SO3 --max-allocs-per-node400000 -DUNCRUNCH -DUSQ -DTOUPPER -compiler=sdcc lar.c */
+/* zcc +cpm -create-app -SO3 --max-allocs-per-node400000 -DUNCRUNCH -DUSQ -DTOUPPER -compiler=sdcc lar.c */
 
 /* MINIMAL program */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DNOEDIT lar.c */
@@ -964,17 +964,24 @@ void uncrunch(char *filename)
 typedef enum {false=0, true=1} bool;
 
 /* Globals */
-char   *fname[MAXFILES];
+char   fname[MAXFILES];
 bool ftouched[MAXFILES];
 
+
+#ifdef Z80
+#define word unsigned int
+#define wtoi (unsigned int)
+#define itow (unsigned int)
+#else
 typedef struct {
     unsigned char   lobyte;
     unsigned char   hibyte;
 } word;
+#endif
 
-
+#ifndef Z80
 /* convert word to int */
-#ifdef SCCZ80
+#ifdef OPT_SIZE
 int wtoi(word w) {
 	return ((w.hibyte<<8) + w.lobyte);
 };
@@ -982,7 +989,8 @@ int wtoi(word w) {
 	#define wtoi(w) ((w.hibyte<<8) + w.lobyte)
 #endif
 
-#ifdef SCCZ80
+#ifndef NOEDIT
+#ifdef OPT_SIZE
 void itow(word dst,int src) {
 	dst.hibyte = (src & 0xff00) >> 8;
 	dst.lobyte = src & 0xff;
@@ -990,6 +998,9 @@ void itow(word dst,int src) {
 #else
 	#define itow(dst,src)	dst.hibyte = (src & 0xff00) >> 8; dst.lobyte = src & 0xff;
 #endif
+#endif
+#endif
+
 
 
 struct ludir {			/* Internal library ldir structure */
