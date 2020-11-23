@@ -1592,10 +1592,16 @@ int entry;
 	error ("No directory\n");
 
     nslots = wtoi (ldir[0].l_len) * SLOTS_SEC;
-	nslots--;
+	//nslots--;
+	
 
-    if (fread ((char *) & ldir[1], DSIZE, nslots-1, f) != nslots-1)
-	error ("Can't read directory - is it a library?");
+    //if (fread ((char *) & ldir[1], DSIZE, nslots-1, f) != nslots-1)
+	//error ("Can't read directory - is it a library?");
+
+	// workaround for z88dk
+	for (entry=1; entry<=nslots; entry++) {
+		fread ((char *) & ldir[entry], DSIZE, 1, f);
+	}
 }
 
 
