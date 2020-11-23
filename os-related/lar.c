@@ -1,11 +1,14 @@
 
+/* NOTE: the UNLZH option is under the GPL license */
+
+
 /* With z88dk, library editing may not work on some target      */
 /* '-DNOEDIT' will limit the tool (and its size) in those cases */
 /* MAXFILES is set to 64 to reduce the program size
 
 /* FULL program */
-/* zcc +cpm -create-app -O3 --opt-code-size -DUNCRUNCH -DUSQ -DTOUPPER lar.c */
-/* (work in progress) zcc +cpm -create-app -SO3 --max-allocs-per-node400000 -DUNCRUNCH -DUSQ -DTOUPPER -compiler=sdcc lar.c */
+/* zcc +cpm -create-app -O3 --opt-code-size -DUNCRUNCH -DUSQ -DUNLZH -DTOUPPER lar.c */
+/* (work in progress) zcc +cpm -create-app -SO3 --max-allocs-per-node400000 -DUNCRUNCH -DUSQ -DUNLZH -DTOUPPER -compiler=sdcc lar.c */
 
 /* MINIMAL program */
 /* zcc +cpm -create-app -O3 --opt-code-size -DTOUPPER -DNOEDIT lar.c */
@@ -101,6 +104,543 @@ Stephen Hemminger,  Mitre Corp. Bedford MA
 #include <malloc.h>
 #endif
 
+
+unsigned char *ptr;
+unsigned char outfile[80];	/*space to build output file name*/
+FILE 	*infd;			/*currently open input file*/
+FILE 	*outfd;			/*currently open output file*/
+
+
+#if (defined(UNCRUNCH)||defined(UNLZH)||defined(USQ))
+/*
+ cisubstr(string, token) searches for lower case token in string s
+ returns pointer to token within string if found, NULL otherwise
+*/
+#define cisubstr(s,t) strstr(s,t)
+
+/*extract, build and print output file name*/
+void getfilename() {
+#ifdef TOUPPER
+	for(ptr=outfile; (*ptr=getc(infd))!='\0'; ptr++) *ptr=toupper(*ptr);
+#else
+	for(ptr=outfile; (*ptr=getc(infd))!='\0'; ptr++) *ptr=tolower(*ptr);
+#endif
+	*(cisubstr(outfile,".")+4)='\0'; /*truncate non-name portion*/
+	printf(" -> %s",outfile);
+}
+
+#endif
+
+
+#if (defined(USQ)||defined(UNLZH))
+#define MAGIC_UNCR	0xfe76
+
+/* for bit/byte reader */
+unsigned int getbuf;
+
+/* get 16-bit word from file */
+int getw16()
+{
+int temp;
+
+temp = getc(infd);		/* get low order byte */
+temp |= getc(infd) << 8;
+if (temp & 0x8000) temp |= (~0) << 15;	/* propogate sign for big ints */
+return temp;
+
+}
+
+/* get 16-bit (unsigned) word from file */
+int getx16()
+{
+int temp;
+
+temp = getc(infd);		/* get low order byte */
+return temp | (getc(infd) << 8);
+
+}
+#endif
+
+
+
+
+// ------------------------------------------------------------------------------------------
+
+#ifdef UNLZH
+
+/*
+ * THIS PROGRAM SECTION IS UNDER THE GPL LICENSE
+ *
+ * lbrate 1.0 - fully extract CP/M `.lbr' archives.
+ * Copyright (C) 2001 Russell Marks. See main.c for license details.
+ *
+ * readlzh.c - read LZH-compressed files.
+ *
+ * This is based on the well-known lzhuf.c. Since the original
+ * licence was at best ambiguous, I asked all three authors if
+ * I could use a modified version of lzhuf.c in a GPL'd program,
+ * and the two who responded agreed.
+ *
+ * (The third, Yoshizaki, is thought by Okumura not likely to object,
+ * perhaps since his code was based on Okumura's lzari.c - which has
+ * always been under the licence mentioned below. :-))
+ *
+ * The following reflects what they consider to be the real licence
+ * on lzhuf.c:
+ *
+ * lzhuf.c
+ * Copyright (C) 1989 Haruhiko Okumura, Haruyasu Yoshizaki, and Kenji Rikitake.
+ * Use, distribute, and modify this program freely.
+ */
+
+
+/********** LZSS compression **********/
+
+#define MAGIC_LZH	0xfd76
+
+/* these are the values required for the "Y" format */
+#define LZ_N		2048
+#define LZ_F		60
+#define THRESHOLD	2
+
+static unsigned int checksum;
+static int oldver,lastchar;
+
+unsigned char text_buf[LZ_N + LZ_F - 1];
+
+
+/* Huffman coding */
+
+#define N_CHAR		(256 + 1 - THRESHOLD + LZ_F)
+/* kinds of characters (character code = 0..N_CHAR-1) */
+#define LZ_T		(N_CHAR * 2 - 1)	/* size of table */
+#define LZ_R		(LZ_T - 1)		/* position of root */
+#define MAX_FREQ	0x8000		/* updates tree when the */
+				   /* root frequency comes to this value. */
+
+
+/* table for decoding the upper 6 bits of position */
+
+/* for decoding */
+unsigned char d_code[256] =
+  {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+  0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+  0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+  0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+  0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+  0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+  0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+  0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+  0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
+  0x0C, 0x0C, 0x0C, 0x0C, 0x0D, 0x0D, 0x0D, 0x0D,
+  0x0E, 0x0E, 0x0E, 0x0E, 0x0F, 0x0F, 0x0F, 0x0F,
+  0x10, 0x10, 0x10, 0x10, 0x11, 0x11, 0x11, 0x11,
+  0x12, 0x12, 0x12, 0x12, 0x13, 0x13, 0x13, 0x13,
+  0x14, 0x14, 0x14, 0x14, 0x15, 0x15, 0x15, 0x15,
+  0x16, 0x16, 0x16, 0x16, 0x17, 0x17, 0x17, 0x17,
+  0x18, 0x18, 0x19, 0x19, 0x1A, 0x1A, 0x1B, 0x1B,
+  0x1C, 0x1C, 0x1D, 0x1D, 0x1E, 0x1E, 0x1F, 0x1F,
+  0x20, 0x20, 0x21, 0x21, 0x22, 0x22, 0x23, 0x23,
+  0x24, 0x24, 0x25, 0x25, 0x26, 0x26, 0x27, 0x27,
+  0x28, 0x28, 0x29, 0x29, 0x2A, 0x2A, 0x2B, 0x2B,
+  0x2C, 0x2C, 0x2D, 0x2D, 0x2E, 0x2E, 0x2F, 0x2F,
+  0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
+  0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
+  };
+
+unsigned char d_len[256] =
+  {
+  0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+  0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+  0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+  0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+  0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+  0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+  };
+
+static unsigned freq[LZ_T + 1];     /* frequency table */
+
+/* pointers to parent nodes, except for the elements [LZ_T..LZ_T + N_CHAR - 1]
+ * which are used to get the positions of leaves corresponding to the codes.
+ */
+static int prnt[LZ_T + N_CHAR];
+
+/* pointers to child nodes (son[], son[] + 1) */
+static int son[LZ_T];
+
+/* for bit/byte reader */
+//unsigned int getbuf=0;
+unsigned char getlen=0;
+
+#define ALLOC_BLOCK_SIZE	32768
+
+static unsigned char *data_in_point,*data_in_max;
+static unsigned char *data_out,*data_out_point;
+static int data_out_len,data_out_allocated;
+
+
+#define rawinput() getc(infd)
+/*
+static int rawinput(void)
+{
+if(data_in_point<data_in_max)
+  return(*data_in_point++);
+return(-1);
+}*/
+
+
+#ifdef Z80
+void rawoutput(int byte) __z88dk_fastcall
+#else
+void rawoutput(int byte)
+#endif
+{
+	putc(byte,outfd);
+	checksum+=byte;
+}
+
+/*
+static void rawoutput(int byte)
+{
+if(data_out_len>=data_out_allocated)
+  {
+  data_out_allocated+=ALLOC_BLOCK_SIZE;
+  if((data_out=realloc(data_out,data_out_allocated))==NULL)
+    fprintf(stderr,"lbrate: out of memory!\n"),exit(1);
+  data_out_point=data_out+data_out_len;
+  }
+
+*data_out_point++=byte;
+data_out_len++;
+checksum+=byte;
+}*/
+
+static int lz_getbit(void)
+{
+int i;
+
+while (getlen <= 8)
+  {
+  if ((lastchar = i = rawinput()) < 0) i = 0;
+  getbuf |= i << (8 - getlen);
+  getlen += 8;
+  }
+i = getbuf;
+getbuf <<= 1;
+getlen--;
+return ((i&0x8000)?1:0);
+}
+
+static int getbyte(void)
+{
+int i;
+
+while (getlen <= 8)
+  {
+  if ((lastchar = i = rawinput()) < 0) i = 0;
+  getbuf |= i << (8 - getlen);
+  getlen += 8;
+  }
+i = getbuf;
+getbuf <<= 8;
+getlen -= 8;
+return ((i >> 8)&255);
+}
+
+
+
+/* initialization of tree */
+
+void start_huff(void)
+{
+int i, j;
+
+for (i = 0; i < N_CHAR; i++)
+  {
+  freq[i] = 1;
+  son[i] = i + LZ_T;
+  prnt[i + LZ_T] = i;
+  }
+i = 0; j = N_CHAR;
+while (j <= LZ_R)
+  {
+  freq[j] = freq[i] + freq[i + 1];
+  son[j] = i;
+  prnt[i] = prnt[i + 1] = j;
+  i += 2; j++;
+  }
+freq[LZ_T] = 0xffff;
+prnt[LZ_R] = 0;
+}
+
+
+/* reconstruction of tree */
+
+void reconst(void)
+{
+int i, j, k;
+unsigned f;
+
+/* collect leaf nodes in the first half of the table */
+/* and replace the freq by (freq + 1) / 2. */
+j = 0;
+for (i = 0; i < LZ_T; i++)
+  {
+  if (son[i] >= LZ_T)
+    {
+    freq[j] = (freq[i] + 1) / 2;
+    son[j] = son[i];
+    j++;
+    }
+  }
+
+/* begin constructing tree by connecting sons */
+for (i = 0, j = N_CHAR; j < LZ_T; i += 2, j++)
+  {
+  k = i + 1;
+  f = freq[j] = freq[i] + freq[k];
+  for (k = j - 1; f < freq[k]; k--);
+  k++;
+  memmove(freq+k+1,freq+k,(j-k)*sizeof(freq[0]));
+  freq[k]=f;
+  memmove(son+k+1,son+k,(j-k)*sizeof(son[0]));
+  son[k]=i;
+  }
+
+/* connect prnt */
+for (i = 0; i < LZ_T; i++)
+  {
+  if ((k = son[i]) >= LZ_T)
+    prnt[k] = i;
+  else
+    prnt[k] = prnt[k + 1] = i;
+  }
+}
+
+
+/* increment frequency of given code by one, and update tree */
+
+void lzupdate(int c)
+{
+int i, j, k, l;
+
+if (freq[LZ_R] == MAX_FREQ)
+  reconst();
+
+c = prnt[c + LZ_T];
+do
+  {
+  k = ++freq[c];
+
+  /* if the order is disturbed, exchange nodes */
+  if (k > freq[l = c + 1])
+    {
+    while (k > freq[++l]);
+    l--;
+    freq[c] = freq[l];
+    freq[l] = k;
+
+    i = son[c];
+    prnt[i] = l;
+    if (i < LZ_T) prnt[i + 1] = l;
+
+    j = son[l];
+    son[l] = i;
+
+    prnt[j] = c;
+    if (j < LZ_T) prnt[j + 1] = c;
+    son[c] = j;
+
+    c = l;
+    }
+  }
+while ((c = prnt[c]) != 0);   /* repeat up to root */
+}
+
+
+int decode_char(void)
+{
+unsigned c;
+
+c = son[LZ_R];
+
+/* travel from root to leaf,
+ * choosing the smaller child node (son[]) if the read bit is 0,
+ * the bigger (son[]+1) if 1.
+ */
+while (c < LZ_T)
+  {
+  c += lz_getbit();
+  c = son[c];
+  }
+c -= LZ_T;
+lzupdate(c);
+return c;
+}
+
+int decode_position(void)
+{
+unsigned i, j, c;
+
+/* recover upper bits from table */
+i = getbyte();
+c = (unsigned)d_code[i] << (5+oldver);	/* 5, or 6 for 1.x */
+j = d_len[i];
+
+/* read lower bits verbatim */
+j -= 3-oldver;				/* 3, or 2 for 1.x */
+while (j--)
+  {
+  i = (i << 1) + lz_getbit();
+  }
+return c | (i & (oldver?0x3f:0x1f));	/* 0x1f, or 0x3f for 1.x */
+}
+
+
+
+// #define READ_WORD(x) (x)=rawinput(),(x)|=(rawinput()<<8)
+
+
+
+
+#ifdef Z80
+void unlzh(char *infile) __z88dk_fastcall
+#else
+void unlzh(char *infile)
+#endif
+{
+int c,v,checktype;
+unsigned int orig_checksum;
+int i,j,k,r;
+
+	if(!(infd=fopen(infile, "rb"))) {
+		//printf("Can't open %s\n", infile);
+		return;
+	}
+	
+	//READ_WORD(magic);
+	/* Process header */
+	if(getx16() != MAGIC_LZH) {
+		//printf(" not a compressed file\n");
+		fclose(infd);
+		return;
+	}
+
+	//filecrc = getw16();
+
+	getfilename();
+	printf(": lzh,");
+	
+	if(!(outfd=fopen(outfile, "wb"))) {
+		printf("Can't create %s\n", outfile);
+		fclose(infd);
+		fclose(outfd);
+		return;
+	}
+
+	
+	/* four info bytes */
+	rawinput();
+	oldver=((v=rawinput())<0x20?1:0);
+	checktype=rawinput();
+	rawinput();
+
+	getbuf=0;
+	getlen=0;
+	checksum=0;
+
+	start_huff();
+
+	r=LZ_N-LZ_F;
+	memset(text_buf,32,r);
+
+	while((c=decode_char())!=256)	/* 256 = EOF */
+	  {
+	  if(c<256)
+		{
+		rawoutput(c);
+		text_buf[r++] = c;
+		r&=(LZ_N-1);
+		}
+	  else
+		{
+		i=(r-decode_position()-1)&(LZ_N-1);
+		j=c-256+THRESHOLD;
+		for (k = 0; k < j; k++)
+		  {
+		  c=text_buf[(i+k)&(LZ_N-1)];
+		  rawoutput(c);
+		  text_buf[r++]=c;
+		  r&=(LZ_N-1);
+		  }
+		}
+	  }
+
+	/* lastchar junk is needed because bit(/byte) reader reads a byte
+	 * in advance.
+	 */
+	orig_checksum=lastchar;
+	orig_checksum+=256*rawinput();
+
+	/* see how the checksum turned out */
+	#ifndef Z80
+	checksum&=0xffff;
+	#endif
+	if(checktype==0 && checksum!=orig_checksum)
+	  {
+			printf("***** checksum error\n");
+	  } else {
+			fclose(infd);
+			remove(infile);
+			printf(" done.");
+	  }
+
+	fclose(outfd);
+	fclose(infd);
+}
+
+#endif // UNLZH
+
+
+
+// ------------------------------------------------------------------------------------------
+
 /*  USQ function extracted from source version 3.2, 23/03/2012
 	..in turn derived from the historical version 3.1 (12/19/84)  */
 
@@ -141,58 +681,12 @@ unsigned int dispcnt;	/* How much of each file to preview */
 char	ffflag;		/* should formfeed separate preview from different files */
 
 
-/* get 16-bit word from file */
-#ifdef Z80
-int getw16(FILE *iob) __z88dk_fastcall
-#else
-int getw16(FILE *iob)
-#endif
-{
-int temp;
-
-temp = getc(iob);		/* get low order byte */
-temp |= getc(iob) << 8;
-if (temp & 0x8000) temp |= (~0) << 15;	/* propogate sign for big ints */
-return temp;
-
-}
-
-/* get 16-bit (unsigned) word from file */
-#ifdef Z80
-int getx16(FILE *iob) __z88dk_fastcall
-#else
-int getx16(FILE *iob)
-#endif
-{
-int temp;
-
-temp = getc(iob);		/* get low order byte */
-return temp | (getc(iob) << 8);
-
-}
-
-
-/* initialize decoding functions */
-
-void init_cr()
-{
-	repct = 0;
-}
-
-void init_huff()
-{
-	bpos = 99;	/* force initial read */
-}
 
 
 /* Decode file stream into a byte level code with only
  * repetition encoding remaining.
  */ 
-#ifdef Z80
-int getuhuff(FILE *ib) __z88dk_fastcall
-#else
-int getuhuff(FILE *ib)
-#endif
+int getuhuff()
 {
 	int i;
 
@@ -200,7 +694,7 @@ int getuhuff(FILE *ib)
 	i = 0;	/* Start at root of tree */
 	do {
 		if(++bpos > 7) {
-			if((curin = getc(ib)) == ERROR)
+			if((curin = getc(infd)) == ERROR)
 				return ERROR;
 			bpos = 0;
 			/* move a level deeper in tree */
@@ -224,11 +718,7 @@ int getuhuff(FILE *ib)
  * that DLE is encoded as DLE-zero and other values
  * repeated more than twice are encoded as value-DLE-count.
  */
-#ifdef Z80
-int getcr(FILE *ib) __z88dk_fastcall
-#else
-int getcr(FILE *ib)
-#endif
+int getcr()
 {
 	int c;
 
@@ -238,7 +728,7 @@ int getcr(FILE *ib)
 		return value;
 	} else {
 		/* Nothing unusual */
-		if((c = getuhuff(ib)) != DLE) {
+		if((c = getuhuff()) != DLE) {
 			/* It's not the special delimiter */
 			value = c;
 			if(value == EOF)
@@ -246,7 +736,7 @@ int getcr(FILE *ib)
 			return value;
 		} else {
 			/* Special token */
-			if((repct = getuhuff(ib)) == 0)
+			if((repct = getuhuff()) == 0)
 				/* DLE, zero represents DLE */
 				return DLE;
 			else {
@@ -265,14 +755,11 @@ void unsqueeze(char *infile) __z88dk_fastcall
 void unsqueeze(char *infile)
 #endif
 {
-	FILE *inbuff, *outbuff;	/* file buffers */
 	int i, c;
 	char cc;
 
-	char *p;
 	unsigned int filecrc;	/* checksum */
 	int numnodes;		/* size of decoding tree */
-	char outfile[128];	/* output file name */
 	unsigned int linect;	/* count of number of lines previewed */
 	char obuf[128];		/* output buffer */
 	int oblen;		/* length of output buffer */
@@ -286,34 +773,36 @@ void unsqueeze(char *infile)
 		}
 #endif
 
-	if(!(inbuff=fopen(infile, "rb"))) {
+	if(!(infd=fopen(infile, "rb"))) {
 		//printf("Can't open %s\n", infile);
 		return;
 	}
 	/* Initialization */
 	linect = 0;
 	crc = 0;
-	init_cr();
-	init_huff();
+	repct = 0;		/* initialize decoding functions */
+	bpos = 99;		/* force initial read */
 
 	/* Process header */
-	if(getx16(inbuff) != RECOGNIZE) {
+	if(getx16() != RECOGNIZE) {
 		//printf(" is not a squeezed file\n");
 		goto closein;
 	}
 
-	filecrc = getw16(inbuff);
+	filecrc = getw16();
 
 	/* Get original file name */
-	p = outfile;			/* send it to array */
-	do {
-		*p = getc(inbuff);
-	} while(*p++ != '\0');
+	
+	//ptr = outfile;			/* send it to array */
+	/*do {
+		*ptr = getc(infd);
+	} while(*ptr++ != '\0');
+	
+	printf(" -> %s: ", outfile);*/
+	
+	getfilename();
 
-	printf("-> %s: ", outfile);
-
-
-	numnodes = getw16(inbuff);
+	numnodes = getw16();
 
 	if(numnodes < 0 || numnodes >= NUMVALS) {
 		printf("%s has invalid decode tree size\n", infile);
@@ -326,14 +815,14 @@ void unsqueeze(char *infile)
 
 	/* Get decoding tree from file */
 	for(i = 0; i < numnodes; ++i) {
-		dnode[i].children[0] = getw16(inbuff);
-		dnode[i].children[1] = getw16(inbuff);
+		dnode[i].children[0] = getw16();
+		dnode[i].children[1] = getw16();
 	}
 
 	if(dispcnt) {
 		/* Use standard output for previewing */
 		putchar('\n');
-		while(((c = getcr(inbuff)) != EOF) && (linect < dispcnt)) {
+		while(((c = getcr(infd)) != EOF) && (linect < dispcnt)) {
 			cc = 0x7f & c;	/* strip parity */
 			if((cc < ' ') || (cc > '~'))
 				/* Unprintable */
@@ -356,25 +845,25 @@ void unsqueeze(char *infile)
 			putchar('\f');	/* formfeed */
 	} else {
 		/* Create output file */
-		if(!(outbuff=fopen(outfile, "wb"))) {
+		if(!(outfd=fopen(outfile, "wb"))) {
 			printf("Can't create %s\n", outfile);
 			goto closeall;
 		}
-		printf("unsqueezing,");
+		printf(": sq,");
 		/* Get translated output bytes and write file */
 		oblen = 0;
-		while((c = getcr(inbuff)) != EOF) {
+		while((c = getcr(infd)) != EOF) {
 			crc += c;
 			obuf[oblen++] = c;
 			if (oblen >= sizeof(obuf)) {
-				if(!fwrite(obuf, sizeof(obuf), 1, outbuff)) {
+				if(!fwrite(obuf, sizeof(obuf), 1, outfd)) {
 					printf(errmsg, outfile);
 					goto closeall;
 				}
 				oblen = 0;
 			}
 		}
-		if (oblen && !fwrite(obuf, oblen, 1, outbuff)) {
+		if (oblen && !fwrite(obuf, oblen, 1, outfd)) {
 			printf(errmsg, outfile);
 			goto closeall;
 		}
@@ -384,19 +873,19 @@ void unsqueeze(char *infile)
 #else
 		if((filecrc && 0xFFFF) != (crc && 0xFFFF))
 #endif
-			printf("ERROR - checksum error in %s\n", outfile);
+			printf("***** checksum error\n");
 		else {
-			fclose(inbuff);
+			fclose(infd);
 			remove(infile);
 			printf(" done.");
 		}
 
 	closeall:
-		fclose(outbuff);
+		fclose(outfd);
 	}
 
 closein:
-	fclose(inbuff);
+	fclose(infd);
 #ifdef HAVE_CALLOC
 	free(dnode);
 #endif
@@ -405,6 +894,10 @@ closein:
 
 #endif  // USQ
 
+
+
+
+// ------------------------------------------------------------------------------------------
 
 
 #ifdef UNCRUNCH
@@ -464,16 +957,13 @@ unsigned char	codlen;		/*variable code length in bits (9-12)*/
 int	trgmsk;			/*mask for codes of current length*/
 unsigned char	fulflg;		/*full flag - set once main table is full*/
 int	entry;			/*next available main table entry*/
-long	getbuf;			/*buffer used by getcode*/
+long	cr_getbuf;			/*buffer used by getcode*/
 int	getbit;			/*residual bit counter used by getcode*/
 unsigned char	entflg; 	/*inhibit main loop from entering this code*/
 unsigned char	repeat_flag;	/*so send can remember if repeat required*/
 int	finchar;		/*first character of last substring output*/
 int	lastpr;			/*last predecessor (in main loop)*/
 int	cksum;			/*checksum of all bytes written to output file*/
-
-FILE 	*infd;			/*currently open input file*/
-FILE 	*outfd;			/*currently open output file*/
 
 
 
@@ -585,6 +1075,7 @@ void intram()
 	entflg=1;	/*first code always atomic*/
 	repeat_flag=0;	/*repeat not active*/
 	cksum=0;	/*zero checsum*/
+	cr_getbuf=0;
 	}
 
 
@@ -595,24 +1086,24 @@ unsigned int getcode()
 	int code;
 
 	/*always get at least a byte*/
-	getbuf=(getbuf<<codlen)|(((long)getc(infd))<<(hole=codlen-getbit));
+	cr_getbuf=(cr_getbuf<<codlen)|(((long)getc(infd))<<(hole=codlen-getbit));
 	getbit=8-hole;
 
 	/*if is not enough to supply codlen bits, get another byte*/
 	if(getbit<0)
 		{
-		getbuf |= ((long)getc(infd))<<(hole-8);
+		cr_getbuf |= ((long)getc(infd))<<(hole-8);
 		getbit+=8;
 		}
 
 	if(feof(infd))
 		{
-		printf("***** Unexpected EOF on input file!\n");
+		printf("***** Unexpected EOF !\n");
 		return EOFCOD;
 		}
 
 	/*skip spare or null codes*/
-	if((code=((getbuf>>8) & trgmsk)) == NULCOD || code == SPRCOD)
+	if((code=((cr_getbuf>>8) & trgmsk)) == NULCOD || code == SPRCOD)
 		{
 		return getcode();	/*skip this code, get next*/
 		}
@@ -745,12 +1236,6 @@ void entfil(int pred, int suff)
 	}
 }
 
-/*
- cisubstr(string, token) searches for lower case token in string s
- returns pointer to token within string if found, NULL otherwise
-*/
-
-#define cisubstr(s,t) strstr(s,t)
 
 
 
@@ -764,7 +1249,6 @@ void uncrunch(char *filename)
 	//int c;			
 	unsigned char *p;
 	//char *cisubstr();
-	unsigned char outfn[80];	/*space to build output file name*/
 	int pred;			/*current predecessor (in main loop)*/
 	unsigned char reflevel;		/*ref rev level from input file*/
 	unsigned char siglevel;		/*sig rev level from input file*/
@@ -812,29 +1296,27 @@ void uncrunch(char *filename)
 		}
 
 	/*verify this is a crunched file*/
-	if (getc(infd) != 0x76 || getc(infd) != 0xfe)
-		{
-		//printf("***** %s is not a crunched file\n",filename);
+	
+	if(getx16() != MAGIC_UNCR) {
+		//printf(" not a compressed file\n");
+		fclose(infd);
 #ifdef HAVE_CALLOC
 		free(lzw_table);
 		free(xlatbl);
 		free(stack);
 #endif
 		return;
-		}
+	}
 
-	/*extract and build output file name*/
-	//printf("%s --> ",filename);
-	printf(" --> ");
-	for(p=outfn; (*p=getc(infd))!='\0'; p++) *p=tolower(*p);
-	*(cisubstr(outfn,".")+4)='\0'; /*truncate non-name portion*/
-	printf("%s",outfn);
-	printf(": uncrunching,");
+
+	/*extract, build and print output file name*/
+	getfilename();
+	printf(": lzw,");
 
 	/*open output file*/
-	if ( 0 == (outfd =fopen( outfn,"wb")) )
+	if ( 0 == (outfd =fopen( outfile,"wb")) )
 		{
-		printf("***** can't create %s\n",outfn);
+		printf("***** can't create %s\n",outfile);
 #ifdef HAVE_CALLOC
 		free(lzw_table);
 		free(xlatbl);
@@ -919,8 +1401,7 @@ void uncrunch(char *filename)
 		if(file_cksum!=(cksum & (0xffff)))
 #endif
 			{
-			printf("***** checksum error detected in ");
-			printf("%s!\n",filename);
+			printf("***** checksum error\n");
 			} else {
 				fclose(infd);
 				remove(filename);
@@ -944,6 +1425,9 @@ void uncrunch(char *filename)
 #endif  // UNCRUNCH
 
 
+
+
+// ------------------------------------------------------------------------------------------
 
 
 #define ACTIVE	00
@@ -1367,6 +1851,10 @@ void getfiles (char *name, bool pflag)
 #ifdef USQ
 			unsqueeze(unixname);
 #endif
+#ifdef UNLZH
+			unlzh(unixname);
+#endif
+
 		}
 		
 	}
