@@ -48,7 +48,7 @@
 // It should be located in the correct directory (along with ff.h) as per the examples provided below.
 
 #if __YAZ180
-// zcc +yaz180 -subtype=cpm -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
+// zcc +yaz180 -subtype=cpm -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
 // This is for the YAZ180, using the 82C55 IDE interface. There is only one drive supported. The program is loaded and run from the monitor.
 // Drive 0:
 #include <arch/yaz180.h>
@@ -57,7 +57,7 @@
 #include <arch/yaz180/diskio.h>     /* Declarations of diskio & IDE functions */
 
 #elif __RC2014
-// zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node100000 -llib/rc2014/time -llib/rc2014/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/time -llib/rc2014/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
 // Drive 0:
@@ -65,7 +65,7 @@
 #include <lib/rc2014/ff.h>          /* Declarations of FatFs API */
 #include <arch/rc2014/diskio.h>     /* Declarations of diskio functions */
 
-// zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -77,7 +77,7 @@
 //#pragma output CRT_ORG_BSS = 0x9000 // move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __SCZ180
-// zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
+// zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
 // Drive 0: (as we're not using hbios api, but calling SD directly)
 //#include <arch/scz180.h>           /* Declarations of SD functions */
 //#include <lib/scz180/ffconf.h>     /* Declarations of FatFs configuration */
@@ -85,7 +85,7 @@
 //#include <lib/scz180/diskio_sd.h>  /* Declarations of SD diskio functions */
 //#pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
-// zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the SCZ180 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -98,7 +98,7 @@
 #pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __HBIOS
-// zcc +hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node100000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for any RetroBrew target when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -157,6 +157,7 @@ int8_t ya_umount(char **args);      // unmount a FAT file system
 int8_t ya_ls(char **args);          // directory listing
 int8_t ya_rm(char **args);          // delete a file
 int8_t ya_cp(char **args);          // copy a file
+int8_t ya_mv(char **args);          // move (rename) a file
 int8_t ya_cd(char **args);          // change the current working directory
 int8_t ya_pwd(char **args);         // show the current working directory
 int8_t ya_mkdir(char **args);       // create a new directory
@@ -203,7 +204,6 @@ static void dsk0_helper(void) __naked
 /*
   List of builtin commands.
  */
- 
 
 struct Builtin {
   const char *name;
@@ -226,6 +226,7 @@ struct Builtin builtins[] = {
     { "ls", &ya_ls, "[path] - directory listing"},
     { "rm", &ya_rm, "[file] - delete a file"},
     { "cp", &ya_cp, "[src][dest] - copy a file"},
+    { "mv", &ya_mv, "[src][dest] - move (rename) a file"},
     { "cd", &ya_cd, "[path] - change the current working directory"},
     { "pwd", &ya_pwd, "- show the current working directory"},
     { "mkdir", &ya_mkdir, "[path] - create a new directory"},
@@ -396,7 +397,7 @@ int8_t ya_ls(char **args)
     FRESULT res;
     uint32_t p1;
     uint16_t s1, s2;
-    
+
     res = f_mount(fs, (const TCHAR*)"", 0);
     if (res != FR_OK) { put_rc(res); return 1; }
 
@@ -438,7 +439,6 @@ int8_t ya_ls(char **args)
     } else {
         put_rc(res);
     }
-
     return 1;
 }
 
@@ -474,7 +474,7 @@ int8_t ya_cp(char **args)       // copy a file
     struct timespec startTime, endTime, resTime;
 #endif
 
-    if (args[1] == NULL && args[2] == NULL) {
+    if (args[1] == NULL || args[2] == NULL) {
         fprintf(stdout, "yash: expected 2 arguments to \"cp\"\n");
     } else {
         fprintf(stdout,"Opening \"%s\"\n", args[1]);
@@ -511,6 +511,22 @@ int8_t ya_cp(char **args)       // copy a file
         timersub(&endTime, &startTime, &resTime);
         fprintf(stdout, ", the time taken was %li.%.4lu seconds", resTime.tv_sec, resTime.tv_nsec/100000);
 #endif
+    }
+    return 1;
+}
+
+
+/**
+   @brief Builtin command:
+   @param args List of args.  args[0] is "mv".  args[1] is the src, args[2] is the dst
+   @return Always returns 1, to continue executing.
+ */
+int8_t ya_mv(char **args)       // move (rename) a file
+{
+    if (args[1] == NULL || args[2] == NULL) {
+        fprintf(stdout, "yash: expected 2 arguments to \"mv\"\n");
+    } else {
+        put_rc(f_rename((const TCHAR*)args[1],(const TCHAR*)args[2]));
     }
     return 1;
 }
@@ -894,7 +910,7 @@ int main(int argc, char **argv)
 
 #if !__RC2014
     set_zone((int32_t)11 * ONE_HOUR);                   /* Australian Eastern Summer Time */
-    set_system_time(1577836800 - UNIX_OFFSET);          /* Initial time: 00.00 January 1, 2020 UTC */
+    set_system_time(1606780800 - UNIX_OFFSET);          /* Initial time: 00.00 December 1, 2020 UTC */
 #endif
 
     fs = (FATFS *)malloc(sizeof(FATFS));                /* Get work area for the volume */
@@ -912,4 +928,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
