@@ -1,3 +1,8 @@
+/*
+	Build example:
+		zcc +cpm -create-app -DSMALL_DISPLAY -compiler=sdcc pressup.c
+*/
+
 
 /* Press-up game...
        pressup <options>
@@ -84,83 +89,27 @@ BBOARD master, savebd;
 
 char string[20];
 
-CheckWin(bp)
- BBOARD *bp;
- {	int i;
-	i = search(bp,1,1,-32000,-32000);
-	if (BestMove >= 0) return 0;
 
-	if (i>0) printf("I win!\n");
-	if (i<0) printf("You win!\n");
-	if (i==0) printf("Tie game!\n");
-	return 1;
-	}
-
-asknew()
+void asknew()
 {
 	printf("\nAnother game? ");	
 	if (toupper(getchar()) != 'Y') exit();
 	printf("\n");
 }
 
-main(int argc,char *argv[])
-  {	int i,j; char *arg;
-	FFlag  = BFlag = 0;
-	image = ".rbXRB";
-	//initw(Adj,"-1,-1,-1,0,-1,1,0,-1,0,1,1,-1,1,0,1,1");
 
-	Depth = 3;
-	for (i=1; i<argc; i++)
-	 {if (*(arg = argv[i])=='-') switch (toupper(*++arg)) {
-		case 'D':	Depth = atoi(argv[++i]); continue;
-		case 'F':	FFlag++; continue;
-		case 'B':	BFlag++; continue;
-		default:	printf("Illegal argument: '%s'\n",argv[i]);
-				exit(); }
-	   else {printf("Illegal argument: '%s'\n",arg); exit(); }}
-
-ngame:
-	Startflag = 1;
-	Helpflag = 0;
-	for (i=0; i<(SIDE*SIDE); i++) initb.board[i] = 0;
-	 for (j=1; j<(SIDE-1); j++)
-		{ initb.board[j] = 1;
-		  initb.board[(SIDE*SIDE-1)-j] = 1;
-		  initb.board[SIDE*j] = 2;
-		  initb.board[SIDE*j + SIDE-1] = 2; };
-	initb.star = -1; initb.red = 0; initb.blue = 0;
-
-	bbcopy(&initb,&master);
-	pboard(&master); bbcopy(&master,&savebd);
-
-	for(;;)
-	  {	if (FFlag) { FFlag = 0; goto Mine; }
-		if (CheckWin(&master)) {
-			asknew();
-			goto ngame;
-		 }
-		i = getmove();
-		if (i == 'Q') {	
-			asknew();
-			goto ngame;
-		 }
-		dmove(i);
-		if (CheckWin(&master)) {
-			asknew();
-			goto ngame;
-		 }
-	Mine:	printf("I'm thinking...\n");
-		i = search(&master,Depth,1,-32000,-32000);
-		if (BFlag) printf("Eval = %d\n",i); 
-		dmove(BestMove);
-		if (i > 500) printf("I've got you!\n"); 
-		if (i < -500) printf("You've got me!\n"); 
-
-	  }
+void bbcopy(BBOARD *p1, BBOARD *p2)
+  {	int i;
+	i = (SIDE*SIDE)-1;
+	do p2->board[i] = p1->board[i];
+		while(i--);
+	p2->star = p1->star;
+	p2->red = p1->red;
+	p2->blue = p1->blue;
   }
 
 
-pboard(BBOARD *bp)
+void pboard(BBOARD *bp)
   {	int i, j, n;
 	char letter;
 	letter = 'A';
@@ -209,28 +158,8 @@ pboard(BBOARD *bp)
 	printf("\n");
   }
 
-bbcopy(p1,p2)
-BBOARD *p1, *p2;
-  {	int i;
-	i = (SIDE*SIDE)-1;
-	do p2->board[i] = p1->board[i];
-		while(i--);
-	p2->star = p1->star;
-	p2->red = p1->red;
-	p2->blue = p1->blue;
-  }
 
-
-/* display move #n */
-
-dmove(int n)
-  {
-	move(&master,n);
-	pboard(&master);
-	bbcopy(&master,&savebd);
-  }
-
-move(BBOARD *bp,int n)
+void move(BBOARD *bp,int n)
   {	int type;
 	type = bp->board[n] += 3;
 	if (type == 4) bp->red++;
@@ -238,10 +167,21 @@ move(BBOARD *bp,int n)
 	bp->star = n;
   }
 
+
+/* display move #n */
+
+void dmove(int n)
+  {
+	move(&master,n);
+	pboard(&master);
+	bbcopy(&master,&savebd);
+  }
+
+
 search (BBOARD *bp,int ddepth,int who,int alpha,int beta)
-  {	BBOARD new;
+  {	
 	int i,j,k;
-	int myalpha,hisalpha,result,status;
+	int myalpha,hisalpha,status;
 	int best;
 	int num;
 	int bestmove, ii, jj, n;
@@ -299,6 +239,17 @@ search (BBOARD *bp,int ddepth,int who,int alpha,int beta)
 	return best; }
 
 
+CheckWin(BBOARD *bp)
+ {	int i;
+	i = search(bp,1,1,-32000,-32000);
+	if (BestMove >= 0) return 0;
+
+	if (i>0) printf("I win!\n");
+	if (i<0) printf("You win!\n");
+	if (i==0) printf("Tie game!\n");
+	return 1;
+	}
+
 
 Help()
  {	printf("I'm thinking for you...\n");
@@ -355,4 +306,63 @@ getrow: for (;;) {
 	printf("  Illegal!  ");
 	goto loop;
   }
+  
+
+
+main(int argc,char *argv[])
+  {	int i,j; char *arg;
+	FFlag  = BFlag = 0;
+	image = ".rbXRB";
+	//initw(Adj,"-1,-1,-1,0,-1,1,0,-1,0,1,1,-1,1,0,1,1");
+
+	Depth = 3;
+	for (i=1; i<argc; i++)
+	 {if (*(arg = argv[i])=='-') switch (toupper(*++arg)) {
+		case 'D':	Depth = atoi(argv[++i]); continue;
+		case 'F':	FFlag++; continue;
+		case 'B':	BFlag++; continue;
+		default:	printf("Illegal argument: '%s'\n",argv[i]);
+				exit(); }
+	   else {printf("Illegal argument: '%s'\n",arg); exit(); }}
+
+ngame:
+	Startflag = 1;
+	Helpflag = 0;
+	for (i=0; i<(SIDE*SIDE); i++) initb.board[i] = 0;
+	 for (j=1; j<(SIDE-1); j++)
+		{ initb.board[j] = 1;
+		  initb.board[(SIDE*SIDE-1)-j] = 1;
+		  initb.board[SIDE*j] = 2;
+		  initb.board[SIDE*j + SIDE-1] = 2; };
+	initb.star = -1; initb.red = 0; initb.blue = 0;
+
+	bbcopy(&initb,&master);
+	pboard(&master); bbcopy(&master,&savebd);
+
+	for(;;)
+	  {	if (FFlag) { FFlag = 0; goto Mine; }
+		if (CheckWin(&master)) {
+			asknew();
+			goto ngame;
+		 }
+		i = getmove();
+		if (i == 'Q') {	
+			asknew();
+			goto ngame;
+		 }
+		dmove(i);
+		if (CheckWin(&master)) {
+			asknew();
+			goto ngame;
+		 }
+	Mine:	printf("I'm thinking...\n");
+		i = search(&master,Depth,1,-32000,-32000);
+		if (BFlag) printf("Eval = %d\n",i); 
+		dmove(BestMove);
+		if (i > 500) printf("I've got you!\n"); 
+		if (i < -500) printf("You've got me!\n"); 
+
+	  }
+  }
+  
   
