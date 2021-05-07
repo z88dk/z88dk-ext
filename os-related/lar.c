@@ -1517,7 +1517,7 @@ void help () {
     fprintf (stderr, "\tp - Print files in library\n");
 #ifndef NOEDIT
     fprintf (stderr, "\td - Delete files in library\n");
-    fprintf (stderr, "\tr - Reorginize library\n");
+    fprintf (stderr, "\tr - Reorganize library\n");
 #endif
     fprintf (stderr, "Flags are:\n\tv - Verbose\n");
     exit (1);
