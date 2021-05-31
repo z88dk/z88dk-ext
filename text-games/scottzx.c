@@ -1,7 +1,7 @@
 /*
  *	ScottFree Revision 1.14
  *	Adapted by Stefano Bodrato to run in tiny environments.
- *	
+ *
  *	This program is free software; you can redistribute it and/or
  *	modify it under the terms of the GNU General Public License
  *	as published by the Free Software Foundation; either version
@@ -12,7 +12,7 @@
 
 Examples:
 
-	zcc +cpm  -D__Z88DK__ -create-app -DDEBUG  -pragma-define:REGISTER_SP=28000 -O3 scottzx.c
+	zcc +cpm  -create-app -DDEBUG  -pragma-define:REGISTER_SP=28000 -O3 scottzx.c
 
 
  * The ZX Microdrive library is now very powerful and supports file access in write mode.
@@ -20,7 +20,7 @@ Examples:
  * It is not advisable to lower zorg furtherly because the BASIC area needs to be increased
  * for the temporary microdrive buffers, the extra system variables, etc.
 
- 	zcc +zx -clib=ansi -D__Z88DK__ -lzxmdv -create-app -DDEBUG -zorg=28000 -O3 scottzx.c
+ 	zcc +zx -clib=ansi -lzxmdv -create-app -DDEBUG -zorg=28000 -O3 scottzx.c
 
 	cl scottzx.c
 
@@ -50,7 +50,7 @@ Examples:
 #include "scottzx.h"
 
 
-#ifdef __Z88DK__
+#ifdef Z80
 	#include <malloc.h>
 #pragma printf = "%s %9s %c %u "
 	//#define HPSIZE 19000
@@ -1346,7 +1346,7 @@ void main()
 	FILE *f;
 	int vb,no;
 
-#ifdef __Z88DK__
+#ifdef Z80
 //	heapinit(HPSIZE);
 	mallinit();
 	#ifdef __CPM__
@@ -1355,6 +1355,10 @@ void main()
 	#ifdef __SPECTRUM__
 		sbrk (50000,15500);
 	#endif
+#endif
+
+#ifdef _WIN32
+	system(" ");
 #endif
 
 	//printf ("%c[2J",27);
