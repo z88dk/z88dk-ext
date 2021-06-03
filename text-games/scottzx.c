@@ -460,7 +460,7 @@ void Look()
 	printf(TRS80_LINE);
 
 	//wmove(Top,0,0);	/* Needed by some curses variants */
-	if((BitFlags&(1<<DARKBIT)) && Items[LIGHT_SOURCE].Location!= CARRIED
+	if((BitFlags&((long)1<<DARKBIT)) && Items[LIGHT_SOURCE].Location!= CARRIED
 	            && Items[LIGHT_SOURCE].Location!= MyLoc)
 	{
 		//if(Options&YOUARE)
@@ -857,10 +857,10 @@ int PerformLine(int ct)
 				Items[param[pptr++]].Location=0;
 				break;
 			case 56:
-				BitFlags|=1<<DARKBIT;
+				BitFlags|=(long)1<<DARKBIT;
 				break;
 			case 57:
-				BitFlags&=~(1<<DARKBIT);
+				BitFlags&=~((long)1<<DARKBIT);
 				break;
 			case 58:
 				BitFlags|=(1<<param[pptr++]);
@@ -880,7 +880,7 @@ int PerformLine(int ct)
 				#else
 					printf ("I am dead.\n");
 				#endif
-				BitFlags&=~(1<<DARKBIT);
+				BitFlags&=~((long)1<<DARKBIT);
 				MyLoc=GameHeader.NumRooms;/* It seems to be what the code says! */
 				Look();
 				break;
@@ -972,7 +972,7 @@ doneit:				printf ("The game is now over.\n");
 				if(Items[LIGHT_SOURCE].Location==MyLoc)
 					Redraw=1;
 				Items[LIGHT_SOURCE].Location=CARRIED;
-				BitFlags&=~(1<<LIGHTOUTBIT);
+				BitFlags&=~((long)1<<LIGHTOUTBIT);
 				break;
 			case 70:
 				//printf(TRS80_LINE);
@@ -1109,7 +1109,7 @@ doneit:				printf ("The game is now over.\n");
 int PerformActions(int vb,int no)
 {
 	static int disable_sysfunc=0;	/* Recursion lock */
-	int d=BitFlags&(1<<DARKBIT);
+	int d=BitFlags&((long)1<<DARKBIT);
 	
 	int ct=0;
 	int fl;
@@ -1458,7 +1458,7 @@ Z88DK port v1.0 by Stefano Bodrato\n\n");
 			GameHeader.LightTime--;
 			if(GameHeader.LightTime<1)
 			{
-				BitFlags|=(1<<LIGHTOUTBIT);
+				BitFlags|=((long)1<<LIGHTOUTBIT);
 				if(Items[LIGHT_SOURCE].Location==CARRIED ||
 					Items[LIGHT_SOURCE].Location==MyLoc)
 				{
