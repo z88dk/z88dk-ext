@@ -12,7 +12,7 @@
 
 Examples:
 
-	zcc +cpm  -create-app -DDEBUG  -pragma-define:REGISTER_SP=28000 -O3 scottzx.c
+	zcc +cpm  -create-app -DDEBUG  -pragma-define:REGISTER_SP=29999 -O3 scottzx.c
 
 
  * The ZX Microdrive library is now very powerful and supports file access in write mode.
@@ -52,7 +52,10 @@ Examples:
 
 #ifdef Z80
 	#include <malloc.h>
-#pragma printf = "%s %9s %c %u "
+	
+	#pragma printf = "%s %9s %c %u "
+	#pragma scanf  = "%d %9s %u %hd"
+
 	//#define HPSIZE 19000
 	//#define HPSIZE 17000
 	//#define HPSIZE 16000
@@ -1340,8 +1343,7 @@ char buf[10];
 char numgame[10];
 
 
-//void main(int argc, char *argv[])
-void main()
+void main(int argc, char *argv[])
 {
 	FILE *f;
 	int vb,no;
@@ -1350,7 +1352,7 @@ void main()
 //	heapinit(HPSIZE);
 	mallinit();
 	#ifdef __CPM__
-		sbrk (28000,19000);
+		sbrk (30000,19000);
 	#endif
 	#ifdef __SPECTRUM__
 		sbrk (50000,15500);
@@ -1362,24 +1364,38 @@ void main()
 #endif
 
 	//printf ("%c[2J",27);
-	ClearScreen();
-	do
-	{
-		printf ("\nWhich adventure do you wish to play (00-17) ?  ");
-		LineInput(buf);
-		num=sscanf(buf,"%9s",numgame);
-		//sprintf(fname, "adv%s.dat", numgame);
-		sprintf(fname, "adv%s", numgame);
-		
-		//strcpy("adv",fname);
-		//strcat(numgame,fname);
 
-	//	f=fopen(argv[1],"r");
-	//	f=fopen("adv00","r");
-		f=fopen(fname,"r");
+	#ifdef __SPECTRUM__
 
-	}
-	while (f == NULL);
+		ClearScreen();
+		do
+		{
+			printf ("\nWhich adventure do you wish to play (00-17) ?  ");
+			LineInput(buf);
+			num=sscanf(buf,"%9s",numgame);
+			//sprintf(fname, "adv%s.dat", numgame);
+			sprintf(fname, "adv%s", numgame);
+
+			//strcpy("adv",fname);
+			//strcat(numgame,fname);
+
+		//	f=fopen(argv[1],"r");
+		//	f=fopen("adv00","r");
+			f=fopen(fname,"r");
+		}
+
+		while (f == NULL);
+
+	#else
+	
+		f=fopen(argv[1],"r");
+		if (f == NULL) {
+			printf ("\nInvalid or not specified game file.\n");
+			exit(-1);
+		}
+		ClearScreen();
+
+	#endif
 	
 	//Width = 64;
 	Width = 51;
