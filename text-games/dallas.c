@@ -1,7 +1,18 @@
 
-
-// zcc +zx -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+// ZX Spectrum
 // zcc +zx -DUSE_UDGS -DGRAPHICS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
+// zcc +zx -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+
+// MSXDOS
+// zcc +msx -subtype=msxdos  -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+
+// ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
+// zcc +zx81 -DGRAPHICS -subtype=_wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm dallas.c
+#pragma output hrgpage = 42752
+
+
+// MinGW
+// gcc -DVT_COLORS dallas.c
 
 
 /*
@@ -24,6 +35,8 @@
 */
 
 
+#include <stdio.h>
+
 #include <conio.h>
 #include <math.h>
 #include <ctype.h>
@@ -33,6 +46,84 @@
 
 #ifdef USE_SOUND
 #include <sound.h>
+#endif
+
+
+#ifdef _WIN32
+
+#include <windows.h>
+
+void cputs(char *x) {
+	_cputs(x);
+	printf("\n");
+}
+
+COORD GetConsoleCursorPosition(HANDLE hConsoleOutput)
+{
+    CONSOLE_SCREEN_BUFFER_INFO cbsi;
+    if (GetConsoleScreenBufferInfo(hConsoleOutput, &cbsi))
+    {
+        return cbsi.dwCursorPosition;
+    }
+    else
+    {
+        // The function failed. Call GetLastError() for details.
+        COORD invalid = { 0, 0 };
+        return invalid;
+    }
+}
+
+int wherey()
+{
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD c = GetConsoleCursorPosition(h);
+	return (c.Y);
+}
+
+void gotoxy(int x,int y)
+{
+	//    printf("%c[%d;%df",0x1B,y,x);
+
+	COORD c = { x, y };
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(h, c); 
+}
+
+
+void textcolor(int x)
+{
+SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), x +7*16);
+
+
+	//printf ("%c[%um%c",27,30+x);
+}
+
+void textbackground(int x)
+{
+	//printf ("%c[%um%c",27,40+x);
+}
+
+int getk () {
+	if (_kbhit())
+		return (_getch());
+	return (0);
+}
+
+#define t_delay(x) usleep(x/10)
+
+void clear_screen() {
+	system("mode con: cols=32 lines=24");
+	printf ("%c[%um%c[%um",27,47,27,30);
+	printf ("%c[2J",27);
+	system("cls");
+}
+
+#endif
+
+
+
+#ifdef Z80
+	#define clear_screen(); putch(12);
 #endif
 
 
@@ -121,19 +212,27 @@ static unsigned char udgs[] = {
 
 
 void quick_pause() {
+#ifndef __ZX81__
 	t_delay (62000);
 	t_delay (62000);
 	t_delay (62000);
+#endif
 }
 
 
 void small_pause() {
+#if __ZX81__
+	sleep(1);
+#else
 	sleep(2);
+#endif
 }
 
 
 void long_pause() {
+#ifndef __ZX81__
 	small_pause();
+#endif
 	small_pause();
 }
 
@@ -267,9 +366,6 @@ void balance_sheet(){
 
 void draw_board(){
 	
-#ifdef GRAPHICS
-	plot(56,16);
-#endif
 	gotoxy(2,0);
 #ifdef VT_COLORS
 		textcolor(15); textbackground(0);
@@ -432,7 +528,7 @@ void sound_info(){
 
 void end_game() {
 	NA+=CP;
-	putch(12);
+	clear_screen();
 
 
 #ifdef VT_COLORS
@@ -512,9 +608,8 @@ void end_game() {
 
 
 void player_wins() {
-	putch(12);
+	clear_screen();
 #ifdef LANG_ES
-	//9920 GO SUB PS: CLS : PRINT FLASH 1;AT E,I;"NOTICIAS ": GO SUB 8200: PRINT AT J,A;E$;"ELIMINADA": GO SUB PS: CLS : GO TO VAL "9970"
 	cputs("NOTICIAS");
 	sound_good();		
 	gotoxy(3,11);
@@ -529,7 +624,7 @@ void player_wins() {
 		cputs("EWING ASSOCIATES TAKEN OVER");
 
 		small_pause();
-		putch(12);
+		clear_screen();
 
 		gotoxy(14,2);
 		cputs("TELEX\n");
@@ -554,10 +649,10 @@ void player_wins() {
 
 void opponent_wins() {
 	small_pause();
-	putch(12);
+	clear_screen();
 #ifdef LANG_ES
 		small_pause();
-		putch(12);
+		clear_screen();
 		gotoxy(10,6);
 		cputs("NOTICIAS");
 		
@@ -567,7 +662,7 @@ void opponent_wins() {
 		cputs("EWING ASSOCIATED");
 
 		music();
-		putch(12);
+		clear_screen();
 
 		gotoxy(14,2);
 		cputs("TELEX\n");
@@ -579,19 +674,18 @@ void opponent_wins() {
 		cputs("J.R.");
 		music();
  
-		//cputs("HAI PERSO");
+
 #else
 	#ifndef LANG_IT
-//AT E,I;"NEWS FLASH": GO SUB 8200: PRINT AT J,A;E$;"TAKEN OVER ": GO SUB PS: CLS 9930 PRINT "TELEX": PRINT ,,
 		small_pause();
-		putch(12);
+		clear_screen();
 		gotoxy(10,6);
 
 		cputs("NEWS FLASH");
 		gotoxy(4,11);
 		cputs("EWING ASS.TAKEOVER CONFIRMED");
 		music();
-		putch(12);
+		clear_screen();
 
 		gotoxy(14,2);
 		cputs("TELEX\n");
@@ -604,14 +698,13 @@ void opponent_wins() {
 		music();
 	#else
 		small_pause();
-		putch(12);
+		clear_screen();
 		gotoxy(10,6);
 		cputs("ATTENZIONE!");
 		gotoxy(4,11);
 		cputs("LA EWING ASS. ANNUNCIA:");
 		music();
-		putch(12);
-		//9950 small_pause(): CLS : PRINT FLASH 1;AT E,I;"ATTENZIONE!": PRINT AT 11,4;"LA EWING ASS. ANNUNCIA: ": music(): CLS : 
+		clear_screen();
 
 		gotoxy(14,2);
 		cputs("TELEX\n");
@@ -622,7 +715,7 @@ void opponent_wins() {
 		cputs("J.R.E.");
 		music();
  
-		//cputs("HAI PERSO");
+
 	#endif
 #endif
 	small_pause();
@@ -632,7 +725,7 @@ void opponent_wins() {
 
 
 // 3200
-setup_rig() {
+int setup_rig() {
 	LN=(float)abs(X-2);
 	RW=(float)abs(Y-16);
 	
@@ -869,7 +962,7 @@ void get_position() {
 
 
 //4000
-void drill() {
+int drill() {
 	clear();
 #ifdef USE_SOUND
 		bit_fx(6);
@@ -1023,7 +1116,7 @@ void drill() {
 }
 
 //3000
-void rig() {
+int rig() {
 	clear();
 #ifdef USE_SOUND
 		bit_fx(6);
@@ -1149,7 +1242,7 @@ void loan() {
 }
 
 
-setup_revenue() {
+void setup_revenue() {
 	REV=(float)(BPD*(30+rand()%10))/1000.0;
 	PR+=REV;
 	gotoxy(0,19);
@@ -1179,10 +1272,11 @@ setup_revenue() {
 
 
 //5505
-facilities_lost() {
+void facilities_lost() {
 
+	sound_bad();
 	#ifdef USE_SOUND
-		bit_fx(4);
+				bit_fx(3);
 	#endif
 
 	WL-=1;
@@ -1206,7 +1300,7 @@ facilities_lost() {
 
 
 //5500
-all_facilities_lost() {
+void all_facilities_lost() {
 	PIP-=PC;
 	PL=PP;
 	facilities_lost();
@@ -1215,7 +1309,7 @@ all_facilities_lost() {
 
 
 //5000
-void facilities() {
+int facilities() {
 
 #ifdef USE_SOUND
 		bit_fx(6);
@@ -1365,7 +1459,7 @@ void survey() {
 
 			switch (AA[X][Y]) {
 				case 1:
-				case 30:
+				case 10:
 					#ifdef LANG_ES
 						printf("POBRE");
 					#else
@@ -1459,7 +1553,7 @@ void survey() {
 
 
 //6000
-void pipeline() {
+int pipeline() {
 
 #ifdef USE_SOUND
 		bit_fx(6);
@@ -1562,27 +1656,35 @@ void pipeline() {
 
 int main() {
 
-
+		
 #ifdef USE_UDGS
   void *param = &udgs;
+
+#ifdef __CONIO_VT100
+  extern unsigned char font_8x8_bbc_system[];
+  memcpy(font_8x8_bbc_system + 1536, param, 56);
+#else
   console_ioctl(IOCTL_GENCON_SET_UDGS, &param);
 #endif
 
+#endif
 
-// 31 PAPER 1: BORDER 2: INK 7: BRIGHT 1: OVER 0: INVERSE 0: CLS
+
+#ifdef _WIN32
+	system(" ");
+#endif
 
 #ifdef VT_COLORS
  textbackground(1); textcolor(14);
 #endif
 
 putch(1);putch(32);
-putch(12);
+clear_screen();
 
 #ifdef GRAPHICS
 clg();
 #endif
 gotoxy(10,6);
-
 
 #ifdef LANG_ES
 cputs("BIENVENIDO A");
@@ -1602,7 +1704,7 @@ music();
 #ifdef VT_COLORS
 	textbackground(15);
 #endif
-putch(12);
+clear_screen();
 
 #ifdef VT_COLORS
  textbackground(1); textcolor(15);
@@ -1710,7 +1812,7 @@ putch(12);
 	LA=100.0;
 	MT=0.0; PIP=MT; PL=MT; PR=MT;
 
-	putch(12);
+	clear_screen();
 	gotoxy(2,0);
 
 #ifdef LANG_ES
@@ -1811,7 +1913,7 @@ putch(12);
 #ifdef VT_COLORS
 	textcolor(0);  textbackground(15);
 #endif
-	putch(12);
+	clear_screen();
 
 #ifdef LANG_ES
 	gotoxy(6,10);
@@ -1849,7 +1951,7 @@ putch(12);
 		}
 
 	small_pause();
-	putch(12);
+	clear_screen();
 	
 	draw_board();
 
