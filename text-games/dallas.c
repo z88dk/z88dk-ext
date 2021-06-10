@@ -7,9 +7,12 @@
 // zcc +msx -subtype=msxdos  -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
 // ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
-// zcc +zx81 -DGRAPHICS -subtype=_wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm dallas.c
+// zcc +zx81 -DUSE_PSG -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
 
+// Commodore 128 (Still broken)
+// zcc +c128 -clib=gencon -DALT_DELAY -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
+// zcc +c128 -DALT_DELAY -DUSE_UDGS  -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -lndos -create-app -lm dallas.c
 
 // MinGW
 // gcc -DVT_COLORS dallas.c
@@ -47,6 +50,7 @@
 #ifdef USE_SOUND
 #include <sound.h>
 #endif
+
 
 
 #ifdef _WIN32
@@ -211,8 +215,11 @@ static unsigned char udgs[] = {
 #endif
 
 
+
 void quick_pause() {
-#ifndef __ZX81__
+#ifdef ALT_DELAY
+	t_delay (50000);
+#else
 	t_delay (62000);
 	t_delay (62000);
 	t_delay (62000);
@@ -220,9 +227,11 @@ void quick_pause() {
 }
 
 
-void small_pause() {
-#if __ZX81__
-	sleep(1);
+void short_pause() {
+#ifdef ALT_DELAY
+int my_delay;
+	for (my_delay=0; my_delay<20; my_delay++)
+		quick_pause();
 #else
 	sleep(2);
 #endif
@@ -230,10 +239,8 @@ void small_pause() {
 
 
 void long_pause() {
-#ifndef __ZX81__
-	small_pause();
-#endif
-	small_pause();
+	short_pause();
+	short_pause();
 }
 
 
@@ -244,7 +251,11 @@ void dj(float VV){
 		textcolor(0);
 #endif
 	sprintf(total,"  %1.1f",VV);
+#ifdef __ZX81__
+	gotoxy(32-strlen(total),wherey());
+#else
 	gotoxy(32-strlen(total),wherey()-1);
+#endif
 	cputs(total);
 #ifdef VT_COLORS
 		textcolor(1);
@@ -445,6 +456,7 @@ void clr_part() {
 	cputs(blnk);
 	gotoxy(0,22);
 	printf("%s",blnk);
+	gotoxy(0,18);
 }
 
 void clear() {
@@ -465,7 +477,7 @@ void music() {
 	synth_play("G5");
 	synth_play("DG7");
 #else
-	sleep(5);
+	long_pause();
 #endif
 }
 
@@ -478,7 +490,7 @@ void sound_good(){
 		bit_beep(6,900-Z*Z);
 	}
 #else
-	sleep(2);
+	short_pause();
 #endif
 }
 
@@ -489,7 +501,7 @@ void sound_oil(){
 	for (Z=1; Z<500; Z++)
 		bit_beep(3,10+rand()%400);
 #else
-	sleep(2);
+	short_pause();
 #endif
 }
 
@@ -498,7 +510,7 @@ void sound_ok(){
 #ifdef USE_SOUND
 	bit_fx(2);
 #else
-	sleep(2);
+	short_pause();
 #endif
 }
 
@@ -509,7 +521,7 @@ void sound_bad(){
 		bit_beep(6,2200-Z*Z);
 	}
 #else
-	sleep(2);
+	short_pause();
 #endif
 }
 
@@ -520,7 +532,7 @@ void sound_info(){
 		bit_beep(8,4000-rand()%3000);
 	}
 #else
-	sleep(2);
+	short_pause();
 #endif
 }
 
@@ -586,9 +598,9 @@ void end_game() {
 	printf("\n\nHAS TARDADO %u MESES\n", T);
 #else
 	#ifndef LANG_IT
-		printf("\n\nYOU TOOK %u MONTHS\n", T);
+		printf("\n\nYou took %u months\n", T);
 	#else
-		printf("\n\nHAI LAVORATO %u MESI\n", T);
+		printf("\n\nHai lavorato %u mesi\n", T);
 	#endif
 #endif
 
@@ -596,9 +608,9 @@ void end_game() {
 	printf("NIVEL DE DIFICULTAD=%u\n", DF);
 #else
 	#ifndef LANG_IT
-		printf("YOUR LEVEL OF DIFFICULTY=%u\n", DF);
+		printf("Your level of difficulty=%u\n", DF);
 	#else
-		printf("LIVELLO DI DIFFICOLTA'=%u\n", DF);
+		printf("Livello di difficolta'=%u\n", DF);
 	#endif
 #endif
 
@@ -621,9 +633,9 @@ void player_wins() {
 		sound_good();
 		
 		gotoxy(3,11);
-		cputs("EWING ASSOCIATES TAKEN OVER");
+		cputs("Ewing Associates TAKEN OVER");
 
-		small_pause();
+		short_pause();
 		clear_screen();
 
 		gotoxy(14,2);
@@ -648,10 +660,10 @@ void player_wins() {
 
 
 void opponent_wins() {
-	small_pause();
+	short_pause();
 	clear_screen();
 #ifdef LANG_ES
-		small_pause();
+		short_pause();
 		clear_screen();
 		gotoxy(10,6);
 		cputs("NOTICIAS");
@@ -677,7 +689,7 @@ void opponent_wins() {
 
 #else
 	#ifndef LANG_IT
-		small_pause();
+		short_pause();
 		clear_screen();
 		gotoxy(10,6);
 
@@ -697,7 +709,7 @@ void opponent_wins() {
 	
 		music();
 	#else
-		small_pause();
+		short_pause();
 		clear_screen();
 		gotoxy(10,6);
 		cputs("ATTENZIONE!");
@@ -718,7 +730,7 @@ void opponent_wins() {
 
 	#endif
 #endif
-	small_pause();
+	short_pause();
 	end_game();
 }
 
@@ -852,7 +864,7 @@ void auction() {
 		#endif
 			gotoxy(X,Y);
 			putch(' ');
-			small_pause();
+			short_pause();
 
 		} else {
 
@@ -871,7 +883,7 @@ void auction() {
 				sound_bad();
 				gotoxy(X,Y);
 				putch(' ');
-				small_pause();
+				short_pause();
 				
 			} else {
 				
@@ -954,7 +966,7 @@ void get_position() {
 	X=X-'A'+2;
 
 
-	small_pause();
+	short_pause();
 	clear();
 	
 
@@ -1048,7 +1060,7 @@ int drill() {
 		gotoxy(X,Y);
 		putch(' ');
 		CON-=8;
-		small_pause();
+		short_pause();
 		return(0);
 	}
 
@@ -1081,7 +1093,7 @@ int drill() {
 	#ifdef VT_COLORS
 		textcolor(1);
 	#endif
-		small_pause();
+		short_pause();
 		AA[X][Y] = AA[X][Y]*10;
 		return(0);
 	}
@@ -1112,7 +1124,7 @@ int drill() {
 		sound_info();
 	}
 
-	small_pause();
+	short_pause();
 }
 
 //3000
@@ -1144,7 +1156,7 @@ int rig() {
 				cputs("CONCESSIONE NON ACQUISTATA");
 			#endif
 		#endif
-		small_pause();
+		short_pause();
 		return(0);
 	}
 	if (AA[X][Y]>100) return(0);
@@ -1238,7 +1250,7 @@ void loan() {
 		LA+=JJ;  MT+=JJ;
 	}
 	
-	small_pause();
+	short_pause();
 }
 
 
@@ -1330,7 +1342,7 @@ int facilities() {
 
 		
 		if ((AA[X][Y]<1000)||(AA[X][Y]>10000)) {
-			gotoxy(0,21);
+			gotoxy(0,20);
 			#ifdef LANG_ES
 				cputs("AHI NO ESTA BROTANDO PETROLEO");
 			#else
@@ -1356,7 +1368,7 @@ int facilities() {
 					cputs("FONDI INSUFFICIENTI");
 				#endif
 			#endif
-			small_pause();
+			short_pause();
 			return(0);
 		}
 		
@@ -1374,10 +1386,13 @@ int facilities() {
 		#endif
 		
 		setup_revenue();
-		small_pause();
+		short_pause();
 		WL+=1;
 		AA[X][Y] = AA[X][Y]*10;
 		gotoxy(X,Y);
+//#ifdef __ZX81__
+//	*zx_cyx2aaddr(X,Y) = 0x72;
+//#endif
 	#ifdef VT_COLORS
 		textcolor(4);
 	#endif
@@ -1433,7 +1448,7 @@ void survey() {
 		get_position();
 
 		
-			if ((AA[X][Y]>3) && (AA[X][Y]<=30)) {
+			if (AA[X][Y]<=30) {
 				gotoxy(0,17);
 				#ifdef LANG_ES
 					printf("COSTE ESTUDIO @ $1.2M.");
@@ -1534,7 +1549,7 @@ void survey() {
 				#endif
 		}
 		
-		small_pause();
+		short_pause();
 		
 		clear();
 		gotoxy(0,18);
@@ -1607,7 +1622,7 @@ int pipeline() {
 		#endif
 		
 		setup_revenue();
-		small_pause();
+		short_pause();
 		
 		if (RX==5) {
 			gotoxy(0,17);
@@ -1639,7 +1654,7 @@ int pipeline() {
 		}
 
 		#ifdef GRAPHICS
-			draw(120,24,8*X+6,8*Y+6);
+				draw(120,24,8*X+6,8*Y+6);
 		#else
 			gotoxy(X,Y);
 			putch('O');
@@ -1651,6 +1666,16 @@ int pipeline() {
 }
 
 
+#ifdef USE_UDGS
+#ifdef __CONIO_VT100
+int font_position() {
+#asm
+	extern ansifont
+	ld hl,ansifont
+#endasm
+}
+#endif
+#endif
 
 
 
@@ -1661,8 +1686,15 @@ int main() {
   void *param = &udgs;
 
 #ifdef __CONIO_VT100
-  extern unsigned char font_8x8_bbc_system[];
-  memcpy(font_8x8_bbc_system + 1536, param, 56);
+  //extern unsigned char font_8x8_bbc_system[];
+  //memcpy(font_8x8_bbc_system + 1536, param, 56);
+  
+#ifdef __ZX81__
+  memcpy(font_position() + 768, param, 56);
+#else
+  memcpy(font_position() + 1536, param, 56);
+#endif
+
 #else
   console_ioctl(IOCTL_GENCON_SET_UDGS, &param);
 #endif
@@ -1721,7 +1753,7 @@ clear_screen();
 #endif
 	gotoxy(0,4);
 	printf("VD. ES PRESIDENTE DE UNA CORPORACION RIVAL DE %s. SU META ES ARRUINAR A LOS %s.", opponent, opponent_short);
-	cputs("LOS FALLOS RECAERAN EN USTED    !! RESIGNACION !!");
+	cputs("\nLOS FALLOS RECAERAN EN USTED    !! RESIGNACION !!");
 #else
 	#ifndef LANG_IT
 		gotoxy(11,2);
@@ -1733,8 +1765,8 @@ clear_screen();
 		textbackground(15); textcolor(1);
 #endif
 		gotoxy(0,4);
-		printf("YOU ARE PRESIDENT OF A RIVAL    CORPORATION TO %s. YOUR AIM IS TO TAKEOVER %s!!", opponent, opponent_short);
-		cputs("FAILURE WILL RESULT IN YOUR OWN RESIGNATION !!");
+		printf("You are president of a rival    corporation to %s. Your aim is to takeover %s!!", opponent, opponent_short);
+		cputs("\nFAILURE WILL RESULT IN YOUR OWN RESIGNATION !!");
 	#else
 		gotoxy(11,2);
 #ifdef ANSI_ATTR
@@ -1745,15 +1777,15 @@ clear_screen();
 		textbackground(15); textcolor(1);
 #endif
 		gotoxy(0,4);
-		printf("SEI PRESIDENTE DI UNA SOCIETA'  RIVALE DELLA %s.  IL TUO FINE E'BATTERE GLI %s.", opponent, opponent_short);
-		cputs("SE FALLIRAI SARAI ESONERATO     DALL'INCARICO !!");
+		printf("Sei pressidente di una societa'  rivale della %s.  Il tuo fine e'battere gli %s.", opponent, opponent_short);
+		cputs("\nSE FALLIRAI SARAI ESONERATO     DALL'INCARICO !!");
 	#endif
 #endif
 
 #ifdef VT_COLORS
 	textcolor(0);
 #endif
-	gotoxy(5,12);
+	gotoxy(5,13);
 #ifdef LANG_ES
 #ifdef ANSI_ATTR
 	vtrendition(1);
@@ -1762,7 +1794,7 @@ clear_screen();
 #ifdef ANSI_ATTR
 	vtrendition(2);
 #endif
-	cputs("\n\n1. MODERADO\n2. DIFICIL\n3. MUY DIFICIL");
+	cputs("\n\n1. Moderado\n2. Dificil\n3. Muy dificil");
 #else
 	#ifndef LANG_IT
 #ifdef ANSI_ATTR
@@ -1772,7 +1804,7 @@ clear_screen();
 #ifdef ANSI_ATTR
 		vtrendition(2);
 #endif
-		cputs("\n\n1. MODERATE\n2. DIFFICULT\n3. VERY DIFFICULT");
+		cputs("\n\n1. Moderate\n2. Difficult\n3. Very difficult");
 	#else
 #ifdef ANSI_ATTR
 		vtrendition(1);
@@ -1781,7 +1813,7 @@ clear_screen();
 #ifdef ANSI_ATTR
 		vtrendition(2);
 #endif
-		cputs("\n\n1. SEMPLICE\n2. DIFFICILE\n3. MOLTO DIFFICILE");
+		cputs("\n\n1. Semplice\n2. Difficile\n3. Molto difficile");
 	#endif
 #endif
 
@@ -1794,9 +1826,9 @@ clear_screen();
 	cputs("ELIJA NIVEL");
 #else
 	#ifndef LANG_IT
-		cputs("KEY 1 TO 3");
+		cputs("Key 1 to 3");
 	#else
-		cputs("SCEGLI 1-3");
+		cputs("Scegli 1-3");
 	#endif
 #endif
 
@@ -1813,7 +1845,11 @@ clear_screen();
 	MT=0.0; PIP=MT; PL=MT; PR=MT;
 
 	clear_screen();
+#ifdef __ZX81__
+	gotoxy(2,1);
+#else
 	gotoxy(2,0);
+#endif
 
 #ifdef LANG_ES
 #ifdef VT_COLORS
@@ -1837,11 +1873,11 @@ clear_screen();
 #ifdef VT_COLORS
 	textbackground(15); textcolor(0);
 #endif
-		cputs("     = WOODS\n");
-		cputs("     = CONCESSION PURCHASED\n");
-		cputs("     = DRILLING RIG\n");
-		cputs("     = OIL STRIKE\n");
-		cputs("     = PRODUCTION FACILITIES\n");
+		cputs("     = Woods\n");
+		cputs("     = Concession purchased\n");
+		cputs("     = Drilling rig\n");
+		cputs("     = Oil strike\n");
+		cputs("     = Production facilities\n");
 	#else
 #ifdef VT_COLORS
 		textbackground(1); textcolor(3);
@@ -1850,11 +1886,11 @@ clear_screen();
 #ifdef VT_COLORS
 	textbackground(15); textcolor(0);
 #endif
-		cputs("     = BOSCO\n");
-		cputs("     = CONCESSIONE ACQUISTATA\n");
-		cputs("     = TRIVELLE\n");
-		cputs("     = PETROLIO\n");
-		cputs("     = RAFFINERIA\n");
+		cputs("     = Bosco\n");
+		cputs("     = Concessione acquistata\n");
+		cputs("     = Trivelle\n");
+		cputs("     = Petrolio\n");
+		cputs("     = Raffineria\n");
 	#endif
 #endif
 
@@ -1865,23 +1901,23 @@ clear_screen();
 #ifdef VT_COLORS
 	textcolor(10);
 #endif
-	cputs("\200\n");
+	printf("\200\n");
 #ifdef VT_COLORS
 	textcolor(5);
 #endif
-	cputs("  \201\n");
+	printf("  \201\n");
 #ifdef VT_COLORS
 	textcolor(1);
 #endif
-	cputs("  \202\n");
+	printf("  \202\n");
 #ifdef VT_COLORS
 	textcolor(0);
 #endif
-	cputs("  \203\n");
+	printf("  \203\n");
 #ifdef VT_COLORS
 	textcolor(4);
 #endif
-	cputs("  \204\n");
+	printf("  \204\n");
 
 #else
 
@@ -1889,23 +1925,23 @@ clear_screen();
 #ifdef VT_COLORS
 	textcolor(10);
 #endif
-	cputs("@\n");
+	printf("@\n");
 #ifdef VT_COLORS
 	textcolor(5);
 #endif
-	cputs("  #\n");
+	printf("  #\n");
 #ifdef VT_COLORS
 	textcolor(1);
 #endif
-	cputs("  |\n");
+	printf("  |\n");
 #ifdef VT_COLORS
 	textcolor(0);
 #endif
-	cputs("  P\n");
+	printf("  P\n");
 #ifdef VT_COLORS
 	textcolor(4);
 #endif
-	cputs("  $\n");
+	printf("  $\n");
 #endif
 
 	long_pause();
@@ -1950,7 +1986,7 @@ clear_screen();
 				AA[X][Y] = AA[X][Y]+rand()%2;
 		}
 
-	small_pause();
+	short_pause();
 	clear_screen();
 	
 	draw_board();
@@ -1979,7 +2015,7 @@ KY:
 				#endif
 				CP-=CPL;
 				sound_good();
-				small_pause();
+				short_pause();
 				clear();
 			}
 			if (RF==2) {
@@ -2001,7 +2037,7 @@ KY:
 				#endif
 				RVF=0.0;
 				sound_bad();
-				small_pause();
+				short_pause();
 				clear();
 			}
 			if (RF==3) {
@@ -2023,7 +2059,7 @@ KY:
 				#endif
 				RVF=0.5;
 				sound_info();
-				small_pause();
+				short_pause();
 				clear();
 			}
 			TX=1.0+(rand()%(15))/10.0;
@@ -2040,7 +2076,7 @@ KY:
 				#endif
 				LA-=TX;
 				sound_info();
-				small_pause();
+				short_pause();
 				clear();
 			}
 		}
