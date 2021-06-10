@@ -1895,54 +1895,112 @@ clear_screen();
 #endif
 
 
-#ifdef USE_UDGS
 
-	gotoxy(2,4);
-#ifdef VT_COLORS
-	textcolor(10);
-#endif
-	printf("\200\n");
-#ifdef VT_COLORS
-	textcolor(5);
-#endif
-	printf("  \201\n");
-#ifdef VT_COLORS
-	textcolor(1);
-#endif
-	printf("  \202\n");
-#ifdef VT_COLORS
-	textcolor(0);
-#endif
-	printf("  \203\n");
-#ifdef VT_COLORS
-	textcolor(4);
-#endif
-	printf("  \204\n");
+
+#ifdef __ZX81__
+
+	#ifdef USE_UDGS
+
+		gotoxy(2,4);
+	#ifdef VT_COLORS
+		textcolor(10);
+	#endif
+		printf("\200\n");
+	#ifdef VT_COLORS
+		textcolor(5);
+	#endif
+		printf("  \201\n");
+	#ifdef VT_COLORS
+		textcolor(1);
+	#endif
+		printf("  \202\n");
+	#ifdef VT_COLORS
+		textcolor(0);
+	#endif
+		printf("  \203\n");
+	#ifdef VT_COLORS
+		textcolor(4);
+	#endif
+		printf("  \204\n");
+
+	#else
+
+		gotoxy(2,4);
+	#ifdef VT_COLORS
+		textcolor(10);
+	#endif
+		printf("@\n");
+	#ifdef VT_COLORS
+		textcolor(5);
+	#endif
+		printf("  #\n");
+	#ifdef VT_COLORS
+		textcolor(1);
+	#endif
+		printf("  |\n");
+	#ifdef VT_COLORS
+		textcolor(0);
+	#endif
+		printf("  P\n");
+	#ifdef VT_COLORS
+		textcolor(4);
+	#endif
+		printf("  $\n");
+	#endif
 
 #else
 
-	gotoxy(2,4);
-#ifdef VT_COLORS
-	textcolor(10);
+	#ifdef USE_UDGS
+
+		gotoxy(2,4);
+	#ifdef VT_COLORS
+		textcolor(10);
+	#endif
+		cputs("\200\n");
+	#ifdef VT_COLORS
+		textcolor(5);
+	#endif
+		cputs("  \201\n");
+	#ifdef VT_COLORS
+		textcolor(1);
+	#endif
+		cputs("  \202\n");
+	#ifdef VT_COLORS
+		textcolor(0);
+	#endif
+		cputs("  \203\n");
+	#ifdef VT_COLORS
+		textcolor(4);
+	#endif
+		cputs("  \204\n");
+
+	#else
+
+		gotoxy(2,4);
+	#ifdef VT_COLORS
+		textcolor(10);
+	#endif
+		cputs("@\n");
+	#ifdef VT_COLORS
+		textcolor(5);
+	#endif
+		cputs("  #\n");
+	#ifdef VT_COLORS
+		textcolor(1);
+	#endif
+		cputs("  |\n");
+	#ifdef VT_COLORS
+		textcolor(0);
+	#endif
+		cputs("  P\n");
+	#ifdef VT_COLORS
+		textcolor(4);
+	#endif
+		cputs("  $\n");
+	#endif
+
 #endif
-	printf("@\n");
-#ifdef VT_COLORS
-	textcolor(5);
-#endif
-	printf("  #\n");
-#ifdef VT_COLORS
-	textcolor(1);
-#endif
-	printf("  |\n");
-#ifdef VT_COLORS
-	textcolor(0);
-#endif
-	printf("  P\n");
-#ifdef VT_COLORS
-	textcolor(4);
-#endif
-	printf("  $\n");
-#endif
+
 
 	long_pause();
 	
