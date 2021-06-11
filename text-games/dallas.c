@@ -10,9 +10,13 @@
 // zcc +zx81 -DUSE_PSG -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
 
-// Commodore 128 (Still broken)
+// Microbee CP/M
+// zcc +cpm -clib=ansi -DUSE_SOUND -create-app -lmicrobee  -DVT_COLORS -lndos -lm dallas.c
+// zcc +cpm -clib=ansi -subtype=microbee -DUSE_SOUND -create-app -DVT_COLORS -lndos -lm dallas.c
+
+// Commodore 128
 // zcc +c128 -clib=gencon -DALT_DELAY -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
-// zcc +c128 -DALT_DELAY -DUSE_UDGS  -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -lndos -create-app -lm dallas.c
+
 
 // MinGW
 // gcc -DVT_COLORS dallas.c
@@ -266,8 +270,8 @@ void dj(float VV){
 void balance_sheet(){
 
 #ifdef VT_COLORS
-	textcolor(1);
 	textbackground(14);
+	textcolor(1);
 #endif
 
 #ifdef LANG_ES
@@ -285,6 +289,7 @@ void balance_sheet(){
 
 #ifdef VT_COLORS
 	textbackground(15);
+	textcolor(1);
 #endif
 	gotoxy(27,2);
 	cputs("$M.");
@@ -379,11 +384,11 @@ void draw_board(){
 	
 	gotoxy(2,0);
 #ifdef VT_COLORS
-		textcolor(15); textbackground(0);
+		textbackground(0); textcolor(15);
 #endif
 	cputs(brd);
 #ifdef VT_COLORS
-		textcolor(0); textbackground(15);
+		textbackground(15); textcolor(0);
 #endif
 	
 	for (Z=0;Z<14;Z++){
@@ -391,11 +396,11 @@ void draw_board(){
 		gotoxy(0,Z+2);
 
 #ifdef VT_COLORS
-		textcolor(15); textbackground(0);
+		textbackground(0); textcolor(15);
 #endif
 		putch(brd[Z]);
 #ifdef VT_COLORS
-		textcolor(0); textbackground(15);
+		textbackground(15); textcolor(0);
 #endif
 
 #ifdef USE_UDGS
@@ -824,16 +829,23 @@ void auction() {
 
 			for (Z=1; Z<=15; Z++) {
 				gotoxy(X,Y);
+#ifdef VT_COLORS
 				textbackground(15);
+#endif
 				putch(' ');
 				quick_pause();
 				gotoxy(X,Y);
+#ifdef VT_COLORS
 				textbackground(4);
+#endif
 				putch('$');
 				quick_pause();
 			}
 
+#ifdef VT_COLORS
 			textbackground(15);
+			textcolor(1);
+#endif
 
 			gotoxy(2,18);
 		#ifdef LANG_ES
@@ -2005,7 +2017,7 @@ clear_screen();
 	long_pause();
 	
 #ifdef VT_COLORS
-	textcolor(0);  textbackground(15);
+	textbackground(15);  textcolor(0);
 #endif
 	clear_screen();
 
