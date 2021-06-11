@@ -1726,8 +1726,8 @@ putch(1);putch(32);
 clear_screen();
 
 #ifdef __C128__
-outp(0xd020,7);
-outp(0xd021,7);
+outp(0xd020,0);
+outp(0xd021,0);
 #endif
 
 
@@ -1755,6 +1755,11 @@ music();
 	textbackground(15);
 #endif
 clear_screen();
+
+#ifdef __C128__
+outp(0xd020,7);
+outp(0xd021,7);
+#endif
 
 #ifdef VT_COLORS
  textbackground(1); textcolor(15);
