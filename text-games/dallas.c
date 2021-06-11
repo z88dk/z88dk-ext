@@ -1725,10 +1725,16 @@ int main() {
 putch(1);putch(32);
 clear_screen();
 
+#ifdef __C128__
+outp(0xd020,7);
+outp(0xd021,7);
+#endif
+
+
 #ifdef GRAPHICS
 clg();
 #endif
-gotoxy(10,6);
+gotoxy(10,2);
 
 #ifdef LANG_ES
 cputs("BIENVENIDO A");
