@@ -18,6 +18,7 @@
 // zcc +c128 -clib=gencon -DALT_DELAY -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 
 
+
 // MinGW
 // gcc -DVT_COLORS dallas.c
 
@@ -53,6 +54,15 @@
 
 #ifdef USE_SOUND
 #include <sound.h>
+#endif
+
+
+#ifndef LANG_FR
+#ifndef LANG_ES
+#ifndef LANG_IT
+#define LANG_EN 1
+#endif
+#endif
 #endif
 
 
@@ -152,8 +162,8 @@ int T,CS,BPD,BPDA,CON;
 
 int AA[16][16];
 int DD[16][16];
-int TT[2];
-int CC[2];
+int TT;
+int CC;
 
 float CP,LA,NA,LN,RW;
 float PR,PL,PP,PIP,PC;
@@ -276,16 +286,25 @@ void balance_sheet(){
 
 #ifdef LANG_ES
 		gotoxy(18,0);
-	cputs("DATOS FINANZAS");
-#else
-	#ifndef LANG_IT
+		cputs("DATOS FINANZAS");
+#endif
+
+#ifdef LANG_EN
 		gotoxy(19,0);
 		cputs("BALANCE SHEET");
-	#else
+#endif
+
+#ifdef LANG_IT
 		gotoxy(20,0);
 		cputs("BILANCIO");
-	#endif
 #endif
+
+#ifdef LANG_FR
+		gotoxy(19,0);
+		cputs("FINANCE ETAT");
+#endif
+
+
 
 #ifdef VT_COLORS
 	textbackground(15);
@@ -296,15 +315,22 @@ void balance_sheet(){
 
 #ifdef LANG_ES
 		gotoxy(18,4);
-	cputs("CAJA");
-#else
-	#ifndef LANG_IT
+		cputs("CAJA");
+#endif
+
+#ifdef LANG_EN
 		gotoxy(18,4);
 		cputs("CASH");
-	#else
+#endif
+
+#ifdef LANG_IT
 		gotoxy(18,4);
 		cputs("CASSA");
-	#endif
+#endif
+
+#ifdef LANG_FR
+		gotoxy(18,4);
+		cputs("CASH");
 #endif
 
 	dj(LA);
@@ -312,14 +338,21 @@ void balance_sheet(){
 #ifdef LANG_ES
 	gotoxy(18,6);
 	cputs("DEUDAS");
-#else
-	#ifndef LANG_IT
+#endif
+
+#ifdef LANG_EN
 		gotoxy(18,8);
 		cputs("LOANS");
-	#else
+#endif
+
+#ifdef LANG_IT
 		gotoxy(18,6);
 		cputs("DEBITI");
-	#endif
+#endif
+
+#ifdef LANG_FR
+		gotoxy(18,6);
+		cputs("HYPOT");
 #endif
 
 	dj(MT);
@@ -329,32 +362,40 @@ void balance_sheet(){
 	cputs("TOTAL");
 	gotoxy(18,10);
 	cputs("ACTIVO");
-#else
-	#ifndef LANG_IT
+#endif
+
+#ifdef LANG_EN
 		gotoxy(18,9);
 		cputs("TOTAL");
-	#else
+#endif
+
+#ifdef LANG_IT
 		gotoxy(18,9);
 		cputs("TOTALE");
 		gotoxy(18,10);
 		cputs("ATTIVO");
-	#endif
 #endif
+
+#ifdef LANG_FR
+		gotoxy(18,9);
+		cputs("ACTIFS");
+		gotoxy(18,10);
+		cputs("TOTAL");
+#endif
+
 
 	NA=LA+PL+PIP+CON-MT;
 	dj(NA);
 
 #ifdef LANG_ES
-
 	gotoxy(18,14);
 	cputs("INGRESOS");
 	gotoxy(18,15);
 	cputs("AL MES");
 	dj(PR);
+#endif
 
-#else
-	#ifndef LANG_IT
-
+#ifdef LANG_EN
 		gotoxy(18,14);
 		cputs("EARNINGS");
 		//dj(NA-ST);
@@ -363,19 +404,23 @@ void balance_sheet(){
 		gotoxy(18,11);
 		cputs("EQUITY");
 		gotoxy(18,12);
-		cputs("STOCK");
+		cputs("STOCK");		//ACTIONS (Francais),  AZIONI (Italiano)
 		dj(ST);
 		*/
+#endif
 
-	#else
-
+#ifdef LANG_IT
 		gotoxy(18,14);
 		cputs("RICAVO");
 		gotoxy(18,15);
 		cputs("MENSILE");
 		dj(PR);
+#endif
 
-	#endif
+#ifdef LANG_FR
+		gotoxy(18,14);
+		cputs("P/LN");
+		dj(PR);
 #endif
 
 }
@@ -555,45 +600,66 @@ void end_game() {
 #ifdef LANG_ES
 	cputs("ESTADO OPERACIONES\n\n");
 	printf("NO. DE CONCESION = %u\n",CS);
-#else
-	#ifndef LANG_IT
+#endif
+#ifdef LANG_EN
 		cputs("OPERATIONS STATEMENT\n\n");
 		printf("NO. OF CONCESSION = %u\n",CS);
-	#else
+#endif
+#ifdef LANG_IT
 		cputs("RISULTATO\n\n");
 		printf("NO. DI CONCESSIONI = %u\n",CS);
-	#endif
+#endif
+#ifdef LANG_FR
+		cputs("RISULTATO\n\n");
+		printf("NO. DI CONCESSIONI = %u\n",CS);
 #endif
 
 #ifdef LANG_ES
 	printf("NO. DE POZOS PROD. = %u\n",WL);
-#else
-	#ifndef LANG_IT
+#endif
+#ifdef LANG_EN
 		printf("NO. OF PROD. WELLS = %u\n",WL);
-	#else
+#endif
+#ifdef LANG_IT
 		printf("NO. DI POZZI ATTIVI = %u\n",WL);
-	#endif
 #endif
 
 #ifdef LANG_ES
 	printf("BARRILES POR DIA = %u,000\n", BPDA);
-#else
-	#ifndef LANG_IT
+#endif
+#ifdef LANG_EN
 		printf("BARRELS PER DAY = %u,000\n", BPDA);
-	#else
+#endif
+#ifdef LANG_IT
 		printf("BARILI PER GIORNO = %u,000\n", BPDA);
-	#endif
 #endif
 
 #ifdef LANG_ES
 	printf("ACTIVO TOTAL ACTUAL = %1.1fM.$\n", NA);
-#else
-	#ifndef LANG_IT
-		printf("TOTAL ASSETS NOW = $%1.1fM.\n", NA);
-	#else
-		printf("ASSETTO TOTALE = $%1.1fM.\n", NA);
-	#endif
 #endif
+#ifdef LANG_EN
+		printf("TOTAL ASSETS NOW = $%1.1fM.\n", NA);
+#endif
+#ifdef LANG_IT
+		printf("ASSETTO TOTALE = $%1.1fM.\n", NA);
+#endif
+
+
+#ifdef LANG_ES
+		printf("ACTIVO DE LOS %s: %1.1fM.\n", opponent_short, CP);
+#endif
+#ifdef LANG_EN
+		printf("%s ASSETS: %1.1fM.\n", opponent, CP);
+#endif
+#ifdef LANG_IT
+		printf("ATTIVO DI %s: %1.1fM.\n", opponent, CP);
+#endif
+#ifdef LANG_FR
+		printf("ACTIFS DE %s: %1.1fM.\n", opponent, CP);
+#endif
+
+
+
 
 #ifdef VT_COLORS
 	textcolor(1);
@@ -601,22 +667,29 @@ void end_game() {
 
 #ifdef LANG_ES
 	printf("\n\nHAS TARDADO %u MESES\n", T);
-#else
-	#ifndef LANG_IT
-		printf("\n\nYou took %u months\n", T);
-	#else
-		printf("\n\nHai lavorato %u mesi\n", T);
-	#endif
 #endif
+#ifdef LANG_EN
+		printf("\n\nYou took %u months\n", T);
+#endif
+#ifdef LANG_IT
+		printf("\n\nHai lavorato %u mesi\n", T);
+#endif
+#ifdef LANG_FR
+		printf("\n\nIl vous a fallu %u mois\n", T);
+#endif
+
 
 #ifdef LANG_ES
 	printf("NIVEL DE DIFICULTAD=%u\n", DF);
-#else
-	#ifndef LANG_IT
+#endif
+#ifdef LANG_EN
 		printf("Your level of difficulty=%u\n", DF);
-	#else
+#endif
+#ifdef LANG_IT
 		printf("Livello di difficolta'=%u\n", DF);
-	#endif
+#endif
+#ifdef LANG_FR
+		printf("Votre niveau de difficulte'=%u\n", DF);
 #endif
 
 	exit(0);
@@ -624,16 +697,17 @@ void end_game() {
 }
 
 
+
 void player_wins() {
 	clear_screen();
 #ifdef LANG_ES
 	cputs("NOTICIAS");
-	sound_good();		
+	sound_good();
 	gotoxy(3,11);
 	cputs("EWING ASSOCIATES ELIMINADA");
+#endif
 
-#else
-	#ifndef LANG_IT
+#ifdef LANG_EN
 		cputs("NEWS FLASH");
 		sound_good();
 		
@@ -649,14 +723,21 @@ void player_wins() {
 		cputs("I CONFIRM THAT YOUR COMPANY\n");
 		cputs("HAVE STOCKS AND/OR VOTINGRIGHTS IN EWING OIL TOTALING 51% . I WILL MEET YOU AT 1500HRS TODAYAT THE EWING TOWER DALLAS TO DISCUSS FUTURE ORGANISATION OF EWING ASSOCIATES.");
 		cputs("J.R.");
+#endif
 		
-	#else
+#ifdef LANG_IT
 		cputs("NEWS FLASH");
 		sound_good();		
 		gotoxy(2,11);
 		cputs("EWING ASSOCIATES SCONFITTA!!");
+#endif
 
-	#endif
+#ifdef LANG_FR
+		cputs("BIEN JOUE'");
+		sound_good();
+		gotoxy(2,11);
+		printf("%s FUSIONNE\n", opponent);
+		printf("ET ACTIFS DE $%1.1fM.", CP);
 #endif
 
 	long_pause();
@@ -664,9 +745,11 @@ void player_wins() {
 }
 
 
+
 void opponent_wins() {
 	short_pause();
 	clear_screen();
+
 #ifdef LANG_ES
 		short_pause();
 		clear_screen();
@@ -676,7 +759,7 @@ void opponent_wins() {
 		gotoxy(4,11);
 		cputs("CONFIRMADA ABSORCION POR");
 		gotoxy(8,13);
-		cputs("EWING ASSOCIATED");
+		cputs("EWING ASSOCIATES");
 
 		music();
 		clear_screen();
@@ -685,15 +768,15 @@ void opponent_wins() {
 		cputs("TELEX\n");
 		cputs("AL PRESIDENTE:\n");
 		
-		cputs("CONTROL DE ESA CORPORACION POR EWING ASSOCIATED TIENE EFECTO IMMEDIATO.\n\n");
+		cputs("CONTROL DE ESA CORPORACION POR EWING ASSOCIATES TIENE EFECTO IMMEDIATO.\n\n");
 		cputs(" PRESENTE SU DIMISION DE MODO INMEDIATO");
 		gotoxy(18,16);
 		cputs("J.R.");
 		music();
  
+#endif
 
-#else
-	#ifndef LANG_IT
+#ifdef LANG_EN
 		short_pause();
 		clear_screen();
 		gotoxy(10,6);
@@ -713,7 +796,9 @@ void opponent_wins() {
 		cputs("J.R.");
 	
 		music();
-	#else
+#endif
+
+#ifdef LANG_IT
 		short_pause();
 		clear_screen();
 		gotoxy(10,6);
@@ -731,14 +816,51 @@ void opponent_wins() {
 		gotoxy(18,16);
 		cputs("J.R.E.");
 		music();
- 
-
-	#endif
 #endif
+
+#ifdef LANG_FR
+		short_pause();
+		clear_screen();
+		gotoxy(10,6);
+
+		cputs("FLASH INFO");
+		gotoxy(4,11);
+		cputs("PRISE DE CONTRLE CONFIRMEE");
+		music();
+		clear_screen();
+
+		gotoxy(14,2);
+		cputs("TELEX\n\n\n");
+		cputs("EWING ASSOCIATES A GAGNE LA\n");
+		cputs("BATAILLE DE L'ABSORTION.\n\n\n");
+		cputs("ON DEMANDE VOTRE DEMISSION");
+		gotoxy(18,16);
+		cputs("J.R.");
+	
+		music();
+#endif
+
 	short_pause();
 	end_game();
 }
 
+
+
+void insufficient_funds() {
+		#ifdef LANG_ES
+			printf("FONDOS INSUFICIENTES");
+		#endif
+		#ifdef LANG_EN
+			printf("INSUFFICIENT FUNDS");
+		#endif
+		#ifdef LANG_IT
+			printf("FONDI INSUFFICIENTI");
+		#endif
+		#ifdef LANG_FR
+			printf("FONDS INSUFFISIANTS");
+		#endif
+		short_pause();
+}
 
 
 // 3200
@@ -747,15 +869,23 @@ int setup_rig() {
 	RW=(float)abs(Y-16);
 	
 	if (LN>RW) {
-		LA-=(LN*0.2);
+		//LA-=(LN*0.2);
+		// Possible improvement, use also X to compute the cost
 		PC=LN*0.2;
+	} else {
+		// .. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
+		if (Y<=6) RW*=2.0;
+		PC=RW*0.2;
+	}
+
+	// The ZX81 version had this extra check
+	if ((LA-PC)<0) {
+		insufficient_funds();
 		return(0);
 	}
 	
-	if (Y<=6) RW*=2.0;
-	
-	PC=RW*0.2;
 	LA-=PC;
+	return(1);
 }
 
 
@@ -763,34 +893,39 @@ void auction() {
 	clear();
 	if (T>2) {
 #ifdef LANG_ES
-
 		gotoxy(0,17);
 		cputs("ESTADO OPERACIONES");
 		printf("NO. DE CONCESION   = %u\n", CS);
 		printf("NO. DE POZOS PROD. = %u\n", WL);
 		printf("BARRILES POR DIA   = %u,000\n", BPDA);
 		printf("ACTIVO DE LOS %s: %1.1fM.", opponent_short, CP);
+#endif
 
-#else
-		#ifndef LANG_IT
+#ifdef LANG_EN
+		gotoxy(0,17);
+		cputs("OPERATIONS STATEMENT");
+		printf("NO. OF CONCESSION  = %u\n", CS);
+		printf("NO. OF PROD. WELLS = %u\n", WL);
+		printf("BARRELS PER DAY    = %u,000\n", BPDA);
+		printf("%s ASSETS: %1.1fM.", opponent, CP);
+#endif
 
-			gotoxy(0,17);
-			cputs("OPERATIONS STATEMENT");
-			printf("NO. OF CONCESSION  = %u\n", CS);
-			printf("NO. OF PROD. WELLS = %u\n", WL);
-			printf("BARRELS PER DAY    = %u,000\n", BPDA);
-			printf("%s ASSETS: %1.1fM.", opponent, CP);
+#ifdef LANG_IT
+		gotoxy(0,17);
+		cputs("SITUAZIONE");
+		printf("NO. DI CONCESSIONI  = %u\n", CS);
+		printf("NO. DI POZZI ATTIVI = %u\n", WL);
+		printf("BARILI PER GIORNO   = %u.000\n", BPDA);
+		printf("%s ATTIVO: %1.1fM.", opponent, CP);
+#endif
 
-		#else
-
-			gotoxy(0,17);
-			cputs("SITUAZIONE");
-			printf("NO. DI CONCESSIONI  = %u\n", CS);
-			printf("NO. DI POZZI ATTIVI = %u\n", WL);
-			printf("BARILI PER GIORNO   = %u.000\n", BPDA);
-			printf("%s ATTIVO: %1.1fM.", opponent, CP);
-
-		#endif
+#ifdef LANG_FR
+		gotoxy(0,17);
+		cputs("ETAT OPERATIONS");
+		printf("NO. DE CONCESSIONS  = %u\n", CS);
+		printf("NO. DE PUITS PROD.  = %u\n", WL);
+		printf("BARILS PAR JOUR     = %u.000\n", BPDA);
+		printf("ACTIFS DE %s: %1.1fM.", opponent, CP);
 #endif
 	
 	long_pause();
@@ -809,12 +944,15 @@ void auction() {
 	
 #ifdef LANG_ES
 	cputs("VENTA CONCESION");
-#else
-	#ifndef LANG_IT
-		cputs("CONCESSION SALES");
-	#else
-		cputs("CONCESSIONE IN VENDITA");
-	#endif
+#endif
+#ifdef LANG_EN
+	cputs("CONCESSION SALES");
+#endif
+#ifdef LANG_IT
+	cputs("CONCESSIONE IN VENDITA");
+#endif
+#ifdef LANG_FR
+	cputs("VENTES CONCESSIONS");
 #endif
 
 #ifdef VT_COLORS
@@ -848,15 +986,19 @@ void auction() {
 #endif
 
 			gotoxy(2,18);
-		#ifdef LANG_ES
-			printf("SU OFERTA? ");
-		#else
-			#ifndef LANG_IT
-				printf("YOUR BID? ");
-			#else
-				printf("OFFERTA? ");
+			
+			#ifdef LANG_ES
+				printf("SU OFERTA? ");
 			#endif
-		#endif
+			#ifdef LANG_EN
+					printf("YOUR BID? ");
+			#endif
+			#ifdef LANG_IT
+					printf("OFFERTA? ");
+			#endif
+			#ifdef LANG_FR
+					printf("VOTRE OFFRE? ");
+			#endif
 
 			gets(input);
 			V=atof(input);
@@ -864,70 +1006,67 @@ void auction() {
 			CB=AA[X][Y]*(1+rand()%4);
 			clear();
 		
-		if (V>LA) {
-		#ifdef LANG_ES
-			printf("FONDOS INSUFICIENTES");
-		#else
-			#ifndef LANG_IT
-				printf("INSUFFICIENT FUNDS");
-			#else
-				printf("FONDI INSUFFICIENTI");
-			#endif
-		#endif
-			gotoxy(X,Y);
-			putch(' ');
-			short_pause();
-
-		} else {
-
-			gotoxy(0,21);
-
-			if (V<CB) {
-				#ifdef LANG_ES
-					printf("OFERTA RECHAZADA");
-				#else
-					#ifndef LANG_IT
-						printf("BID FAILED");
-					#else
-						printf("RIFIUTATA!");
-					#endif
-				#endif
-				sound_bad();
+			if (V>LA) {
+				insufficient_funds();
 				gotoxy(X,Y);
 				putch(' ');
-				short_pause();
-				
+
 			} else {
-				
-				#ifdef LANG_ES
-					printf("OFERTA SATISFACTORIA");
-				#else
-					#ifndef LANG_IT
-						printf("BID SUCCESSFUL");
-					#else
-						printf("ACCETTATA!");
+
+				gotoxy(0,21);
+
+				if (V<CB) {
+					#ifdef LANG_ES
+						printf("OFERTA RECHAZADA");
 					#endif
+					#ifdef LANG_EN
+							printf("BID FAILED");
+					#endif
+					#ifdef LANG_IT
+							printf("RIFIUTATA!");
+					#endif
+					#ifdef LANG_FR
+							printf("OFFRE REFUSEE");
+					#endif
+					sound_bad();
+					gotoxy(X,Y);
+					putch(' ');
+					short_pause();
+					
+				} else {
+					
+					#ifdef LANG_ES
+						printf("OFERTA SATISFACTORIA");
+					#endif
+					#ifdef LANG_EN
+							printf("BID SUCCESSFUL");
+					#endif
+					#ifdef LANG_IT
+							printf("ACCETTATA!");
+					#endif
+					#ifdef LANG_FR
+							printf("OFFRE ACCEPTEE");
+					#endif
+					sound_good();
+					CS++;
+					AA[X][Y] = AA[X][Y]*10;
+					gotoxy(X,Y);
+		#ifdef VT_COLORS
+					textcolor(5);
+		#endif
+				#ifdef USE_UDGS
+					putch('\201');
+				#else
+					putch('#');
 				#endif
-				sound_good();
-				CS++;
-				AA[X][Y] = AA[X][Y]*10;
-				gotoxy(X,Y);
-	#ifdef VT_COLORS
-				textcolor(5);
-	#endif
-			#ifdef USE_UDGS
-				putch('\201');
-			#else
-				putch('#');
-			#endif
-	#ifdef VT_COLORS
-				textcolor(1);
-	#endif
-				LA-=V;
-				CON+=V;
-				balance_sheet();
-				clr_part();
-			}
+		#ifdef VT_COLORS
+					textcolor(1);
+		#endif
+					LA-=V;
+					CON+=V;
+					balance_sheet();
+					clr_part();
+				}
 		}
 	}
 }
@@ -944,12 +1083,15 @@ void get_position() {
 	gotoxy(0,20);
 	#ifdef LANG_ES
 		printf("TECLEE LA LINEA: ");
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			printf("KEY LINE NO. ");
-		#else
+	#endif
+	#ifdef LANG_IT
 			printf("LINEA :  ");
-		#endif
+	#endif
+	#ifdef LANG_FR
+		printf("TAPEZ NO. DE LIGNE: ");
 	#endif
 		
 	Y=wait_keypress();
@@ -962,12 +1104,15 @@ void get_position() {
 
 	#ifdef LANG_ES
 		printf("\nTECLEE LA COLUMNA: ");
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			printf("\n  KEY COLUMN NO. ");
-		#else
+	#endif
+	#ifdef LANG_IT
 			printf("\n COLONNA :  ");
-		#endif
+	#endif
+	#ifdef LANG_FR
+		printf("\nTAPEZ NO. COLONNE: ");
 	#endif
 
 	X=wait_keypress();
@@ -995,12 +1140,15 @@ int drill() {
 	gotoxy(0,17);
 	#ifdef LANG_ES
 		cputs("PERFORANDO UN POZO");
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			cputs("DRILLING WELL");
-		#else
+	#endif
+	#ifdef LANG_IT
 			cputs("TRIVELLAZIONE RICHIESTA");
-		#endif
+	#endif
+	#ifdef LANG_FR
+		cputs("FORAGE EN BONNE VOIE");
 	#endif
 	
 	get_position(); 
@@ -1009,64 +1157,80 @@ int drill() {
 		gotoxy(0,21);
 		#ifdef LANG_ES
 			cputs("NO TIENES NINGUNA TORRE AHI");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				cputs("DRILLING RIG NOT ON SITE");
-			#else
+		#endif
+		#ifdef LANG_IT
 				cputs("ATTREZZATURA NON INSTALLATA");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				cputs("DERRICK PAS SUR LE SITE");
 		#endif
 		sound_info();
 		return(0);
 	}
-	TT[0]+=5;
+	TT+=5;
 	DD[X][Y] = DD[X][Y]+1+rand()%6;
 
 	gotoxy(0,18);
 	#ifdef LANG_ES
 		printf("PROFUNDIDAD = %u,000 PIES", DD[X][Y]);
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			printf("DEPTH = %u,000 FEET", DD[X][Y]);
-		#else
+	#endif
+	#ifdef LANG_IT
 			printf("PROF. = %u.000 METRI", DD[X][Y]);
-		#endif
+	#endif
+	#ifdef LANG_FR
+		printf("PROFUNDEUR = %u,000 METRES", DD[X][Y]);
 	#endif
 	
-	CC[0]=(DD[X][Y]/3)+1;
-	LA-=CC[0];
+	CC=(DD[X][Y]/3)+1;
+	LA-=(float)CC;
 
-	gotoxy(0,18);
+	gotoxy(0,19);
 	#ifdef LANG_ES
-		printf("PROFUNDIDAD = %u,000 PIES", DD[X][Y]);
-	#else
-		#ifndef LANG_IT
-			printf("DEPTH = %u,000 FEET", DD[X][Y]);
-		#else
-			printf("PROF. = %u.000 METRI", DD[X][Y]);
-		#endif
+			printf("COSTO PERFORACION = %u.0M.$",CC);
 	#endif
+	#ifdef LANG_EN
+			printf("COST = $%u.0M.",CC);
+	#endif
+	#ifdef LANG_IT
+			printf("COSTO = $%u.0M.",CC);
+	#endif
+	#ifdef LANG_FR
+			printf("COUT FORAGE = $%u.0M.",CC);
+	#endif
+
 
 	gotoxy(0,20);
 	#ifdef LANG_ES
 		printf("ANALISIS = ");
-	#else
-		#ifndef LANG_IT
-			printf("CORE SAMPLE = ");
-		#else
-			printf("ESTRAZIONE = ");
-		#endif
+	#endif
+	#ifdef LANG_EN
+		printf("CORE SAMPLE = ");
+	#endif
+	#ifdef LANG_IT
+		printf("ESTRAZIONE = ");
+	#endif
+	#ifdef LANG_FR
+		printf("ECHANTILLON = ");
 	#endif
 
 	if (DD[X][Y]>20) {
 		#ifdef LANG_ES
 			cputs("POZO SECO");
-		#else
-			#ifndef LANG_IT
-				cputs("DRY HOLE");
-			#else
-				cputs("TERRA SECCA");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("DRY HOLE");
+		#endif
+		#ifdef LANG_IT
+			cputs("TERRA SECCA");
+		#endif
+		#ifdef LANG_FR
+			cputs("PUITS SEC");
 		#endif
 		sound_bad();
 		gotoxy(X,Y);
@@ -1077,20 +1241,26 @@ int drill() {
 	}
 
 	PO=rand()%(AA[X][Y]*DD[X][Y]);
-	WW=1+(TT[0]/10)*10;
+	WW=1+(TT/10)*10;   //ZX81 version: (1+TT/10)*10
 
+
+	// The ZX81 version has a different probability check
+	//if (PO>((20*(1+(TT/10)))*10)) {
 	if (PO>(22*WW)) {
 	#ifdef VT_COLORS
 		textcolor(4);
 	#endif
 		#ifdef LANG_ES
 			cputs("YACIMIENTO PETROLEO");
-		#else
-			#ifndef LANG_IT
-				cputs("OIL STRIKE");
-			#else
-				cputs("PETROLIO!!");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("OIL STRIKE");
+		#endif
+		#ifdef LANG_IT
+			cputs("PETROLIO!!");
+		#endif
+		#ifdef LANG_FR
+			cputs("DECOUV. PETROLE");
 		#endif
 		sound_oil();
 		gotoxy(X,Y);
@@ -1107,31 +1277,44 @@ int drill() {
 	#endif
 		short_pause();
 		AA[X][Y] = AA[X][Y]*10;
+		
+		/* ZX81 has an extra "unexpected events" here (program lines 4065..4142)*/
+		
 		return(0);
 	}
 
-	if ((PO>=(22*WW)) && (PO>(14*WW))) {
+	// The ZX81 version has a different probability check
+	//if ((PO<((20*(1+(TT/10)))*1)) && (PO>((14*(1+(TT/20)))*10)))  {
+	if ((PO<=(22*WW)) && (PO>(14*WW))) {
 		#ifdef LANG_ES
 			cputs("CAPA DE ROCAS");
-		#else
-			#ifndef LANG_IT
-				cputs("CAP ROCK");
-			#else
-				cputs("ROCCIA DURA");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("CAP ROCK");
+		#endif
+		#ifdef LANG_IT
+			cputs("ROCCIA DURA");
+		#endif
+		#ifdef LANG_FR
+			cputs("ROCHE");
 		#endif
 		sound_ok();
 	}
 
+	// The ZX81 version has a different probability check
+	//if (PO<=((14*(1+(TT/10)))*10))  {
 	if (PO<=(14*WW)) {
 		#ifdef LANG_ES
 			cputs("TIERRA CALIZA");
-		#else
-			#ifndef LANG_IT
-				cputs("LIMESTONE");
-			#else
-				cputs("PIETRA CALCAREA");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("LIMESTONE");
+		#endif
+		#ifdef LANG_IT
+			cputs("PIETRA CALCAREA");
+		#endif
+		#ifdef LANG_FR
+			cputs("CALCAIRE");
 		#endif
 		sound_info();
 	}
@@ -1148,12 +1331,15 @@ int rig() {
 	gotoxy(0,17);
 	#ifdef LANG_ES
 		cputs("PONGO UNA TORRE");
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			cputs("MOVING RIG");
-		#else
+	#endif
+	#ifdef LANG_IT
 			cputs("INSTALLAZIONE ATTREZZATURA");
-		#endif
+	#endif
+	#ifdef LANG_FR
+			cputs("DEPLACEMENT DERRICK");
 	#endif
 	
 	get_position();
@@ -1161,19 +1347,22 @@ int rig() {
 		gotoxy(0,21);
 		#ifdef LANG_ES
 			cputs("LA CONCESION NO ESTA COMPRADA");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				cputs("NOT PURCHASED");
-			#else
+		#endif
+		#ifdef LANG_IT
 				cputs("CONCESSIONE NON ACQUISTATA");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				cputs("CONCESSION NON ACHETE'");
 		#endif
 		short_pause();
 		return(0);
 	}
 	if (AA[X][Y]>100) return(0);
 	
-	setup_rig();
+	if (!setup_rig()) return(0);
 
 	AA[X][Y] = AA[X][Y]*10;
 	gotoxy(X,Y);
@@ -1203,22 +1392,28 @@ void loan() {
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			cputs("FINANCIACION");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				cputs("FINANCE?");
-			#else
+		#endif
+		#ifdef LANG_IT
 				cputs("FINANZIAMENTO");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				printf("FINANCES ?");
 		#endif
 
 		#ifdef LANG_ES
 			printf("\nESCRIBA EL IMPORTE EN M.$ ");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				printf("\nKEY AMOUNT IN $M. ");
-			#else
+		#endif
+		#ifdef LANG_IT
 				printf("\nINSERIRE L'AMMONTARE IN $M. ");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				printf("\nTAPEZ MONTANT EN $M. ");
 		#endif
 		gets(input);
 		JJ=atof(input);
@@ -1229,34 +1424,45 @@ void loan() {
 
 	#ifdef LANG_ES
 		printf("\nPEDIDOS %1.1fM.$\n",JJ);
-	#else
-		#ifndef LANG_IT
-			printf("\n$%1.1fM. REQUESTED\n",JJ);
-		#else
-			printf("\n%1.1fM. RICHIESTI\n",JJ);
-		#endif
 	#endif
+	#ifdef LANG_EN
+			printf("\n$%1.1fM. REQUESTED\n",JJ);
+	#endif
+	#ifdef LANG_IT
+			printf("\n%1.1fM. RICHIESTI\n",JJ);
+	#endif
+	#ifdef LANG_FR
+			printf("\n%1.1fM. DEMANDES\n",JJ);
+	#endif
+
 	LS=1+(rand()%3)*abs((int)JJ);
+
 	if (LS>30) {
 	#ifdef LANG_ES
 		printf("PRESTAMO DENEGADO");
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			printf("NOT SANCTIONED");
-		#else
+	#endif
+	#ifdef LANG_IT
 			printf("NON CONCESSO");
-		#endif
+	#endif
+	#ifdef LANG_FR
+			printf("EMPRUNT REFUSE'");
 	#endif
 	sound_bad();
 	} else {
 		#ifdef LANG_ES
 			printf("PRESTAMO CONFIRMADO");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				printf("LOAN SANCTIONED");
-			#else
+		#endif
+		#ifdef LANG_IT
 				printf("PRESTITO CONCESSO");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				printf("EMPRUNT ACCORDE'");
 		#endif
 		sound_good();
 		LA+=JJ;  MT+=JJ;
@@ -1272,23 +1478,29 @@ void setup_revenue() {
 	gotoxy(0,19);
 	#ifdef LANG_ES
 		printf("NIVEL DE PRODUCCION= %u.000 B.P.D.\n",BPD);
-	#else
-		#ifndef LANG_IT
-			printf("PRODUCTION LEVEL= %u.000 B.P.D.\n",BPD);
-		#else
-			printf("LIVELLO PRODUTT.= %u.000 B.P.G.\n",BPD);
-		#endif
+	#endif
+	#ifdef LANG_EN
+		printf("PRODUCTION LEVEL= %u.000 B.P.D.\n",BPD);
+	#endif
+	#ifdef LANG_IT
+		printf("LIVELLO PRODUTT.= %u.000 B.P.G.\n",BPD);
+	#endif
+	#ifdef LANG_FR
+		printf("ACCROIS. PROD.= %u.000 B.P.J.\n",BPD);
 	#endif
 
 
 	#ifdef LANG_ES
 		printf("BENEFICIO MENSUAL= %1.1fM.$",REV);
-	#else
-		#ifndef LANG_IT
+	#endif
+	#ifdef LANG_EN
 			printf("MONTHLY REVENUE= $%1.1fM.",REV);
-		#else
+	#endif
+	#ifdef LANG_IT
 			printf("RENDITA MENSILE= $%1.1fM.",REV);
-		#endif
+	#endif
+	#ifdef LANG_FR
+			printf("REVENUS EN HAUSSE= $%1.1fM.",REV);
 	#endif
 	
 	BPDA+=BPD;
@@ -1300,7 +1512,7 @@ void facilities_lost() {
 
 	sound_bad();
 	#ifdef USE_SOUND
-				bit_fx(3);
+		bit_fx(3);
 	#endif
 
 	WL-=1;
@@ -1319,7 +1531,7 @@ void facilities_lost() {
 #ifdef VT_COLORS
 	textcolor(1);
 #endif
-	AA[X][Y]=1000;
+	AA[X][Y] = 1000;
 }
 
 
@@ -1342,12 +1554,15 @@ int facilities() {
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			cputs("INSTALACIONES");
-		#else
-			#ifndef LANG_IT
-				cputs("PRODUCTION FACILITIES");
-			#else
-				cputs("COSTRUZIONE RAFFINERIA");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("PRODUCTION FACILITIES");
+		#endif
+		#ifdef LANG_IT
+			cputs("COSTRUZIONE RAFFINERIA");
+		#endif
+		#ifdef LANG_FR
+			cputs("USINES DE PRODUCTION");
 		#endif
 		
 		get_position();
@@ -1357,44 +1572,45 @@ int facilities() {
 			gotoxy(0,20);
 			#ifdef LANG_ES
 				cputs("AHI NO ESTA BROTANDO PETROLEO");
-			#else
-				#ifndef LANG_IT
-					cputs("OIL NOT STRUCK");
-				#else
-					cputs("IL PETROLIO LI NON SGORGA!!");
-				#endif
+			#endif
+			#ifdef LANG_EN
+				cputs("OIL NOT STRUCK");
+			#endif
+			#ifdef LANG_IT
+				cputs("IL PETROLIO LI NON SGORGA!!");
+			#endif
+			#ifdef LANG_FR
+				cputs("FORAGE DECEVANT");
 			#endif
 			sound_info();
 			return(0);
 		}
 		
 		PP=20.0;
+		// .. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
 		if (Y<=6) PP=30.0;
+		// Possible improvement, use also X to compute the cost
+
 		if ((LA-PP)<0) {
-			#ifdef LANG_ES
-				cputs("FONDOS INSUFICIENTES");
-			#else
-				#ifndef LANG_IT
-					cputs("INSUFFICIENT FUNDS");
-				#else
-					cputs("FONDI INSUFFICIENTI");
-				#endif
-			#endif
-			short_pause();
+			insufficient_funds();
 			return(0);
 		}
 		
 		LA-=PP;
+		// ZX81 adds extra unexpected costs, PGM lines 5034..5042:
 		BPD=20+rand()%160;
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			printf("COSTO= %1.1fM.$",PP);
-		#else
-			#ifndef LANG_IT
-				printf("COST= $%1.1fM.",PP);
-			#else
-				printf("COSTO= $%1.1fM.",PP);
-			#endif
+		#endif
+		#ifdef LANG_EN
+			printf("COST= $%1.1fM.",PP);
+		#endif
+		#ifdef LANG_IT
+			printf("COSTO= $%1.1fM.",PP);
+		#endif
+		#ifdef LANG_FR
+			printf("COUT= $%1.1fM.",PP);
 		#endif
 		
 		setup_revenue();
@@ -1425,12 +1641,15 @@ int facilities() {
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			cputs("DERRUMBAMIENTO");
-		#else
-			#ifndef LANG_IT
-				cputs("BLOW OUT");
-			#else
-				cputs("TERREMOTO!!");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("BLOW OUT");
+		#endif
+		#ifdef LANG_IT
+			cputs("TERREMOTO!!");
+		#endif
+		#ifdef LANG_FR
+			cputs("EXPLOSION");
 		#endif
 		
 		facilities_lost();
@@ -1450,38 +1669,46 @@ void survey() {
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			printf("ESTUDIO SISMICO");
-		#else
-			#ifndef LANG_IT
-				printf("SEISMIC SURVEY ?");
-			#else
-				printf("PERIZIA SISMICA ?");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			printf("SEISMIC SURVEY ?");
+		#endif
+		#ifdef LANG_IT
+			printf("PERIZIA SISMICA ?");
+		#endif
+		#ifdef LANG_FR
+			printf("ETUDE SISMIQUE");
 		#endif
 		get_position();
-
-		
-			if (AA[X][Y]<=30) {
-				gotoxy(0,17);
-				#ifdef LANG_ES
-					printf("COSTE ESTUDIO @ $1.2M.");
-				#else
-					#ifndef LANG_IT
-						printf("APPRAISAL SURVEY @ $1.2M.");
-					#else
-						printf("COSTO PERIZIA @ $1.2M.");
-					#endif
-				#endif
-				LA-=1.2;
+	
+		if (AA[X][Y]<=30) {
+			gotoxy(0,17);
+			#ifdef LANG_ES
+				printf("COSTE ESTUDIO @ $1.2M.");
+			#endif
+			#ifdef LANG_EN
+				printf("APPRAISAL SURVEY @ $1.2M.");
+			#endif
+			#ifdef LANG_IT
+				printf("COSTO PERIZIA @ $1.2M.");
+			#endif
+			#ifdef LANG_FR
+				printf("COUT ETUDE EVALUATION $1.2M.");
+			#endif
+			LA-=1.2;
 
 			gotoxy(0,18);
 			#ifdef LANG_ES
 				printf("ESTUDIO SISMICO MUESTRA ");
-			#else
-				#ifndef LANG_IT
-					printf("SEISMIC SURVEY FACTOR IS ");
-				#else
-					printf(" IL FATTORE E' ");
-				#endif
+			#endif
+			#ifdef LANG_EN
+				printf("SEISMIC SURVEY FACTOR IS ");
+			#endif
+			#ifdef LANG_IT
+				printf(" IL FATTORE E' ");
+			#endif
+			#ifdef LANG_FR
+				printf("FACTEUR ETUDE SISMIQUE: ");
 			#endif
 
 			switch (AA[X][Y]) {
@@ -1489,12 +1716,15 @@ void survey() {
 				case 10:
 					#ifdef LANG_ES
 						printf("POBRE");
-					#else
-						#ifndef LANG_IT
+					#endif
+					#ifdef LANG_EN
 							printf("POOR");
-						#else
+					#endif
+					#ifdef LANG_IT
 							printf("BASSO");
-						#endif
+					#endif
+					#ifdef LANG_FR
+							printf("MEDIOCRE");
 					#endif
 					#ifdef USE_SOUND
 						sound_bad();
@@ -1505,12 +1735,15 @@ void survey() {
 				case 20:
 					#ifdef LANG_ES
 						printf("POSITIVA");
-					#else
-						#ifndef LANG_IT
+					#endif
+					#ifdef LANG_EN
 							printf("FAIR");
-						#else
+					#endif
+					#ifdef LANG_IT
 							printf("SUFF.");
-						#endif
+					#endif
+					#ifdef LANG_FR
+							printf("MOYEN");
 					#endif
 					#ifdef USE_SOUND
 						sound_ok();
@@ -1521,12 +1754,15 @@ void survey() {
 				case 30:
 					#ifdef LANG_ES
 						printf("BUENA");
-					#else
-						#ifndef LANG_IT
+					#endif
+					#ifdef LANG_EN
 							printf("GOOD");
-						#else
+					#endif
+					#ifdef LANG_IT
 							printf("BUONO");
-						#endif
+					#endif
+					#ifdef LANG_FR
+							printf("BON");
 					#endif
 					#ifdef USE_SOUND
 						sound_good();
@@ -1536,28 +1772,36 @@ void survey() {
 				default:
 					#ifdef LANG_ES
 						printf("NO DISPONIBLE");
-					#else
-						#ifndef LANG_IT
-							printf("\nNOT AVAILABLE");
-						#else
-							printf("NON CALCOLABILE");
-						#endif
 					#endif
+					#ifdef LANG_EN
+							printf("\nNOT AVAILABLE");
+					#endif
+					#ifdef LANG_IT
+							printf("NON CALCOLABILE");
+					#endif
+					#ifdef LANG_FR
+							printf("NON CALCULABLE");
+					#endif
+					
+					
 					#ifdef USE_SOUND
 						bit_fx(7);
 					#endif
 					break;
-			}
+				}
 		} else {
-			gotoxy(0,19);
+				gotoxy(0,19);
 				#ifdef LANG_ES
 					printf("NO DISPONIBLE");
-				#else
-					#ifndef LANG_IT
-						printf("NOT AVAILABLE");
-					#else
+				#endif
+				#ifdef LANG_EN
+						printf("\nNOT AVAILABLE");
+				#endif
+				#ifdef LANG_IT
 						printf("NON CALCOLABILE");
-					#endif
+				#endif
+				#ifdef LANG_FR
+						printf("NON CALCULABLE");
 				#endif
 		}
 		
@@ -1567,12 +1811,15 @@ void survey() {
 		gotoxy(0,18);
 		#ifdef LANG_ES
 			printf("OTRO ESTUDIO SISMICO ?");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				printf("ANOTHER SEISMIC SURVEY ?");
-			#else
+		#endif
+		#ifdef LANG_IT
 				printf("UN'ALTRA PERIZIA SISMICA ?");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				printf("AUTRE ETUDE SISMIQUE ?");
 		#endif
 		JS=wait_keypress();
 	}
@@ -1592,45 +1839,56 @@ int pipeline() {
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			cputs("CONSTRUCCION GASEODUCTO");
-		#else
-			#ifndef LANG_IT
-				cputs("LAYING PIPELINE");
-			#else
-				cputs("COSTRUZIONE OLEODOTTO");
-			#endif
+		#endif
+		#ifdef LANG_EN
+			cputs("LAYING PIPELINE");
+		#endif
+		#ifdef LANG_IT
+			cputs("COSTRUZIONE OLEODOTTO");
+		#endif
+		#ifdef LANG_FR
+			cputs("POSE DE PIPELINE");
 		#endif
 		
 		get_position();
 
+		if (AA[X][Y]>=20000)
+			return(0);
 		
 		if (AA[X][Y]<10000) {
 			gotoxy(0,20);
 			#ifdef LANG_ES
 				cputs("NO HAY INSTALACIONES CONSTRUIDAS");
-			#else
-				#ifndef LANG_IT
-					cputs("PRODUCTION FACILITIES NOT BUILT");
-				#else
-					cputs("RAFFINERIA NON COSTRUITA");
-				#endif
+			#endif
+			#ifdef LANG_EN
+				cputs("PRODUCTION FACILITIES NOT BUILT");
+			#endif
+			#ifdef LANG_IT
+				cputs("RAFFINERIA NON COSTRUITA");
+			#endif
+			#ifdef LANG_FR
+				cputs("PUITS PAS CONSTRUIT");
 			#endif
 			sound_info();
 			return(0);
 		}
 			
-		setup_rig();
+		if (!setup_rig()) return(0);
 		BPD=25+rand()%50;
 		PIP+=PC;
 		
 		gotoxy(0,17);
 		#ifdef LANG_ES
 			printf("COSTE DEL GASEODUCTO= %1.1fM.$",PC);
-		#else
-			#ifndef LANG_IT
-				printf("COST OF PIPELINE= $%1.1fM.",PC);
-			#else
-				printf("COSTO OLEODOTTO= $%1.1fM.",PC);
-			#endif
+		#endif
+		#ifdef LANG_EN
+			printf("COST OF PIPELINE= $%1.1fM.",PC);
+		#endif
+		#ifdef LANG_IT
+			printf("COSTO OLEODOTTO= $%1.1fM.",PC);
+		#endif
+		#ifdef LANG_FR
+			printf("COUT PIPELINE= $%1.1fM.",PC);
 		#endif
 		
 		setup_revenue();
@@ -1640,12 +1898,16 @@ int pipeline() {
 			gotoxy(0,17);
 			#ifdef LANG_ES
 				cputs("SABOTAJE");
-			#else
-				#ifndef LANG_IT
+			#endif
+			#ifdef LANG_EN
 					cputs("SABOTAGE");
-				#else
+			#endif
+			#ifdef LANG_IT
 					cputs("SABOTAGGIO!!");
-				#endif
+			#endif
+			#ifdef LANG_FR
+					cputs("SABOTAGE");
+					//cputs("USINES ET PIPELINES DESTRUITS");
 			#endif
 			sound_bad();
 			all_facilities_lost();
@@ -1657,7 +1919,11 @@ int pipeline() {
 		if (RX==4) {
 			gotoxy(0,17);
 			// Same in all languages :)
+			#ifdef LANG_FR
+				cputs("TORNADE");
+			#else
 				cputs("TORNADO");
+			#endif
 			sound_bad();
 			all_facilities_lost();
 			balance_sheet();
@@ -1672,6 +1938,7 @@ int pipeline() {
 			putch('O');
 		#endif
 
+		AA[X][Y] = AA[X][Y]*2;
 		balance_sheet();
 		clear();
 
@@ -1680,12 +1947,16 @@ int pipeline() {
 
 #ifdef USE_UDGS
 #ifdef __CONIO_VT100
+#ifndef CRT_FONT
+
 int font_position() {
 #asm
 	extern ansifont
 	ld hl,ansifont
 #endasm
 }
+
+#endif
 #endif
 #endif
 
@@ -1698,14 +1969,21 @@ int main() {
   void *param = &udgs;
 
 #ifdef __CONIO_VT100
-  //extern unsigned char font_8x8_bbc_system[];
-  //memcpy(font_8x8_bbc_system + 1536, param, 56);
-  
-#ifdef __ZX81__
-  memcpy(font_position() + 768, param, 56);
-#else
-  memcpy(font_position() + 1536, param, 56);
-#endif
+
+	#ifdef CRT_FONT
+
+		  extern unsigned char font_8x8_bbc_system[];
+		  memcpy(font_8x8_bbc_system + 1536, param, 56);
+
+	#else
+	  
+		#ifdef __ZX81__
+		  memcpy(font_position() + 768, param, 56);
+		#else
+		  memcpy(font_position() + 1536, param, 56);
+		#endif
+
+	#endif
 
 #else
   console_ioctl(IOCTL_GENCON_SET_UDGS, &param);
@@ -1730,7 +2008,6 @@ outp(0xd020,0);
 outp(0xd021,0);
 #endif
 
-
 #ifdef GRAPHICS
 clg();
 #endif
@@ -1743,7 +2020,11 @@ cputs("BIENVENIDO A");
 #endif
 
 #ifdef GRAPHICS
+#ifdef __C128__
+	putsprite (spr_or,0,10,logo);
+#else	
 	putsprite (spr_or,96,70,logo);
+#endif
 #else
 	gotoxy(7,10);
 	cputs("** D A L L A S **");
@@ -1777,8 +2058,9 @@ outp(0xd021,7);
 	gotoxy(0,4);
 	printf("VD. ES PRESIDENTE DE UNA CORPORACION RIVAL DE %s. SU META ES ARRUINAR A LOS %s.", opponent, opponent_short);
 	cputs("\nLOS FALLOS RECAERAN EN USTED    !! RESIGNACION !!");
-#else
-	#ifndef LANG_IT
+#endif
+
+#ifdef LANG_EN
 		gotoxy(11,2);
 #ifdef ANSI_ATTR
 		vtrendition(4);
@@ -1790,7 +2072,9 @@ outp(0xd021,7);
 		gotoxy(0,4);
 		printf("You are president of a rival    corporation to %s. Your aim is to takeover %s!!", opponent, opponent_short);
 		cputs("\nFAILURE WILL RESULT IN YOUR OWN RESIGNATION !!");
-	#else
+#endif
+
+#ifdef LANG_IT
 		gotoxy(11,2);
 #ifdef ANSI_ATTR
 		vtrendition(4);
@@ -1802,42 +2086,61 @@ outp(0xd021,7);
 		gotoxy(0,4);
 		printf("Sei pressidente di una societa'  rivale della %s.  Il tuo fine e'battere gli %s.", opponent, opponent_short);
 		cputs("\nSE FALLIRAI SARAI ESONERATO     DALL'INCARICO !!");
-	#endif
+#endif
+
+#ifdef LANG_FR
+		gotoxy(11,2);
+#ifdef ANSI_ATTR
+		vtrendition(4);
+#endif
+		cputs("OBJECTIF");
+#ifdef VT_COLORS
+		textbackground(15); textcolor(1);
+#endif
+		gotoxy(0,4);
+		printf("Vous etes le president d'une    companie rivale de %s.  Votre objectif est de renverser les %s.", opponent, opponent_short);
+		cputs("\nSI VOUS ECHOUEZ, VOUS SEREZ OBLIGE DE DEMISSIONER");
 #endif
 
 #ifdef VT_COLORS
 	textcolor(0);
 #endif
 	gotoxy(5,13);
-#ifdef LANG_ES
+
 #ifdef ANSI_ATTR
 	vtrendition(1);
 #endif
+
+#ifdef LANG_ES
 	cputs("NIVEL DE DIFICULTAD");
 #ifdef ANSI_ATTR
 	vtrendition(2);
 #endif
 	cputs("\n\n1. Moderado\n2. Dificil\n3. Muy dificil");
-#else
-	#ifndef LANG_IT
-#ifdef ANSI_ATTR
-		vtrendition(1);
 #endif
+
+#ifdef LANG_EN
 		cputs("LEVEL OF DIFFICULTY");
 #ifdef ANSI_ATTR
 		vtrendition(2);
 #endif
 		cputs("\n\n1. Moderate\n2. Difficult\n3. Very difficult");
-	#else
-#ifdef ANSI_ATTR
-		vtrendition(1);
 #endif
+
+#ifdef LANG_IT
 		cputs("LIVELLO DI DIFFICOLTA'");
 #ifdef ANSI_ATTR
 		vtrendition(2);
 #endif
 		cputs("\n\n1. Semplice\n2. Difficile\n3. Molto difficile");
-	#endif
+#endif
+
+#ifdef LANG_FR
+		cputs("NIVEAU DE DIFFICULTE'");
+#ifdef ANSI_ATTR
+		vtrendition(2);
+#endif
+		cputs("\n\n1. Moyen\n2. Difficile\n3. Tres difficile");
 #endif
 
 
@@ -1845,14 +2148,21 @@ outp(0xd021,7);
 #ifdef ANSI_ATTR
 	vtrendition(5);
 #endif
+
 #ifdef LANG_ES
 	cputs("ELIJA NIVEL");
-#else
-	#ifndef LANG_IT
+#endif
+
+#ifdef LANG_EN
 		cputs("Key 1 to 3");
-	#else
+#endif
+
+#ifdef LANG_IT
 		cputs("Scegli 1-3");
-	#endif
+#endif
+
+#ifdef LANG_FR
+		cputs("Votre choix");
 #endif
 
 	DF=0;
@@ -1862,22 +2172,23 @@ outp(0xd021,7);
 	}
 
 	T=0; CS=0; WL=0;
-	TT[0]=4; PP=20.0;
+	TT=4; PP=20.0;
 	BPD=0; BPDA=0; CON=0; 
 	LA=100.0;
 	MT=0.0; PIP=MT; PL=MT; PR=MT;
 
 	clear_screen();
 #ifdef __ZX81__
-	gotoxy(2,1);
+	gotoxy(1,1);
 #else
-	gotoxy(2,0);
+	gotoxy(1,0);
 #endif
 
-#ifdef LANG_ES
 #ifdef VT_COLORS
 	textbackground(1); textcolor(3);
 #endif
+
+#ifdef LANG_ES
 	cputs("SIMBOLOS USADOS EN EL MAPA\n\n\n");
 #ifdef VT_COLORS
 	textbackground(15); textcolor(0);
@@ -1887,11 +2198,9 @@ outp(0xd021,7);
 	cputs("     = TORRE PERFORACION\n");
 	cputs("     = YACIMIENTO\n");
 	cputs("     = INSTALACIONES\n");
-#else
-	#ifndef LANG_IT
-#ifdef VT_COLORS
-		textbackground(1); textcolor(3);
 #endif
+
+#ifdef LANG_EN
 		cputs("KEY TO SYMBOLS USED IN MAP\n\n\n");
 #ifdef VT_COLORS
 	textbackground(15); textcolor(0);
@@ -1901,10 +2210,9 @@ outp(0xd021,7);
 		cputs("     = Drilling rig\n");
 		cputs("     = Oil strike\n");
 		cputs("     = Production facilities\n");
-	#else
-#ifdef VT_COLORS
-		textbackground(1); textcolor(3);
 #endif
+
+#ifdef LANG_IT
 		cputs("SIMBOLOGIA USATA PER LA MAPPA\n\n\n");
 #ifdef VT_COLORS
 	textbackground(15); textcolor(0);
@@ -1914,8 +2222,20 @@ outp(0xd021,7);
 		cputs("     = Trivelle\n");
 		cputs("     = Petrolio\n");
 		cputs("     = Raffineria\n");
-	#endif
 #endif
+
+#ifdef LANG_FR
+		cputs("SYMBOLES UTILISES DANS LA CARTE\n\n\n");
+#ifdef VT_COLORS
+	textbackground(15); textcolor(0);
+#endif
+		cputs("     = Foret\n");
+		cputs("     = Concession achetee\n");
+		cputs("     = Derrick\n");
+		cputs("     = Jet d'huile\n");
+		cputs("     = Installations de prod.\n");
+#endif
+
 
 
 
@@ -2039,21 +2359,27 @@ outp(0xd021,7);
 	cputs("ESTRUCTURA GEOLOGICA");
 	gotoxy(7,15);
 	cputs("ESPERE UN MOMENTO.");
-#else
-	#ifndef LANG_IT
+#endif
+#ifdef LANG_EN
 		gotoxy(6,10);
 		cputs("GEOLOGICAL STRUCTURE");
 		gotoxy(8,13);
 		cputs("IS BEING SET UP");
-	#else
+#endif
+#ifdef LANG_IT
 		gotoxy(7,10);
 		cputs("STO PREPARANDO LA");
 		gotoxy(7,13);
 		cputs("STRUTTURA GEOLOGICA");
-	#endif
+#endif
+#ifdef LANG_FR
+		gotoxy(14,10);
+		cputs("RELEVE");
+		gotoxy(7,13);
+		cputs("STRUCTURE GEOLOGIQUE");
 #endif
 
-	// Set up initial capital basing on the difficulty level
+	// Set up initial opponent's capital basing on the difficulty level
 	CP=10.0*DF;
 
 #ifdef VT_COLORS
@@ -2087,12 +2413,15 @@ KY:
 				gotoxy(0,18);
 				#ifdef LANG_ES
 					printf("%s\nPIERDE $%1.1f M.", opponent, CPL);
-				#else
-					#ifndef LANG_IT
-						printf("%s\nLOSSES $%1.1f M.", opponent, CPL);
-					#else
-						printf("LA %s\nHA PERSO $%1.1f M.", opponent, CPL);
-					#endif
+				#endif
+				#ifdef LANG_EN
+					printf("%s\nLOSSES $%1.1f M.", opponent, CPL);
+				#endif
+				#ifdef LANG_IT
+					printf("LA %s\nHA PERSO $%1.1f M.", opponent, CPL);
+				#endif
+				#ifdef LANG_FR
+					printf("%s\nA PERDU $%1.1f M.", opponent, CPL);
 				#endif
 				CP-=CPL;
 				sound_good();
@@ -2105,16 +2434,21 @@ KY:
 						cputs("EXCESO DE CRUDO");
 						gotoxy(0,19);
 						cputs("RENTA MES NULA");
-				#else
-					#ifndef LANG_IT
+				#endif
+				#ifdef LANG_EN
 						cputs("CRUDE OIL SURPLUS");
 						gotoxy(0,19);
 						cputs("REVENUE NIL");
-					#else
+				#endif
+				#ifdef LANG_IT
 						cputs("SURPLUS DI PETROLIO");
 						gotoxy(0,19);
 						cputs("RICAVI NULLI!");
-					#endif
+				#endif
+				#ifdef LANG_FR
+						cputs("EXCEDENT DE PETROLE BRUT");
+						gotoxy(0,19);
+						cputs("PAS DE REVENUS CE MOIS");
 				#endif
 				RVF=0.0;
 				sound_bad();
@@ -2127,16 +2461,23 @@ KY:
 						cputs("COTIZACION EN BOLSA DESFAVORABLE");
 						gotoxy(0,19);
 						cputs("RENTA REDUCIDA A LA MITAD");
-				#else
-					#ifndef LANG_IT
+				#endif
+				#ifdef LANG_EN
 						cputs("UNFAVOURABLE CRUDE OIL EXCHANGE DEAL");
 						gotoxy(0,19);
 						cputs("REVENUE REDUCED BY HALF");
-					#else
+				#endif
+				#ifdef LANG_IT
 						cputs("MERCATO QUASI SATURO");
 						gotoxy(0,19);
 						cputs("RICAVI DIMEZZATI!");
-					#endif
+				#endif
+				#ifdef LANG_FR
+						//cputs("EXTENDENT DE BRUT.");
+						cputs("MARCHE PETROLE BRUT DEFAVORABLE");
+						gotoxy(0,19);
+						//cputs("REVENU DIMINUES DE MOITIE");
+						cputs("REVENUS REDUIT DE MOITIE");
 				#endif
 				RVF=0.5;
 				sound_info();
@@ -2148,12 +2489,15 @@ KY:
 				gotoxy(0,18);
 				#ifdef LANG_ES
 						printf("IMPUESTOS ESTATALES=$%1.1f M.$",TX);
-				#else
-					#ifndef LANG_IT
+				#endif
+				#ifdef LANG_EN
 						printf("GOVERNMENT TAXES=$%1.1f M.",TX);
-					#else
+				#endif
+				#ifdef LANG_IT
 						printf("TASSA GOVERNATIVA=$%1.1f M.",TX);
-					#endif
+				#endif
+				#ifdef LANG_FR
+						printf("L'ETAT AUGMENTE' LES IMPOTS SUR LE PETROLE. - (COUT $%1.1f M.)",TX);
 				#endif
 				LA-=TX;
 				sound_info();
@@ -2181,12 +2525,15 @@ KY:
 #endif
 		#ifdef LANG_ES
 				printf("ESTU FINAN GASE INST PERF TORRE");
-		#else
-			#ifndef LANG_IT
+		#endif
+		#ifdef LANG_EN
 				printf("DRILL FIN LAY PROD. RIG SEISMIC");
-			#else
+		#endif
+		#ifdef LANG_IT
 				printf("TRIV FIN OLEO RAFF ATTR SISM");
-			#endif
+		#endif
+		#ifdef LANG_FR
+				printf("F=FORAGE A=FINANCE P=PIPELINE   Q=PROD. D=DERRICK S=SISMIQUE");
 		#endif
 #ifdef VT_COLORS
 		textcolor(1);
@@ -2225,9 +2572,9 @@ KY:
 					pipeline();
 					break;
 			}
-		#else
-			#ifndef LANG_IT
+		#endif
 
+		#ifdef LANG_EN
 				switch(IS) {
 					case 'd':
 					case 'D':
@@ -2254,7 +2601,9 @@ KY:
 						pipeline();
 						break;
 				}
-			#else
+		#endif
+
+		#ifdef LANG_IT
 				switch(IS) {
 					case 't':
 					case 'T':
@@ -2281,9 +2630,36 @@ KY:
 						pipeline();
 						break;
 				}
-			#endif
+		#endif
+
+		#ifdef LANG_FR
+				switch(IS) {
+					case 'f':
+					case 'F':
+						drill();
+						break;
+					case 'd':
+					case 'D':
+						rig();
+						break;
+					case 'a':
+					case 'A':
+						loan();
+						break;
+					case 'q':
+					case 'Q':
+						facilities();
+						break;
+					case 's':
+					case 'S':
+						survey();
+						break;
+					case 'p':
+					case 'P':
+						pipeline();
+						break;
+				}
 		#endif
 	}
 }
-
 
