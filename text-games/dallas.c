@@ -17,6 +17,9 @@
 // Commodore 128
 // zcc +c128 -clib=gencon -DALT_DELAY -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 
+// Sharp MZ
+// zcc +mz -clib=ansi -pragma-define:REGISTER_SP=0xd000 -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c 
+
 
 
 // MinGW
@@ -2057,6 +2060,9 @@ outp(0xd021,7);
 #endif
 	gotoxy(0,4);
 	printf("VD. ES PRESIDENTE DE UNA CORPORACION RIVAL DE %s. SU META ES ARRUINAR A LOS %s.", opponent, opponent_short);
+#ifdef VT_COLORS
+		textcolor(4);
+#endif
 	cputs("\nLOS FALLOS RECAERAN EN USTED    !! RESIGNACION !!");
 #endif
 
@@ -2071,6 +2077,9 @@ outp(0xd021,7);
 #endif
 		gotoxy(0,4);
 		printf("You are president of a rival    corporation to %s. Your aim is to takeover %s!!", opponent, opponent_short);
+#ifdef VT_COLORS
+		textcolor(4);
+#endif
 		cputs("\nFAILURE WILL RESULT IN YOUR OWN RESIGNATION !!");
 #endif
 
@@ -2085,6 +2094,9 @@ outp(0xd021,7);
 #endif
 		gotoxy(0,4);
 		printf("Sei pressidente di una societa'  rivale della %s.  Il tuo fine e'battere gli %s.", opponent, opponent_short);
+#ifdef VT_COLORS
+		textcolor(4);
+#endif
 		cputs("\nSE FALLIRAI SARAI ESONERATO     DALL'INCARICO !!");
 #endif
 
@@ -2099,6 +2111,9 @@ outp(0xd021,7);
 #endif
 		gotoxy(0,4);
 		printf("Vous etes le president d'une    companie rivale de %s.  Votre objectif est de renverser les %s.", opponent, opponent_short);
+#ifdef VT_COLORS
+		textcolor(4);
+#endif
 		cputs("\nSI VOUS ECHOUEZ, VOUS SEREZ OBLIGE DE DEMISSIONER");
 #endif
 
