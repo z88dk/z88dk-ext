@@ -18,7 +18,7 @@
 // zcc +c128 -clib=gencon -DALT_DELAY -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 
 // Sharp MZ
-// zcc +mz -clib=ansi -pragma-define:REGISTER_SP=0xd000 -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c 
+// zcc +mz -clib=ansi -pragma-define:REGISTER_SP=0x6FFF -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c 
 
 
 
@@ -156,7 +156,11 @@ char brd[] = "ABCDEFGHIJKLMN";
 #ifdef USE_UDGS
 char trees[] = "\200  \200\200 \200 ";
 #else
-char trees[] = "@ @@ @ ";
+	#ifdef __SHARPMZ__
+		char trees[] = "\226  \226\226 \226 ";
+	#else
+		char trees[] = "@ @@ @ ";
+	#endif
 #endif
 
 int DF,WL;
@@ -466,6 +470,7 @@ void draw_board(){
 		textcolor(0);
 #endif
 		gotoxy(16,Z+2);
+		
 #ifdef USE_UDGS
 		putch('\206');
 #else
@@ -480,21 +485,31 @@ void draw_board(){
 	 gotoxy(1,16);
 	 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
 #else
+	#ifdef __SHARPMZ__
+		gotoxy(0,1);
+		//cputs(" \254\204\204\204\204\204\204\204\204\204\204\204\204\255");
+		cputs(" \246\204\204\204\204\204\204\204\204\204\204\204\204\204\204\234");
+	#else
 	 gotoxy(1,1);
-	 cputs("================");
+		cputs("================");
+	#endif
 	 gotoxy(1,16);
-	 cputs("================");
+	#ifdef __SHARPMZ__
+		//cputs(" \200\200\200\200\200\200\200\200\200\200\200\200\200\200");
+		cputs("\277\204\204\204\204\204\204\204\204\204\204\204\204\204\204\276");
+	#else
+		cputs("================");
+	#endif
 #endif
 
 	 gotoxy(15,2);
 	 putch('D');
 	 
 	 balance_sheet();
- 
  }
 
 
-char blnk[]="                                ";
+char blnk[]="                                        ";
 char input[20];
 
 
@@ -724,7 +739,7 @@ void player_wins() {
 		cputs("TELEX\n");
 		cputs("TO PRESIDENT OF EWING OIL\n\n\n");
 		cputs("I CONFIRM THAT YOUR COMPANY\n");
-		cputs("HAVE STOCKS AND/OR VOTINGRIGHTS IN EWING OIL TOTALING 51% . I WILL MEET YOU AT 1500HRS TODAYAT THE EWING TOWER DALLAS TO DISCUSS FUTURE ORGANISATION OF EWING ASSOCIATES.");
+		cputs("HAVE STOCKS AND/OR VOTING\nRIGHTS IN EWING OIL TOTALING 51%\nI WILL MEET YOU AT 1500HRS TODAY\nAT THE EWING TOWER DALLAS TO\nDISCUSS FUTURE ORGANISATION OF\nEWING ASSOCIATES.\n\n");
 		cputs("J.R.");
 #endif
 		
@@ -771,7 +786,7 @@ void opponent_wins() {
 		cputs("TELEX\n");
 		cputs("AL PRESIDENTE:\n");
 		
-		cputs("CONTROL DE ESA CORPORACION POR EWING ASSOCIATES TIENE EFECTO IMMEDIATO.\n\n");
+		cputs("CONTROL DE ESA CORPORACION POR\nEWING ASSOCIATES TIENE EFECTO\nIMMEDIATO.\n\n");
 		cputs(" PRESENTE SU DIMISION DE MODO INMEDIATO");
 		gotoxy(18,16);
 		cputs("J.R.");
@@ -793,8 +808,8 @@ void opponent_wins() {
 		gotoxy(14,2);
 		cputs("TELEX\n");
 		cputs("TO THE PRESIDENT\n\n\n");
-		cputs("CONTROL OF COMPANY BY EWING ASS.TAKES IMMEDIATE EFFECT.\n\n\n");
-		cputs("I REQUIRE YOUR RESIGNATION IN     WRITING TODAY");
+		cputs("CONTROL OF COMPANY BY EWING ASS.\nTAKES IMMEDIATE EFFECT.\n\n\n");
+		cputs("I REQUIRE YOUR RESIGNATION IN\nWRITING TODAY");
 		gotoxy(18,16);
 		cputs("J.R.");
 	
@@ -814,8 +829,8 @@ void opponent_wins() {
 		gotoxy(14,2);
 		cputs("TELEX\n");
 		cputs("AL PRESIDENTE\n");
-		cputs("IL CONTROLLO DELLA COMPAGNIA PASSA ALLA EWING ASS CON EFFETTO IMMEDIATO.\n\n");
-		cputs("IO ESIGO LE VOSTRE DIMISSIONI OGGI STESSO");
+		cputs("IL CONTROLLO DELLA COMPAGNIA\nPASSA ALLA EWING ASSOCIATES\nCON EFFETTO IMMEDIATO.\n\n");
+		cputs("IO ESIGO LE VOSTRE DIMISSIONI\nOGGI STESSO");
 		gotoxy(18,16);
 		cputs("J.R.E.");
 		music();
@@ -1060,7 +1075,12 @@ void auction() {
 				#ifdef USE_UDGS
 					putch('\201');
 				#else
-					putch('#');
+					#ifdef __SHARPMZ__
+							putch('\230');
+							//putch('\227');
+						#else
+							putch('#');
+					#endif
 				#endif
 		#ifdef VT_COLORS
 					textcolor(1);
@@ -1273,7 +1293,12 @@ int drill() {
 		#ifdef USE_UDGS
 			putch('\203');
 		#else
-			putch('P');
+			#ifdef __SHARPMZ__
+				//putch('\221');
+				putch('\227');
+			#else
+				putch('P');
+			#endif
 		#endif
 	#ifdef VT_COLORS
 		textcolor(1);
@@ -1376,7 +1401,11 @@ int rig() {
 	#ifdef USE_UDGS
 		putch('\202');
 	#else
-		putch('|');
+		#ifdef __SHARPMZ__
+			putch('\250');
+		#else
+			putch('|');
+		#endif
 	#endif
 #ifdef VT_COLORS
 	textcolor(0);
@@ -1529,7 +1558,12 @@ void facilities_lost() {
 	#ifdef USE_UDGS
 		putch('\203');
 	#else
-		putch('P');
+		#ifdef __SHARPMZ__
+			//putch('\221');
+			putch('\227');
+		#else
+			putch('P');
+		#endif
 	#endif
 #ifdef VT_COLORS
 	textcolor(1);
@@ -1630,7 +1664,11 @@ int facilities() {
 		#ifdef USE_UDGS
 			putch('\204');
 		#else
-			putch('$');
+			#ifdef __SHARPMZ__
+				putch('\232');
+			#else
+				putch('$');
+			#endif
 		#endif
 	#ifdef VT_COLORS
 		textcolor(1);
@@ -1855,9 +1893,29 @@ int pipeline() {
 		
 		get_position();
 
-		if (AA[X][Y]>=20000)
+
+		if (AA[X][Y]==32700) {
+			gotoxy(0,20);
+			#ifdef LANG_ES
+				cputs("NO DISPONIBLE");
+			#endif
+			#ifdef LANG_EN
+				cputs("\nNOT AVAILABLE");
+			#endif
+			#ifdef LANG_IT
+				cputs("NON DISPONIBILE");
+			#endif
+			#ifdef LANG_FR
+				cputs("INDISPONIBLE");
+			#endif
+			
+			#ifdef USE_SOUND
+				bit_fx(7);
+			#endif
 			return(0);
-		
+		}
+
+
 		if (AA[X][Y]<10000) {
 			gotoxy(0,20);
 			#ifdef LANG_ES
@@ -1937,11 +1995,33 @@ int pipeline() {
 		#ifdef GRAPHICS
 				draw(120,24,8*X+6,8*Y+6);
 		#else
-			gotoxy(X,Y);
-			putch('O');
+
+ 		if ((17-X)>Y) {
+			Z=Y;
+			for (U=X; U<=14; U++) {
+				if (Z>=3) Z--;
+				if (AA[U][Z]<10) {
+					gotoxy(U,Z);
+					putch('.');
+				}
+			}
+		} else {
+			U=X;
+			for (Z=Y; Z>=3; Z--) {
+				if (U<=14) U++;
+				if (AA[U][Z]<10) {
+					gotoxy(U,Z);
+					putch('.');
+				}
+			}
+		}
+
+			//gotoxy(X,Y);
+			//putch('O');
 		#endif
 
-		AA[X][Y] = AA[X][Y]*2;
+		// Let's seal it
+		AA[X][Y] = 32700;
 		balance_sheet();
 		clear();
 
@@ -2059,11 +2139,11 @@ outp(0xd021,7);
  textbackground(15); textcolor(1);
 #endif
 	gotoxy(0,4);
-	printf("VD. ES PRESIDENTE DE UNA CORPORACION RIVAL DE %s. SU META ES ARRUINAR A LOS %s.", opponent, opponent_short);
+	printf("Vd. es presidente de una\ncorporacion rival de %s.\n Su meta es arruinar a los %s.", opponent, opponent_short);
 #ifdef VT_COLORS
 		textcolor(4);
 #endif
-	cputs("\nLOS FALLOS RECAERAN EN USTED    !! RESIGNACION !!");
+	cputs("\nLOS FALLOS RECAERAN EN USTED\n!! RESIGNACION !!");
 #endif
 
 #ifdef LANG_EN
@@ -2076,11 +2156,11 @@ outp(0xd021,7);
 		textbackground(15); textcolor(1);
 #endif
 		gotoxy(0,4);
-		printf("You are president of a rival    corporation to %s. Your aim is to takeover %s!!", opponent, opponent_short);
+		printf("You are president of a rival\ncorporation to %s.\nYour aim is to takeover %s!!", opponent, opponent_short);
 #ifdef VT_COLORS
 		textcolor(4);
 #endif
-		cputs("\nFAILURE WILL RESULT IN YOUR OWN RESIGNATION !!");
+		cputs("\nFAILURE WILL RESULT IN YOUR OWN\nRESIGNATION !!");
 #endif
 
 #ifdef LANG_IT
@@ -2093,11 +2173,11 @@ outp(0xd021,7);
 		textbackground(15); textcolor(1);
 #endif
 		gotoxy(0,4);
-		printf("Sei pressidente di una societa'  rivale della %s.  Il tuo fine e'battere gli %s.", opponent, opponent_short);
+		printf("Sei pressidente di una societa'\nrivale della %s.\nIl tuo fine e'battere gli %s.", opponent, opponent_short);
 #ifdef VT_COLORS
 		textcolor(4);
 #endif
-		cputs("\nSE FALLIRAI SARAI ESONERATO     DALL'INCARICO !!");
+		cputs("\nSE FALLIRAI SARAI ESONERATO\nDALL'INCARICO !!");
 #endif
 
 #ifdef LANG_FR
@@ -2110,7 +2190,7 @@ outp(0xd021,7);
 		textbackground(15); textcolor(1);
 #endif
 		gotoxy(0,4);
-		printf("Vous etes le president d'une    companie rivale de %s.  Votre objectif est de renverser les %s.", opponent, opponent_short);
+		printf("Vous etes le president d'une\ncompanie rivale de %s.\nVotre objectif est de renverser\nles %s.", opponent, opponent_short);
 #ifdef VT_COLORS
 		textcolor(4);
 #endif
@@ -2259,102 +2339,135 @@ outp(0xd021,7);
 
 	#ifdef USE_UDGS
 
-		gotoxy(2,4);
-	#ifdef VT_COLORS
-		textcolor(10);
-	#endif
-		printf("\200\n");
-	#ifdef VT_COLORS
-		textcolor(5);
-	#endif
-		printf("  \201\n");
-	#ifdef VT_COLORS
-		textcolor(1);
-	#endif
-		printf("  \202\n");
-	#ifdef VT_COLORS
-		textcolor(0);
-	#endif
-		printf("  \203\n");
-	#ifdef VT_COLORS
-		textcolor(4);
-	#endif
-		printf("  \204\n");
+			gotoxy(2,4);
+		#ifdef VT_COLORS
+			textcolor(10);
+		#endif
+			printf("\200\n");
+		#ifdef VT_COLORS
+			textcolor(5);
+		#endif
+			printf("  \201\n");
+		#ifdef VT_COLORS
+			textcolor(1);
+		#endif
+			printf("  \202\n");
+		#ifdef VT_COLORS
+			textcolor(0);
+		#endif
+			printf("  \203\n");
+		#ifdef VT_COLORS
+			textcolor(4);
+		#endif
+			printf("  \204\n");
 
 	#else
 
-		gotoxy(2,4);
-	#ifdef VT_COLORS
-		textcolor(10);
-	#endif
-		printf("@\n");
-	#ifdef VT_COLORS
-		textcolor(5);
-	#endif
-		printf("  #\n");
-	#ifdef VT_COLORS
-		textcolor(1);
-	#endif
-		printf("  |\n");
-	#ifdef VT_COLORS
-		textcolor(0);
-	#endif
-		printf("  P\n");
-	#ifdef VT_COLORS
-		textcolor(4);
-	#endif
-		printf("  $\n");
+			gotoxy(2,4);
+		#ifdef VT_COLORS
+			textcolor(10);
+		#endif
+			printf("@\n");
+		#ifdef VT_COLORS
+			textcolor(5);
+		#endif
+			printf("  #\n");
+		#ifdef VT_COLORS
+			textcolor(1);
+		#endif
+			printf("  |\n");
+		#ifdef VT_COLORS
+			textcolor(0);
+		#endif
+			printf("  P\n");
+		#ifdef VT_COLORS
+			textcolor(4);
+		#endif
+			printf("  $\n");
+
 	#endif
 
 #else
 
 	#ifdef USE_UDGS
 
-		gotoxy(2,4);
-	#ifdef VT_COLORS
-		textcolor(10);
-	#endif
-		cputs("\200\n");
-	#ifdef VT_COLORS
-		textcolor(5);
-	#endif
-		cputs("  \201\n");
-	#ifdef VT_COLORS
-		textcolor(1);
-	#endif
-		cputs("  \202\n");
-	#ifdef VT_COLORS
-		textcolor(0);
-	#endif
-		cputs("  \203\n");
-	#ifdef VT_COLORS
-		textcolor(4);
-	#endif
-		cputs("  \204\n");
+			gotoxy(2,4);
+		#ifdef VT_COLORS
+			textcolor(10);
+		#endif
+			cputs("\200\n");
+		#ifdef VT_COLORS
+			textcolor(5);
+		#endif
+			cputs("  \201\n");
+		#ifdef VT_COLORS
+			textcolor(1);
+		#endif
+			cputs("  \202\n");
+		#ifdef VT_COLORS
+			textcolor(0);
+		#endif
+			cputs("  \203\n");
+		#ifdef VT_COLORS
+			textcolor(4);
+		#endif
+			cputs("  \204\n");
 
 	#else
 
-		gotoxy(2,4);
-	#ifdef VT_COLORS
-		textcolor(10);
-	#endif
-		cputs("@\n");
-	#ifdef VT_COLORS
-		textcolor(5);
-	#endif
-		cputs("  #\n");
-	#ifdef VT_COLORS
-		textcolor(1);
-	#endif
-		cputs("  |\n");
-	#ifdef VT_COLORS
-		textcolor(0);
-	#endif
-		cputs("  P\n");
-	#ifdef VT_COLORS
-		textcolor(4);
-	#endif
-		cputs("  $\n");
+		#ifdef __SHARPMZ__
+
+				gotoxy(2,4);
+			#ifdef VT_COLORS
+				textcolor(10);
+			#endif
+				cputs("\226\n");
+			#ifdef VT_COLORS
+				textcolor(5);
+			#endif
+				cputs("  \230\n");
+				//cputs("  \227\n");
+			#ifdef VT_COLORS
+				textcolor(1);
+			#endif
+				cputs("  \250\n");
+			#ifdef VT_COLORS
+				textcolor(0);
+			#endif
+				//cputs("  \221\n");
+				cputs("  \227\n");
+			#ifdef VT_COLORS
+				textcolor(4);
+			#endif
+				cputs("  \232\n");
+
+
+		#else
+
+				gotoxy(2,4);
+			#ifdef VT_COLORS
+				textcolor(10);
+			#endif
+				cputs("@\n");
+			#ifdef VT_COLORS
+				textcolor(5);
+			#endif
+				cputs("  #\n");
+			#ifdef VT_COLORS
+				textcolor(1);
+			#endif
+				cputs("  |\n");
+			#ifdef VT_COLORS
+				textcolor(0);
+			#endif
+				cputs("  P\n");
+			#ifdef VT_COLORS
+				textcolor(4);
+			#endif
+				cputs("  $\n");
+
+		#endif
+
 	#endif
 
 #endif
