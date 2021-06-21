@@ -744,10 +744,10 @@ void end_game() {
 		printf("%s ASSETS: %1.1fM.\n", opponent, CP);
 #endif
 #ifdef LANG_IT
-		printf("ATTIVO DI %s: %1.1fM.\n", opponent, CP);
+		printf("ATTIVO DI %s: %1.1fM.\n", opponent_short, CP);
 #endif
 #ifdef LANG_FR
-		printf("ACTIFS DE %s: %1.1fM.\n", opponent, CP);
+		printf("ACTIFS DE %s: %1.1fM.\n", opponent_short, CP);
 #endif
 
 
