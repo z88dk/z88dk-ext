@@ -24,6 +24,7 @@
 
 
 
+
 // MinGW
 // gcc -DVT_COLORS dallas.c
 
@@ -679,6 +680,7 @@ void sound_info(){
 
 
 void end_game() {
+	short_pause();
 	NA+=CP;
 	clear_screen();
 
@@ -781,6 +783,9 @@ void end_game() {
 #ifdef LANG_FR
 		printf("Votre niveau de difficulte'=%u\n", DF);
 #endif
+
+	long_pause();
+	short_pause();
 
 	exit(0);
 	
