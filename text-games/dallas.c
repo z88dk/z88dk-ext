@@ -1,4 +1,6 @@
 
+// Language options: -DLANG_IT, -DLANG_ES, -DLANG_FR, -DLANG_EN (default)
+
 // ZX Spectrum
 // zcc +zx -DUSE_UDGS -DGRAPHICS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 // zcc +zx -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
@@ -26,24 +28,78 @@
 // gcc -DVT_COLORS dallas.c
 
 
+
+
+
+
 /*
- 0 -> BLACK
- 1 -> BLUE
- 2 -> GREEN
- 3 -> CYAN
- 4 -> RED
- 5 -> MAGENTA
- 6 -> BROWN
- 7 -> LIGHTGRAY
- 8 -> DARKGRAY
- 9 -> LIGHTBLUE
-10 -> LIGHTGREEN
-11 -> LIGHTCYAN
-12 -> LIGHTRED
-13 -> LIGHTMAGENTA
-14 -> YELLOW
-15 -> WHITE
+                                INSTRUCTIONS
+
+1.  INTRODUCTION
+    This is a business simulation of the wheeler-dealer oil rich folk who live in Dallas.
+    The program will appeal to all members of the family.  The program starts with
+    setting up a map of Texas, splitting the region into hundreds of plots, each with a
+    potential to discover oil.  You are required to make seismic surveys, bid for
+    concessions, drill for oil, build production facilities and lay pipelines.  The game is
+    menu driven and the player is able to direct his corporation along many diverse
+    routes.  The object of the game is to accumultate $200M in net assets and $80M
+    cash in order to take-over Euing Associates.  There are three levels of difficulty.
+
+2.  THE BOARD
+    A map of the oild fields is displayed.  On the left hills are shown in which drilling and
+    production facilities are more expensive.  'D' at co-ordinate '(A,N)' is the city of Dallas.
+    
+	a)  Drilling rigs need to be moved from Dallas.
+    b)  Pipelines need to be connected to the Dallas refineries to maximise production.
+	
+    A flashing cursor will indicate fields for which concessions are offered.
+    After purchasing a field then progress through the following:
+                         Concession purchased.
+                         Drilling rig in place.
+                         Oil strike.
+                         Production facilities built.
+                         Pipeline to Dallas refinery laid.
+
+3.  MENU
+    Drill              = Drilling well.
+    Fin                = Request for finance.
+    Lay                = Laying pipelines.
+    Prod               = Build production facilities.
+    Rig                = Move drilling rig.
+    Seismic            = Seismic survey.
+    To effect a command you are required to key underlined capitals. (First letter of menu commands D for Drill etc)
+
+4.  PROBLEMS ENCOUNTERED
+    Blow outs, tornado, drilling accidents, increase in government taxes, crude oil
+    surplus and insufficient funds.
+
+5.  HINTS ON PLAYING
+    Start the game by making seismic surveys to establish plots which have good
+    prospects.  You need to bid high for concessions until you have at least three.  (A bid
+    of $8 - $10 million usually succeeds.)  Concessions east of hills and close to Dallas
+    are worth more because development costs will be less.  You must develop a field
+    in the correct order:  
+		a) make seismic survey (this step is optional).  
+		b) purchase concession.
+		c) move Rig.
+		d) Drill for oil.
+		e) build Production facilities.
+		f) Lay pipeline.
+    You may make seismic surveys either before purchasing a concession where each
+    survey costs $200,000 or make an appraisal survey with a test well for $1.2 million
+    after purchasing the concession.  However, do not be put off by a 'Poor' report as it
+    is still possible to strike a gusher even in a field with a 'Poor' report.  Fields are at
+    greater risk from disasters, i.e. blow outs, accidents etc.  the more they are
+    developed.  It is usually best not to risk the first field which is producing by laying a
+    pipeline immediately.  Consequently, it is usually preferable to develop other fields,
+    the cost of development can then be financed out of the revenue of the producing
+    field.  Loans may be sought to finance the building of production facilites.  You will
+    however be charged interest on the loans and risk factors also increase when loans
+    exceed $20 million.  You will not become insolvent because before the company's 
+    finances reach that state, you will have fallen prey to being taken-over by Euing
+    Associates.
 */
+
 
 
 #include <stdio.h>
@@ -110,12 +166,28 @@ void gotoxy(int x,int y)
 	SetConsoleCursorPosition(h, c); 
 }
 
+/*
+ 0 -> BLACK
+ 1 -> BLUE
+ 2 -> GREEN
+ 3 -> CYAN
+ 4 -> RED
+ 5 -> MAGENTA
+ 6 -> BROWN
+ 7 -> LIGHTGRAY
+ 8 -> DARKGRAY
+ 9 -> LIGHTBLUE
+10 -> LIGHTGREEN
+11 -> LIGHTCYAN
+12 -> LIGHTRED
+13 -> LIGHTMAGENTA
+14 -> YELLOW
+15 -> WHITE
+*/
 
 void textcolor(int x)
 {
 SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), x +7*16);
-
-
 	//printf ("%c[%um%c",27,30+x);
 }
 
@@ -863,6 +935,12 @@ void opponent_wins() {
 }
 
 
+int is_expensive() {
+	if (Y<=10) return (0);
+	if (X>7) return (0);
+	return (1);
+};
+
 
 void insufficient_funds() {
 		#ifdef LANG_ES
@@ -884,17 +962,16 @@ void insufficient_funds() {
 // 3200
 int setup_rig() {
 	LN=(float)abs(X-2);
-	RW=(float)abs(Y-16);
+	// Yet another bug found in the original game :)
+	//RW=(float)abs(Y-16);
+	RW=(float)abs(16-Y);
 	
-	if (LN>RW) {
-		//LA-=(LN*0.2);
-		// Possible improvement, use also X to compute the cost
-		PC=LN*0.2;
-	} else {
-		// .. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
-		if (Y<=6) RW*=2.0;
-		PC=RW*0.2;
-	}
+	if (LN>RW) RW=LN;
+		
+	// Bug in the original game.. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
+	//if (Y<=6) RW*=2.0;
+	if (is_expensive()) RW*=2.0;
+	PC=RW*0.2;
 
 	// The ZX81 version had this extra check
 	if ((LA-PC)<0) {
@@ -977,7 +1054,7 @@ void auction() {
 	textcolor(1);
 #endif
 	
-	UU=1+rand()%(4-DF);
+	UU=1+rand()%(5-DF);
 
 	for (U=1; U<=UU; U++) {
 			X=2+rand()%13;
@@ -1194,7 +1271,8 @@ int drill() {
 		return(0);
 	}
 	TT+=5;
-	DD[X][Y] = DD[X][Y]+1+rand()%6;
+	//DD[X][Y] = DD[X][Y]+1+rand()%6;
+	DD[X][Y] = DD[X][Y]+1+rand()%7;
 
 	gotoxy(0,18);
 	#ifdef LANG_ES
@@ -1624,9 +1702,9 @@ int facilities() {
 		}
 		
 		PP=20.0;
-		// .. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
-		if (Y<=6) PP=30.0;
-		// Possible improvement, use also X to compute the cost
+		// // Bug in the original game.. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
+		//if (Y<=6) PP=30.0;
+		if (is_expensive()) PP=30.0;
 
 		if ((LA-PP)<0) {
 			insufficient_funds();
@@ -1724,19 +1802,24 @@ void survey() {
 	
 		if (AA[X][Y]<=30) {
 			gotoxy(0,17);
+			
+			V=1.2;
+			if (AA[X][Y]<10) V=0.2;
+
 			#ifdef LANG_ES
-				printf("COSTE ESTUDIO @ $1.2M.");
+					printf("COSTE ESTUDIO = %1.1f.$",V);
 			#endif
 			#ifdef LANG_EN
-				printf("APPRAISAL SURVEY @ $1.2M.");
+					printf("APPRAISAL SURVEY @ $%1.1fM.",V);
 			#endif
 			#ifdef LANG_IT
-				printf("COSTO PERIZIA @ $1.2M.");
+					printf("COSTO PERIZIA = $%1.1fM.",V);
 			#endif
 			#ifdef LANG_FR
-				printf("COUT ETUDE EVALUATION $1.2M.");
+					printf("COUT ETUDE EVALUATION $%1.1fM.",V);
 			#endif
-			LA-=1.2;
+
+			LA-=V;
 
 			gotoxy(0,18);
 			#ifdef LANG_ES
@@ -2508,7 +2591,7 @@ outp(0xd021,7);
 #endif
 
 	// Set up initial opponent's capital basing on the difficulty level
-	CP=10.0*DF;
+	CP=15.0*DF;
 
 #ifdef VT_COLORS
 	textbackground(15); textcolor(0);
@@ -2537,7 +2620,7 @@ KY:
 		CPL=10.0+rand()%20;
 		
 		if (T>10) {
-			if ((DF>1)&&(RF==4)) {
+			if ((DF<3)&&(RF==4)) {
 				gotoxy(0,18);
 				#ifdef LANG_ES
 					printf("%s\nPIERDE $%1.1f M.", opponent, CPL);
