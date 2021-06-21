@@ -3,10 +3,10 @@
 
 // ZX Spectrum
 // zcc +zx -DUSE_UDGS -DGRAPHICS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
-// zcc +zx -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+// zcc +zx -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
 // MSXDOS
-// zcc +msx -subtype=msxdos  -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+// zcc +msx -subtype=msxdos  -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
 // ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
 // zcc +zx81 -DUSE_PSG -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
@@ -21,7 +21,6 @@
 
 // Sharp MZ
 // zcc +mz -clib=ansi -pragma-define:REGISTER_SP=0x6FFF -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c 
-
 
 
 
@@ -2118,13 +2117,13 @@ int pipeline() {
 
 #ifdef USE_UDGS
 #ifdef __CONIO_VT100
-#ifndef CRT_FONT
+#ifndef UDG_FONT
 
 int font_position() {
-#asm
+__asm
 	extern ansifont
 	ld hl,ansifont
-#endasm
+__endasm
 }
 
 #endif
@@ -2141,7 +2140,7 @@ int main() {
 
 #ifdef __CONIO_VT100
 
-	#ifdef CRT_FONT
+	#ifdef UDG_FONT
 
 		  extern unsigned char font_8x8_bbc_system[];
 		  memcpy(font_8x8_bbc_system + 1536, param, 56);
