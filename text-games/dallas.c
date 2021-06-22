@@ -27,7 +27,6 @@
  
 
 
-
 // MinGW
 // gcc -DVT_COLORS dallas.c
 
@@ -579,8 +578,8 @@ void draw_board(){
 		cputs(" \246\204\204\204\204\204\204\204\204\204\204\204\204\204\204\234");
 	#else
 		#ifdef __AQUARIUS__
-			 gotoxy(1,1);
-			cputs(" \254\254\254\254\254\254\254\254\254\254\254\254\254\254");
+			 gotoxy(0,1);
+			cputs(" \336\254\254\254\254\254\254\254\254\254\254\254\254\254\254\316");
 		#else
 			 gotoxy(1,1);
 				cputs("================");
@@ -592,7 +591,7 @@ void draw_board(){
 		cputs("\277\204\204\204\204\204\204\204\204\204\204\204\204\204\204\276");
 	#else
 		#ifdef __AQUARIUS__
-			cputs(" \254\254\254\254\254\254\254\254\254\254\254\254\254\254");
+			cputs("\317\254\254\254\254\254\254\254\254\254\254\254\254\254\254\337");
 		#else
 				cputs("================");
 		#endif
@@ -1088,6 +1087,11 @@ void auction() {
 	for (U=1; U<=UU; U++) {
 			X=2+rand()%13;
 			Y=2+rand()%13;
+			while (AA[X][Y]>=10) {
+				X=2+rand()%13;
+				Y=2+rand()%13;
+			}
+
 
 			for (Z=1; Z<=15; Z++) {
 				gotoxy(X,Y);
@@ -1186,7 +1190,7 @@ void auction() {
 						//putch('\227');
 					#else
 						#ifdef __AQUARIUS__
-							putch('\206');
+							putch('\235');	//206, //321
 						#else
 							putch('#');
 						#endif
@@ -1409,7 +1413,7 @@ int drill() {
 				putch('\227');
 			#else
 				#ifdef __AQUARIUS__
-					putch('\212');
+					putch('\325');	//212
 				#else
 					putch('P');
 				#endif
@@ -1520,7 +1524,7 @@ int rig() {
 			putch('\250');
 		#else
 			#ifdef __AQUARIUS__
-				putch('\213');
+				putch('\203');
 			#else
 				putch('|');
 			#endif
@@ -1682,7 +1686,7 @@ void facilities_lost() {
 			putch('\227');
 		#else
 			#ifdef __AQUARIUS__
-				putch('\212');
+				putch('\325');	//212
 			#else
 				putch('P');
 			#endif
@@ -1791,7 +1795,7 @@ int facilities() {
 				putch('\232');
 			#else
 				#ifdef __AQUARIUS__			
-					putch('\234');
+					putch('\031');
 				#else
 					putch('$');
 				#endif
@@ -2124,12 +2128,8 @@ int pipeline() {
 			return(0);
 		}
 
-		#ifdef GRAPHICS
-			#ifdef __AQUARIUS__
-					draw(30,9,2*X+3,3*Y+1);
-			#else
-					draw(120,24,8*X+6,8*Y+6);
-			#endif
+		#if defined(GRAPHICS) && !defined(LOREZ)
+				draw(120,24,8*X+6,8*Y+6);
 		#else
 
  		if ((17-X)>Y) {
@@ -2138,7 +2138,11 @@ int pipeline() {
 				if (Z>=3) Z--;
 				if (AA[U][Z]<10) {
 					gotoxy(U,Z);
-					putch('.');
+					#ifdef __AQUARIUS__
+						putch('\306');
+					#else
+						putch('.');
+					#endif
 				}
 			}
 		} else {
@@ -2147,7 +2151,11 @@ int pipeline() {
 				if (U<=14) U++;
 				if (AA[U][Z]<10) {
 					gotoxy(U,Z);
-					putch('.');
+					#ifdef __AQUARIUS__
+						putch('\306');
+					#else
+						putch('.');
+					#endif
 				}
 			}
 		}
@@ -2589,19 +2597,19 @@ outp(0xd021,7);
 				#ifdef VT_COLORS
 					textcolor(5);
 				#endif
-					cputs("  \206\n");
+					cputs("  \235\n");	//206, //321
 				#ifdef VT_COLORS
 					textcolor(1);
 				#endif
-					cputs("  \213\n");
+					cputs("  \203\n");
 				#ifdef VT_COLORS
 					textcolor(0);
 				#endif
-					cputs("  \212\n");	//226
+					cputs("  \325\n");	//212
 				#ifdef VT_COLORS
 					textcolor(4);
 				#endif
-					cputs("  \234\n");
+					cputs("  \031\n");
 
 				#else
 
