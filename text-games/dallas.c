@@ -131,7 +131,7 @@
 #include <conio.h>
 
 #ifdef __ZX81__
-#ifndef USE_UDG
+#ifndef USE_UDGS
 	#undef gotoxy
 	#define gotoxy(x,y) zx_setcursorpos_callee(y,x)
 #endif
