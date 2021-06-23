@@ -20,7 +20,7 @@
 // zcc +c128 -clib=gencon -DGRAPHICS -DLOREZ -lgfx128 -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 
 // Sharp MZ
-// zcc +mz -clib=ansi -pragma-define:REGISTER_SP=0x6FFF -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
+// zcc +mz -clib=ansi -DGRAPHICS -DLOREZ -pragma-define:REGISTER_SP=0x6FFF -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 
 // Mattel Aquarius
 // zcc +aquarius -clib=ansi -DGRAPHICS -DLOREZ -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
@@ -867,6 +867,7 @@ void player_wins() {
 		printf("ET ACTIFS DE $%1.1fM.", CP);
 #endif
 
+	music();
 	long_pause();
 	end_game();
 }
