@@ -15,8 +15,10 @@
 // zcc +svi -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
 // ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
-// zcc +zx81 -DUSE_PSG -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
+// zcc +zx81 -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
+// zcc +zx81 -lgfx81 -DGRAPHICS -DLOREZ -lndos -create-app -lm dallas.c
+
 
 // Jupiter ACE
 // zcc +ace -DUSE_UDGS -DGRAPHICS -DLOREZ -DUSE_SOUND -lgfxace -lndos -create-app -lm dallas.c
@@ -127,6 +129,14 @@
 #include <stdio.h>
 
 #include <conio.h>
+
+#ifdef __ZX81__
+#ifndef USE_UDG
+	#undef gotoxy
+	#define gotoxy(x,y) zx_setcursorpos_callee(y,x)
+#endif
+#endif
+
 #include <math.h>
 #include <ctype.h>
 
