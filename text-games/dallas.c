@@ -17,7 +17,7 @@
 // zcc +cpm -clib=ansi -subtype=microbee -DUSE_SOUND -create-app -DVT_COLORS -lndos -lm dallas.c
 
 // Commodore 128
-// zcc +c128 -clib=gencon -DALT_DELAY -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
+// zcc +c128 -clib=gencon -DGRAPHICS -DLOREZ -lgfx128 -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 
 // Sharp MZ
 // zcc +mz -clib=ansi -pragma-define:REGISTER_SP=0x6FFF -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
@@ -725,8 +725,8 @@ void end_game() {
 		printf("NO. DI CONCESSIONI = %u\n",CS);
 #endif
 #ifdef LANG_FR
-		cputs("RISULTATO\n\n");
-		printf("NO. DI CONCESSIONI = %u\n",CS);
+		cputs("ETAT OPERATIONS");
+		printf("NO. DE CONCESSIONS  = %u\n", CS);
 #endif
 
 #ifdef LANG_ES
@@ -738,6 +738,9 @@ void end_game() {
 #ifdef LANG_IT
 		printf("NO. DI POZZI ATTIVI = %u\n",WL);
 #endif
+#ifdef LANG_FR
+	printf("NO. DE PUITS PROD.  = %u\n", WL);
+#endif
 
 #ifdef LANG_ES
 	printf("BARRILES POR DIA = %u,000\n", BPDA);
@@ -748,6 +751,9 @@ void end_game() {
 #ifdef LANG_IT
 		printf("BARILI PER GIORNO = %u,000\n", BPDA);
 #endif
+#ifdef LANG_FR
+		printf("BARILS PAR JOUR     = %u.000\n", BPDA);
+#endif
 
 #ifdef LANG_ES
 	printf("ACTIVO TOTAL ACTUAL = %1.1fM.$\n", NA);
@@ -757,6 +763,9 @@ void end_game() {
 #endif
 #ifdef LANG_IT
 		printf("ASSETTO TOTALE = $%1.1fM.\n", NA);
+#endif
+#ifdef LANG_FR
+		printf("ACTIFS = $%1.1fM.\n", NA);
 #endif
 
 
@@ -781,7 +790,7 @@ void end_game() {
 #endif
 
 #ifdef LANG_ES
-	printf("\n\nHAS TARDADO %u MESES\n", T);
+	printf("\n\nHas tardado %u meses\n", T);
 #endif
 #ifdef LANG_EN
 		printf("\n\nYou took %u months\n", T);
@@ -795,7 +804,7 @@ void end_game() {
 
 
 #ifdef LANG_ES
-	printf("NIVEL DE DIFICULTAD=%u\n", DF);
+	printf("Nivel de dificultad=%u\n", DF);
 #endif
 #ifdef LANG_EN
 		printf("Your level of difficulty=%u\n", DF);
@@ -1308,8 +1317,7 @@ int drill() {
 		return(0);
 	}
 	TT+=5;
-	//DD[X][Y] = DD[X][Y]+1+rand()%6;
-	DD[X][Y] = DD[X][Y]+1+rand()%7;
+	DD[X][Y] = DD[X][Y]+1+rand()%6;
 
 	gotoxy(0,18);
 	#ifdef LANG_ES
@@ -1357,7 +1365,7 @@ int drill() {
 		printf("ECHANTILLON = ");
 	#endif
 
-	if (DD[X][Y]>20) {
+	if (DD[X][Y]>16) {
 		#ifdef LANG_ES
 			cputs("POZO SECO");
 		#endif
@@ -1669,6 +1677,7 @@ void facilities_lost() {
 	#ifdef USE_SOUND
 		bit_fx(3);
 	#endif
+	short_pause();
 
 	WL-=1;
 	PL-=PP;
@@ -1810,7 +1819,8 @@ int facilities() {
 	clear();
 	
 	if (RF==4) {
-		gotoxy(0,17);
+		clr_part();
+		gotoxy(0,19);
 		#ifdef LANG_ES
 			cputs("DERRUMBAMIENTO");
 		#endif
@@ -2011,7 +2021,7 @@ int pipeline() {
 #endif
 		clear();
 
-		RX=1+rand()%(6/DF);
+		RX=1+rand()%DF;
 
 		gotoxy(0,17);
 		#ifdef LANG_ES
@@ -2092,7 +2102,8 @@ int pipeline() {
 		short_pause();
 		
 		if (RX==5) {
-			gotoxy(0,17);
+			clr_part();
+			gotoxy(0,19);
 			#ifdef LANG_ES
 				cputs("SABOTAJE");
 			#endif
@@ -2106,7 +2117,7 @@ int pipeline() {
 					cputs("SABOTAGE");
 					//cputs("USINES ET PIPELINES DESTRUITS");
 			#endif
-			sound_bad();
+
 			all_facilities_lost();
 			balance_sheet();
 			clear();
@@ -2114,14 +2125,15 @@ int pipeline() {
 		}
 
 		if (RX==4) {
-			gotoxy(0,17);
+			clr_part();
+			gotoxy(0,19);
 			// Same in all languages :)
 			#ifdef LANG_FR
 				cputs("TORNADE");
 			#else
 				cputs("TORNADO");
 			#endif
-			sound_bad();
+
 			all_facilities_lost();
 			balance_sheet();
 			clear();
@@ -2191,7 +2203,54 @@ __endasm
 
 int main() {
 
-		
+
+#ifdef _WIN32
+	system(" ");
+#endif
+
+#ifdef VT_COLORS
+ textbackground(1); textcolor(14);
+#endif
+
+putch(1);putch(32);
+clear_screen();
+
+#ifdef GRAPHICS
+clg();
+#endif
+
+#ifdef __C128__
+// Set PAPER and BORDER color
+outp(0xd020,14);
+outp(0xd021,14);
+// Enable the ROM character set
+outp(0xd018,0x84);
+#endif
+
+gotoxy(10,2);
+
+#ifndef __C128__
+#ifdef LANG_ES
+cputs("BIENVENIDO A");
+#else
+	cputs(" WELCOME TO");
+#endif
+#endif
+
+#ifdef GRAPHICS
+#ifdef LOREZ
+	putsprite (spr_or,0,15,logo);
+#else	
+	putsprite (spr_or,96,70,logo);
+#endif
+#else
+	gotoxy(7,10);
+	cputs("** D A L L A S **");
+#endif
+
+music();
+
+
 #ifdef USE_UDGS
   void *param = &udgs;
 
@@ -2219,55 +2278,19 @@ int main() {
 #endif
 
 
-#ifdef _WIN32
-	system(" ");
-#endif
-
-#ifdef VT_COLORS
- textbackground(1); textcolor(14);
-#endif
-
-putch(1);putch(32);
-clear_screen();
-
-#ifdef __C128__
-outp(0xd020,0);
-outp(0xd021,0);
-#endif
-
-#ifdef GRAPHICS
-clg();
-#endif
-gotoxy(10,2);
-
-#ifdef LANG_ES
-cputs("BIENVENIDO A");
-#else
-	cputs(" WELCOME TO");
-#endif
-
-#ifdef GRAPHICS
-#ifdef LOREZ
-	putsprite (spr_or,0,15,logo);
-#else	
-	putsprite (spr_or,96,70,logo);
-#endif
-#else
-	gotoxy(7,10);
-	cputs("** D A L L A S **");
-#endif
-
-music();
-
 #ifdef VT_COLORS
 	textbackground(15);
 #endif
 clear_screen();
 
 #ifdef __C128__
+// Set PAPER and BORDER color
 outp(0xd020,7);
 outp(0xd021,7);
+// Enable the redefined character set
+outp(0xd018,0x8c);
 #endif
+
 
 #ifdef VT_COLORS
  textbackground(1); textcolor(15);
@@ -2694,6 +2717,12 @@ outp(0xd021,7);
 
 	short_pause();
 	clear_screen();
+
+#ifdef __C128__
+// Set PAPER and BORDER color
+outp(0xd020,7);
+outp(0xd021,7);
+#endif
 	
 	draw_board();
 
