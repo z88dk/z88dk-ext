@@ -18,9 +18,8 @@
 // zcc +zx81 -DUSE_PSG -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
 
-// Microbee CP/M
-// zcc +cpm -clib=ansi -DUSE_SOUND -create-app -lmicrobee  -DVT_COLORS -lndos -lm dallas.c
-// zcc +cpm -clib=ansi -subtype=microbee -DUSE_SOUND -create-app -DVT_COLORS -lndos -lm dallas.c
+// Jupiter ACE
+// zcc +ace -DUSE_UDGS -DGRAPHICS -DLOREZ -DUSE_SOUND -lgfxace -lndos -create-app -lm dallas.c
 
 // Commodore 128
 // zcc +c128 -clib=gencon -DGRAPHICS -DLOREZ -lgfx128 -DUSE_UDGS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
@@ -36,6 +35,14 @@
 
 // VTECH Laser 350, 500, 700
 // zcc +laser500 -DUSE_SOUND -DVT_COLORS -lndos -lm -create-app -Cz--audio -Cz--fast dallas.c
+
+// Super-80r, Super-80v
+// zcc +super80 -clib=vduem -lndos -create-app -lm -DUSE_UDGS -DUSE_SOUND dallas.c
+
+// Microbee CP/M
+// zcc +cpm -clib=ansi -DUSE_SOUND -create-app -lmicrobee  -DVT_COLORS -lndos -lm dallas.c
+// zcc +cpm -clib=ansi -subtype=microbee -DUSE_SOUND -create-app -DVT_COLORS -lndos -lm dallas.c
+
 
 
 
