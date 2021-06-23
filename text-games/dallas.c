@@ -8,6 +8,12 @@
 // MSXDOS
 // zcc +msx -subtype=msxdos  -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
+// Tatung Einstein
+// zcc +cpm -subtype=einstein  -DUSE_UDGS -DGRAPHICS -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+
+// Spectravideo SVI
+// zcc +svi -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+
 // ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
 // zcc +zx81 -DUSE_PSG -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
@@ -24,7 +30,13 @@
 
 // Mattel Aquarius
 // zcc +aquarius -clib=ansi -DGRAPHICS -DLOREZ -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
- 
+
+// EACA EG2000
+// zcc +trs80 -subtype=eg2000disk -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm -DUSE_UDGS dallas.c
+
+// VTECH Laser 350, 500, 700
+// zcc +laser500 -DUSE_SOUND -DVT_COLORS -lndos -lm -create-app -Cz--audio -Cz--fast dallas.c
+
 
 
 // MinGW
@@ -127,6 +139,13 @@
 #endif
 #endif
 
+
+	#ifdef __SHARPMZ__
+	#define CUSTOM_CHR
+	#endif
+	#ifdef __AQUARIUS__
+	#define CUSTOM_CHR
+	#endif
 
 
 #ifdef _WIN32
@@ -231,14 +250,15 @@ char brd[] = "ABCDEFGHIJKLMN";
 #ifdef USE_UDGS
 char trees[] = "\200  \200\200 \200 ";
 #else
-	#ifdef __SHARPMZ__
-		char trees[] = "\226  \226\226 \226 ";
-	#else
-		#ifdef __AQUARIUS__
-			char trees[] = "\323  \323\323 \323 ";
-		#else
-			char trees[] = "@ @@ @ ";
+	#ifdef CUSTOM_CHR
+		#ifdef __SHARPMZ__
+			char trees[] = "\226  \226\226 \226 ";
 		#endif
+		#ifdef __AQUARIUS__
+				char trees[] = "\323  \323\323 \323 ";
+		#endif
+	#else
+		char trees[] = "@ @@ @ ";
 	#endif
 #endif
 
@@ -572,29 +592,27 @@ void draw_board(){
 	 gotoxy(1,16);
 	 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
 #else
-	#ifdef __SHARPMZ__
-		gotoxy(0,1);
-		//cputs(" \254\204\204\204\204\204\204\204\204\204\204\204\204\255");
-		cputs(" \246\204\204\204\204\204\204\204\204\204\204\204\204\204\204\234");
-	#else
+	#ifdef CUSTOM_CHR
+		#ifdef __SHARPMZ__
+			gotoxy(0,1);
+			//cputs(" \254\204\204\204\204\204\204\204\204\204\204\204\204\255");
+			cputs(" \246\204\204\204\204\204\204\204\204\204\204\204\204\204\204\234");
+			gotoxy(1,16);
+			//cputs(" \200\200\200\200\200\200\200\200\200\200\200\200\200\200");
+			cputs("\277\204\204\204\204\204\204\204\204\204\204\204\204\204\204\276");
+		#endif
+
 		#ifdef __AQUARIUS__
-			 gotoxy(0,1);
+			gotoxy(0,1);
 			cputs(" \336\254\254\254\254\254\254\254\254\254\254\254\254\254\254\316");
-		#else
-			 gotoxy(1,1);
-				cputs("================");
-		#endif
-	#endif
-	 gotoxy(1,16);
-	#ifdef __SHARPMZ__
-		//cputs(" \200\200\200\200\200\200\200\200\200\200\200\200\200\200");
-		cputs("\277\204\204\204\204\204\204\204\204\204\204\204\204\204\204\276");
-	#else
-		#ifdef __AQUARIUS__
+			gotoxy(1,16);
 			cputs("\317\254\254\254\254\254\254\254\254\254\254\254\254\254\254\337");
-		#else
-				cputs("================");
 		#endif
+	#else
+		 gotoxy(1,1);
+		cputs("================");
+		gotoxy(1,16);
+		cputs("================");
 	#endif
 #endif
 
@@ -1195,15 +1213,16 @@ void auction() {
 				#ifdef USE_UDGS
 					putch('\201');
 				#else
-					#ifdef __SHARPMZ__
-						putch('\230');
-						//putch('\227');
-					#else
+					#ifdef CUSTOM_CHR
+						#ifdef __SHARPMZ__
+							putch('\230');
+							//putch('\227');
+						#endif
 						#ifdef __AQUARIUS__
 							putch('\235');	//206, //321
-						#else
-							putch('#');
 						#endif
+					#else
+						putch('#');
 					#endif
 				#endif
 		#ifdef VT_COLORS
@@ -1417,15 +1436,16 @@ int drill() {
 		#ifdef USE_UDGS
 			putch('\203');
 		#else
-			#ifdef __SHARPMZ__
-				//putch('\221');
-				putch('\227');
-			#else
+			#ifdef CUSTOM_CHR
+				#ifdef __SHARPMZ__
+					//putch('\221');
+					putch('\227');
+				#endif
 				#ifdef __AQUARIUS__
 					putch('\325');	//212
-				#else
-					putch('P');
 				#endif
+			#else
+					putch('P');
 			#endif
 		#endif
 	#ifdef VT_COLORS
@@ -1529,14 +1549,15 @@ int rig() {
 	#ifdef USE_UDGS
 		putch('\202');
 	#else
-		#ifdef __SHARPMZ__
-			putch('\250');
-		#else
+		#ifdef CUSTOM_CHR
+			#ifdef __SHARPMZ__
+				putch('\250');
+			#endif
 			#ifdef __AQUARIUS__
 				putch('\203');
-			#else
-				putch('|');
 			#endif
+		#else
+			putch('|');
 		#endif
 	#endif
 #ifdef VT_COLORS
@@ -1691,15 +1712,16 @@ void facilities_lost() {
 	#ifdef USE_UDGS
 		putch('\203');
 	#else
-		#ifdef __SHARPMZ__
-			//putch('\221');
-			putch('\227');
-		#else
+		#ifdef CUSTOM_CHR
+			#ifdef __SHARPMZ__
+				//putch('\221');
+				putch('\227');
+			#endif
 			#ifdef __AQUARIUS__
 				putch('\325');	//212
-			#else
-				putch('P');
 			#endif
+		#else
+			putch('P');
 		#endif
 	#endif
 #ifdef VT_COLORS
@@ -1801,14 +1823,15 @@ int facilities() {
 		#ifdef USE_UDGS
 			putch('\204');
 		#else
-			#ifdef __SHARPMZ__
-				putch('\232');
-			#else
+			#ifdef CUSTOM_CHR
+				#ifdef __SHARPMZ__
+					putch('\232');
+				#endif
 				#ifdef __AQUARIUS__			
 					putch('\031');
-				#else
-					putch('$');
 				#endif
+			#else
+				putch('$');
 			#endif
 		#endif
 	#ifdef VT_COLORS
@@ -2255,26 +2278,26 @@ music();
 #ifdef USE_UDGS
   void *param = &udgs;
 
-#ifdef __CONIO_VT100
+	#ifdef __CONIO_VT100
 
-	#ifdef UDG_FONT
+		#ifdef UDG_FONT
 
-		  extern unsigned char font_8x8_bbc_system[];
-		  memcpy(font_8x8_bbc_system + 1536, param, 56);
+			  extern unsigned char font_8x8_bbc_system[];
+			  memcpy(font_8x8_bbc_system + 1536, param, 56);
 
-	#else
-	  
-		#ifdef __ZX81__
-		  memcpy(font_position() + 768, param, 56);
 		#else
-		  memcpy(font_position() + 1536, param, 56);
+		  
+			#ifdef __ZX81__
+			  memcpy(font_position() + 768, param, 56);
+			#else
+			  memcpy(font_position() + 1536, param, 56);
+			#endif
+
 		#endif
 
+	#else
+	  console_ioctl(IOCTL_GENCON_SET_UDGS, &param);
 	#endif
-
-#else
-  console_ioctl(IOCTL_GENCON_SET_UDGS, &param);
-#endif
 
 #endif
 
@@ -2583,60 +2606,58 @@ outp(0xd018,0x8c);
 
 	#else
 
-		#ifdef __SHARPMZ__
-
-				gotoxy(2,4);
-			#ifdef VT_COLORS
-				textcolor(10);
-			#endif
-				cputs("\226\n");
-			#ifdef VT_COLORS
-				textcolor(5);
-			#endif
-				cputs("  \230\n");
-				//cputs("  \227\n");
-			#ifdef VT_COLORS
-				textcolor(1);
-			#endif
-				cputs("  \250\n");
-			#ifdef VT_COLORS
-				textcolor(0);
-			#endif
-				//cputs("  \221\n");
-				cputs("  \227\n");
-			#ifdef VT_COLORS
-				textcolor(4);
-			#endif
-				cputs("  \232\n");
-
-
-		#else
-			#ifdef __AQUARIUS__
-
-					gotoxy(2,4);
-				#ifdef VT_COLORS
-					textcolor(10);
+			#ifdef CUSTOM_CHR
+				#ifdef __SHARPMZ__
+						gotoxy(2,4);
+					#ifdef VT_COLORS
+						textcolor(10);
+					#endif
+						cputs("\226\n");
+					#ifdef VT_COLORS
+						textcolor(5);
+					#endif
+						cputs("  \230\n");
+						//cputs("  \227\n");
+					#ifdef VT_COLORS
+						textcolor(1);
+					#endif
+						cputs("  \250\n");
+					#ifdef VT_COLORS
+						textcolor(0);
+					#endif
+						//cputs("  \221\n");
+						cputs("  \227\n");
+					#ifdef VT_COLORS
+						textcolor(4);
+					#endif
+						cputs("  \232\n");
 				#endif
-					cputs("\323\n");
-				#ifdef VT_COLORS
-					textcolor(5);
+				
+				#ifdef __AQUARIUS__
+						gotoxy(2,4);
+					#ifdef VT_COLORS
+						textcolor(10);
+					#endif
+						cputs("\323\n");
+					#ifdef VT_COLORS
+						textcolor(5);
+					#endif
+						cputs("  \235\n");	//206, //321
+					#ifdef VT_COLORS
+						textcolor(1);
+					#endif
+						cputs("  \203\n");
+					#ifdef VT_COLORS
+						textcolor(0);
+					#endif
+						cputs("  \325\n");	//212
+					#ifdef VT_COLORS
+						textcolor(4);
+					#endif
+						cputs("  \031\n");
 				#endif
-					cputs("  \235\n");	//206, //321
-				#ifdef VT_COLORS
-					textcolor(1);
-				#endif
-					cputs("  \203\n");
-				#ifdef VT_COLORS
-					textcolor(0);
-				#endif
-					cputs("  \325\n");	//212
-				#ifdef VT_COLORS
-					textcolor(4);
-				#endif
-					cputs("  \031\n");
 
-				#else
-
+			#else
 					gotoxy(2,4);
 				#ifdef VT_COLORS
 					textcolor(10);
@@ -2658,10 +2679,7 @@ outp(0xd018,0x8c);
 					textcolor(4);
 				#endif
 					cputs("  $\n");
-
 			#endif
-
-		#endif
 
 	#endif
 
