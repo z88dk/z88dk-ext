@@ -17,7 +17,7 @@
 // ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
 // zcc +zx81 -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
-// zcc +zx81 -lgfx81 -DGRAPHICS -DLOREZ -lndos -create-app -lm dallas.c
+// zcc +zx81 -lgfx81 -DALT_DELAY -DGRAPHICS -DLOREZ -lndos -create-app -lm -O3 dallas.c
 
 
 // Jupiter ACE
@@ -160,8 +160,15 @@
 	#ifdef __SHARPMZ__
 	#define CUSTOM_CHR
 	#endif
+
 	#ifdef __AQUARIUS__
 	#define CUSTOM_CHR
+	#endif
+
+	#ifdef __ZX81__
+	#ifndef USE_UDGS
+	#define CUSTOM_CHR
+	#endif
 	#endif
 
 
@@ -273,6 +280,9 @@ char trees[] = "\200  \200\200 \200 ";
 		#endif
 		#ifdef __AQUARIUS__
 				char trees[] = "\323  \323\323 \323 ";
+		#endif
+		#ifdef __ZX81__
+				char trees[] = "* ** * ";
 		#endif
 	#else
 		char trees[] = "@ @@ @ ";
@@ -389,7 +399,19 @@ void dj(float VV){
 #endif
 	sprintf(total,"  %1.1f",VV);
 #ifdef __ZX81__
-	gotoxy(32-strlen(total),wherey());
+/*
+	ld  hl,$1821       ; (33,24) = top left screen posn
+	ld  de,(COLUMN)
+	and a
+	sbc hl,de
+	ld  (COLUMN),hl
+*/
+	#ifdef CUSTOM_CHR
+		extern int zx_curs_pos @16441;	//X,Y
+		gotoxy(32-strlen(total),24-(zx_curs_pos>>8));
+	#else
+		gotoxy(32-strlen(total),wherey());
+	#endif
 #else
 	gotoxy(32-strlen(total),wherey()-1);
 #endif
@@ -546,6 +568,14 @@ void balance_sheet(){
 		dj(PR);
 #endif
 
+
+#if defined(CUSTOM_CHR) && defined(__ZX81__)
+	for (Z=0;Z<14;Z++){
+		gotoxy(0,Z+2);
+		putch(brd[Z]);
+	 }
+#endif
+
 }
 
 void draw_board(){
@@ -571,15 +601,22 @@ void draw_board(){
 		textbackground(15); textcolor(0);
 #endif
 
-#ifdef USE_UDGS
-		putch('\206');
+#if defined(CUSTOM_CHR) && defined(__ZX81__)
+	zx_asciimode(0);
+		putch('\205');
+	zx_asciimode(1);
 #else
-		#ifdef __AQUARIUS__
-			putch('\326');
-		#else
-			putch('|');
-		#endif
+	#ifdef USE_UDGS
+			putch('\206');
+	#else
+			#ifdef __AQUARIUS__
+				putch('\326');
+			#else
+				putch('|');
+			#endif
+	#endif
 #endif
+
 
 //		putch(' ');
 #ifdef VT_COLORS
@@ -590,15 +627,21 @@ void draw_board(){
 		textcolor(0);
 #endif
 		gotoxy(16,Z+2);
-		
-#ifdef USE_UDGS
-		putch('\206');
+
+#if defined(CUSTOM_CHR) && defined(__ZX81__)
+	zx_asciimode(0);
+		putch('\005');
+	zx_asciimode(1);
 #else
-		#ifdef __AQUARIUS__
-			putch('\326');
-		#else
-			putch('|');
-		#endif
+	#ifdef USE_UDGS
+			putch('\206');
+	#else
+			#ifdef __AQUARIUS__
+				putch('\326');
+			#else
+				putch('|');
+			#endif
+	#endif
 #endif
 	 }
 
@@ -625,8 +668,18 @@ void draw_board(){
 			gotoxy(1,16);
 			cputs("\317\254\254\254\254\254\254\254\254\254\254\254\254\254\254\337");
 		#endif
+
+		#ifdef __ZX81__
+			zx_asciimode(0);
+			gotoxy(2,1);
+			printf("\203\203\203\203\203\203\203\203\203\203\203\203\203\203");
+			gotoxy(2,16);
+			printf("\003\003\003\003\003\003\003\003\003\003\003\003\003\003");
+			zx_asciimode(1);
+		#endif
+
 	#else
-		 gotoxy(1,1);
+		gotoxy(1,1);
 		cputs("================");
 		gotoxy(1,16);
 		cputs("================");
@@ -1062,7 +1115,7 @@ void auction() {
 	if (T>2) {
 #ifdef LANG_ES
 		gotoxy(0,17);
-		cputs("ESTADO OPERACIONES");
+		printf("ESTADO OPERACIONES\n");
 		printf("NO. DE CONCESION   = %u\n", CS);
 		printf("NO. DE POZOS PROD. = %u\n", WL);
 		printf("BARRILES POR DIA   = %u,000\n", BPDA);
@@ -1071,7 +1124,7 @@ void auction() {
 
 #ifdef LANG_EN
 		gotoxy(0,17);
-		cputs("OPERATIONS STATEMENT");
+		printf("OPERATIONS STATEMENT\n");
 		printf("NO. OF CONCESSION  = %u\n", CS);
 		printf("NO. OF PROD. WELLS = %u\n", WL);
 		printf("BARRELS PER DAY    = %u,000\n", BPDA);
@@ -1080,7 +1133,7 @@ void auction() {
 
 #ifdef LANG_IT
 		gotoxy(0,17);
-		cputs("SITUAZIONE");
+		printf("SITUAZIONE\n");
 		printf("NO. DI CONCESSIONI  = %u\n", CS);
 		printf("NO. DI POZZI ATTIVI = %u\n", WL);
 		printf("BARILI PER GIORNO   = %u.000\n", BPDA);
@@ -1089,7 +1142,7 @@ void auction() {
 
 #ifdef LANG_FR
 		gotoxy(0,17);
-		cputs("ETAT OPERATIONS");
+		printf("ETAT OPERATIONS\n");
 		printf("NO. DE CONCESSIONS  = %u\n", CS);
 		printf("NO. DE PUITS PROD.  = %u\n", WL);
 		printf("BARILS PAR JOUR     = %u.000\n", BPDA);
@@ -1237,6 +1290,9 @@ void auction() {
 						#endif
 						#ifdef __AQUARIUS__
 							putch('\235');	//206, //321
+						#endif
+						#ifdef __ZX81__
+							putch('#');
 						#endif
 					#else
 						putch('#');
@@ -1461,6 +1517,9 @@ int drill() {
 				#ifdef __AQUARIUS__
 					putch('\325');	//212
 				#endif
+				#ifdef __ZX81__
+					putch('P');
+				#endif
 			#else
 					putch('P');
 			#endif
@@ -1572,6 +1631,9 @@ int rig() {
 			#endif
 			#ifdef __AQUARIUS__
 				putch('\203');
+			#endif
+			#ifdef __ZX81__
+				putch('/');
 			#endif
 		#else
 			putch('|');
@@ -1737,6 +1799,9 @@ void facilities_lost() {
 			#ifdef __AQUARIUS__
 				putch('\325');	//212
 			#endif
+			#ifdef __ZX81__
+				putch('P');
+			#endif
 		#else
 			putch('P');
 		#endif
@@ -1846,6 +1911,9 @@ int facilities() {
 				#endif
 				#ifdef __AQUARIUS__			
 					putch('\031');
+				#endif
+				#ifdef __ZX81__
+					putch('$');
 				#endif
 			#else
 				putch('$');
@@ -2575,7 +2643,7 @@ outp(0xd018,0x8c);
 		#ifdef VT_COLORS
 			textcolor(10);
 		#endif
-			printf("@\n");
+			printf("*\n");
 		#ifdef VT_COLORS
 			textcolor(5);
 		#endif
@@ -2583,7 +2651,7 @@ outp(0xd018,0x8c);
 		#ifdef VT_COLORS
 			textcolor(1);
 		#endif
-			printf("  |\n");
+			printf("  /\n");
 		#ifdef VT_COLORS
 			textcolor(0);
 		#endif
@@ -2704,7 +2772,7 @@ outp(0xd018,0x8c);
 
 
 	long_pause();
-	
+/*	
 #ifdef VT_COLORS
 	textbackground(15);  textcolor(0);
 #endif
@@ -2736,13 +2804,10 @@ outp(0xd018,0x8c);
 		gotoxy(7,13);
 		cputs("STRUCTURE GEOLOGIQUE");
 #endif
-
+*/
 	// Set up initial opponent's capital basing on the difficulty level
 	CP=15.0*DF;
 
-#ifdef VT_COLORS
-	textbackground(15); textcolor(0);
-#endif
 
 	for (X=2; X<=15; X++)
 		for (Y=2; Y<=15; Y++) {
@@ -2750,8 +2815,16 @@ outp(0xd018,0x8c);
 			if (AA[X][Y] == 2)
 				AA[X][Y] = AA[X][Y]+rand()%2;
 		}
-
+/*
+#ifndef ALT_DELAY
 	short_pause();
+#endif
+*/
+
+#ifdef VT_COLORS
+	textbackground(15); textcolor(0);
+#endif
+
 	clear_screen();
 
 #ifdef __C128__
