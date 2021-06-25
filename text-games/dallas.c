@@ -36,7 +36,7 @@
 // zcc +trs80 -subtype=eg2000disk -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm -DUSE_UDGS dallas.c
 
 // VTECH Laser 350, 500, 700
-// zcc +laser500 -DUSE_SOUND -DVT_COLORS -lndos -lm -create-app -Cz--audio -Cz--fast dallas.c
+// zcc +laser500 -DUSE_SOUND -DVT_COLORS -lndos -lm -create-app -Cz--audio -DGRAPHICS -DLOREZ dallas.c
 
 // Super-80r, Super-80v
 // zcc +super80 -clib=vduem -lndos -create-app -lm -DUSE_UDGS -DUSE_SOUND dallas.c
@@ -171,6 +171,9 @@
 	#endif
 	#endif
 
+	#ifdef __LASER500__
+	#define CUSTOM_CHR
+	#endif
 
 #ifdef _WIN32
 
@@ -275,6 +278,7 @@ char brd[] = "ABCDEFGHIJKLMN";
 char trees[] = "\200  \200\200 \200 ";
 #else
 	#ifdef CUSTOM_CHR
+
 		#ifdef __SHARPMZ__
 			char trees[] = "\226  \226\226 \226 ";
 		#endif
@@ -282,8 +286,12 @@ char trees[] = "\200  \200\200 \200 ";
 				char trees[] = "\323  \323\323 \323 ";
 		#endif
 		#ifdef __ZX81__
-				char trees[] = "* ** * ";
+				char trees[] = "*  ** * ";
 		#endif
+		#ifdef __LASER500__
+				char trees[] = "\213\240\240\213\213\240\213\240";
+		#endif
+		
 	#else
 		char trees[] = "@ @@ @ ";
 	#endif
@@ -619,12 +627,18 @@ void draw_board(){
 
 
 //		putch(' ');
+#ifdef __LASER500__
+	#ifdef VT_COLORS
+		textbackground(10); textcolor(15);
+	#endif
+#else
 #ifdef VT_COLORS
 		textcolor(10);
 #endif
+#endif
 		cputs(trees+(rand()%7));
 #ifdef VT_COLORS
-		textcolor(0);
+		textbackground(15); textcolor(0);
 #endif
 		gotoxy(16,Z+2);
 
@@ -676,6 +690,19 @@ void draw_board(){
 			gotoxy(2,16);
 			printf("\003\003\003\003\003\003\003\003\003\003\003\003\003\003");
 			zx_asciimode(1);
+		#endif
+
+		#ifdef __LASER500__
+			gotoxy(1,1);
+			#ifdef VT_COLORS
+				textbackground(0); textcolor(15);
+			#endif
+			cputs("\200\201\201\201\201\201\201\201\201\201\201\201\201\201\201\202");
+			gotoxy(1,16);
+			cputs("\206\207\207\207\207\207\207\207\207\207\207\207\207\207\207\210");
+			#ifdef VT_COLORS
+				textbackground(15); textcolor(0);
+			#endif
 		#endif
 
 	#else
@@ -1082,6 +1109,7 @@ void insufficient_funds() {
 			printf("FONDS INSUFFISIANTS");
 		#endif
 		short_pause();
+		clear();
 }
 
 
@@ -1293,6 +1321,9 @@ void auction() {
 						#endif
 						#ifdef __ZX81__
 							putch('#');
+						#endif
+						#ifdef __LASER500__
+							putch('\214');
 						#endif
 					#else
 						putch('#');
@@ -1510,6 +1541,7 @@ int drill() {
 			putch('\203');
 		#else
 			#ifdef CUSTOM_CHR
+
 				#ifdef __SHARPMZ__
 					//putch('\221');
 					putch('\227');
@@ -1520,6 +1552,16 @@ int drill() {
 				#ifdef __ZX81__
 					putch('P');
 				#endif
+				#ifdef __LASER500__
+					#ifdef VT_COLORS
+						textbackground(0); textcolor(15);
+					#endif
+					putch('\211');
+					#ifdef VT_COLORS
+						textbackground(15); textcolor(1);
+					#endif
+				#endif
+
 			#else
 					putch('P');
 			#endif
@@ -1635,6 +1677,15 @@ int rig() {
 			#ifdef __ZX81__
 				putch('/');
 			#endif
+			#ifdef __LASER500__
+				#ifdef VT_COLORS
+					textbackground(1); textcolor(15);
+				#endif
+				putch('\215');
+				#ifdef VT_COLORS
+					textbackground(15); textcolor(1);
+				#endif
+			#endif
 		#else
 			putch('|');
 		#endif
@@ -1679,6 +1730,7 @@ void loan() {
 		#ifdef LANG_FR
 				printf("\nTAPEZ MONTANT EN $M. ");
 		#endif
+
 		gets(input);
 		JJ=atof(input);
 	}
@@ -1792,6 +1844,7 @@ void facilities_lost() {
 		putch('\203');
 	#else
 		#ifdef CUSTOM_CHR
+
 			#ifdef __SHARPMZ__
 				//putch('\221');
 				putch('\227');
@@ -1802,6 +1855,16 @@ void facilities_lost() {
 			#ifdef __ZX81__
 				putch('P');
 			#endif
+			#ifdef __LASER500__
+				#ifdef VT_COLORS
+					textbackground(0); textcolor(15);
+				#endif
+				putch('\211');
+				#ifdef VT_COLORS
+					textbackground(15); textcolor(1);
+				#endif
+			#endif
+
 		#else
 			putch('P');
 		#endif
@@ -1906,15 +1969,20 @@ int facilities() {
 			putch('\204');
 		#else
 			#ifdef CUSTOM_CHR
+
 				#ifdef __SHARPMZ__
 					putch('\232');
 				#endif
-				#ifdef __AQUARIUS__			
+				#ifdef __AQUARIUS__
 					putch('\031');
 				#endif
 				#ifdef __ZX81__
 					putch('$');
 				#endif
+				#ifdef __LASER500__
+					putch('\207');
+				#endif
+				
 			#else
 				putch('$');
 			#endif
@@ -2740,6 +2808,39 @@ outp(0xd018,0x8c);
 						textcolor(4);
 					#endif
 						cputs("  \031\n");
+				#endif
+
+				#ifdef __LASER500__
+						gotoxy(2,4);
+					#ifdef VT_COLORS
+						textbackground(10); textcolor(15);
+					#endif
+						cputs("\213\n");
+					#ifdef VT_COLORS
+						textbackground(15); //textcolor(0);
+						textcolor(5);
+					#endif
+						printf("  \214\n\n  ");
+					#ifdef VT_COLORS
+						textbackground(1); textcolor(15);
+					#endif
+						printf("\215\n\n");
+					#ifdef VT_COLORS
+						textbackground(15); //textcolor(0);
+					#endif
+						printf("  ");
+					#ifdef VT_COLORS
+						textbackground(0); textcolor(15);
+					#endif
+						cputs("\211\n");
+					#ifdef VT_COLORS
+						textbackground(15); //textcolor(0);
+					#endif
+						printf("  ");
+					#ifdef VT_COLORS
+						textcolor(4);
+					#endif
+						cputs("\207\n");
 				#endif
 
 			#else
