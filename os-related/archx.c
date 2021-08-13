@@ -8,6 +8,11 @@
 
 /* zcc +cpm -create-app -O3 -Dunix -oarchx archx.c */
 
+// CP/M version, originally written in RATFOR, e.g. used by the "Carousel Microtools"
+/* zcc +cpm -DRATFOR -create-app -O3 -Dunix -oar archx.c */
+
+
+
 
 /*
  * Note: the )BUILD comment is extracted by a Decus C tool to construct
@@ -142,11 +147,22 @@ again:	if (text[0] == EOS
 	    text[0] = EOS;
 	    goto again;
 	}
+#ifdef RATFOR
+	if (text[1] != '-'
+	 || text[0] != '#'
+	 || text[2] != 'h'
+	 || text[3] != '-')
+#else
 	if (text[0] != '-'
 	 || text[1] != 'h'
 	 || text[2] != '-')
+#endif
 	    return (NOGOOD);
+#ifdef RATFOR
+	for (tp = &text[4]; isspace(*tp); tp++)
+#else
 	for (tp = &text[3]; isspace(*tp); tp++)
+#endif
 	    ;
 	for (np = name; !isspace(*tp); *np++ = *tp++)
 	    ;
@@ -161,7 +177,11 @@ arskip()
  */
 {
 	while (fgets(text, sizeof text, stdin) != NULL) {
+#ifdef RATFOR
+	    if (text[0] == '#' && text[1] == '-' && text[2] == 'h' && text[3] == '-')
+#else
 	    if (text[0] == '-' && text[1] == 'h' && text[2] == '-')
+#endif
 		return;
 	}
 	text[0] = EOS;				/* EOF signal		*/
@@ -186,9 +206,17 @@ register FILE	*outfd;
 		*tp++ = '\n';
 		*tp = EOS;
 	    }
+#ifdef RATFOR
+	    if ((text[0] == '#') && (text[1] == '-')) {
+		if (text[2] == 'h')
+#else
 	    if (text[0] == '-') {
 		if (text[1] == 'h')
+#endif
 		    goto gotcha;
+#ifdef RATFOR
+		if (text[2] != 't')
+#endif
 		do_fputs(text+1, outfd);
 	    }
 	    else {
@@ -353,4 +381,3 @@ char		**argv;
 	return (j);
 }
 #endif
-
