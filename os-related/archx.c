@@ -9,7 +9,7 @@
 /* zcc +cpm -create-app -O3 -Dunix -oarchx archx.c */
 
 // CP/M version, originally written in RATFOR, e.g. used by the "Carousel Microtools"
-/* zcc +cpm -DRATFOR -create-app -O3 -Dunix -oar archx.c */
+/* zcc +cpm -DRATFOR -create-app -O3 -Dunix -oarx archx.c */
 
 
 
