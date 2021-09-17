@@ -1,0 +1,17 @@
+This is not a bug but a design error
+in both AT&T ratfor
+and this public domain ratfor:
+
+The problem is with the switch statment.
+It switches on an integer valued expression.
+It should switch on an integer variable.
+
+The reason is that
+	"implicit undefined"
+	"implicit null"
+is unusable because the switch is done
+on a new variable that is not declared or declarable
+by the programmer who cannot guess its name.
+
+Please let me know if you fix this.
+			jon@sep.stanford.edu.us
