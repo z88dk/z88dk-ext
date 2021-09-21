@@ -1,4 +1,14 @@
-	This is a C version of ratfor, derived from a UofA ratfor
+****  GCC   ****
+gcc -DS_CHAR=char *.c
+
+
+****  z88dk   ****
+zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 *.c
+
+
+===============================================================
+
+This is a C version of ratfor, derived from a UofA ratfor
 	in ratfor. It was originally released to the net sometime
 	ago, and It is re-released for the benefit of those sites
 	who only get mod->comp.sources.
