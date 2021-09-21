@@ -12,8 +12,11 @@ struct	hashlist *hashtab[HASHMAX];
  * hash - for a hash value for string s
  *
  */
-hash(s)
-S_CHAR *s;
+#ifdef Z80
+	int hash(S_CHAR *s) __z88dk_fastcall
+#else
+	int hash(S_CHAR *s)
+#endif
 {
 	int	hashval;
 
@@ -26,9 +29,7 @@ S_CHAR *s;
  * lookup - lookup for a string s in the hash table
  *
  */
-struct hashlist
-*lookup(s)
-S_CHAR *s;
+struct hashlist *lookup(S_CHAR *s)
 {
 	struct hashlist *np;
 
@@ -38,19 +39,31 @@ S_CHAR *s;
 	return(NULL);		/* not found */
 }
 
+
+/*
+ * strsave - save string s somewhere
+ *
+ */
+S_CHAR *strsave(S_CHAR *s)
+{
+	//S_CHAR *p, *malloc();
+	S_CHAR *p;
+
+	if ((p = malloc(strlen(s)+1)) != NULL)
+		strcpy(p, s);
+	return(p);
+}
+
+
 /*
  * install - install a string name in hashtable and its value def
  *
  */
-struct hashlist
-*install(name,def)
-S_CHAR *name;
-S_CHAR *def;
+struct hashlist *install(S_CHAR *name, S_CHAR *def)
 {
 	int hashval;
 	struct hashlist *np, *lookup();
 	//S_CHAR *strsave(), *malloc();
-	S_CHAR *strsave();
 
 	if ((np = lookup(name)) == NULL) {	/* not found.. */
 		np = (struct hashlist *) malloc(sizeof(*np));
@@ -67,21 +80,4 @@ S_CHAR *def;
 		return(NULL);
 	return(np);
 }
-
-/*
- * strsave - save string s somewhere
- *
- */
-S_CHAR
-*strsave(s)
-S_CHAR *s;
-{
-	//S_CHAR *p, *malloc();
-	S_CHAR *p;
-
-	if ((p = malloc(strlen(s)+1)) != NULL)
-		strcpy(p, s);
-	return(p);
-}
-
 
