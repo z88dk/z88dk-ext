@@ -70,66 +70,97 @@ Compile Level
 
 
 // ****  z88dk   ****
-// zcc +cpm -create-app -DS_CHAR=char -DAMALLOC *.c
+// zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 *.c
 
 /* prototypes */
 struct hashlist *install(S_CHAR *name, S_CHAR *def);
 
 int our_getopt(int argc, char *argv[], char *optstring);
 
+#ifdef Z80
+	void swvar(int lab) __z88dk_fastcall;
+	void whiles(int lab) __z88dk_fastcall;
+	void ifgo(int lab) __z88dk_fastcall;
+	void outch(S_CHAR c) __z88dk_fastcall;
+	void outcon(int n) __z88dk_fastcall;
+	void outnum(int n) __z88dk_fastcall;
+	int labgen(int n) __z88dk_fastcall;
+	void outgo(int n) __z88dk_fastcall;
+	void outcmnt(FILE * fd) __z88dk_fastcall;
+	void outasis(FILE * fd) __z88dk_fastcall;
+	void putbak(S_CHAR c) __z88dk_fastcall;
+	void skpblk(FILE *fd) __z88dk_fastcall;
+	void fold(S_CHAR token[]) __z88dk_fastcall;
+	void outstr(S_CHAR str[]) __z88dk_fastcall;
+	int type(S_CHAR c) __z88dk_fastcall;
+	void pbstr(S_CHAR in[]) __z88dk_fastcall;
+	void repcod(int *lab) __z88dk_fastcall;
+	void otherc(S_CHAR lexstr[]);
+	void swend(int lab) __z88dk_fastcall;
+	void baderr(S_CHAR msg[]) __z88dk_fastcall;
+	void ifcode(int *lab) __z88dk_fastcall;
+	void elseif(int lab) __z88dk_fastcall;
+	void labelc(S_CHAR lexstr[]) __z88dk_fastcall;
+	void synerr(S_CHAR *msg) __z88dk_fastcall;
+	void swcode(int *lab) __z88dk_fastcall;
+	void forcod(int *lab) __z88dk_fastcall;
+	void whilec(int *lab) __z88dk_fastcall;
+	void docode(int *lab) __z88dk_fastcall;
+	int lex(S_CHAR lexstr[]) __z88dk_fastcall;
+#else
+	void swvar(int lab);
+	void whiles(int lab);
+	void ifgo(int lab);
+	void outch(S_CHAR c);
+	void outcon(int n);
+	void outnum(int n);
+	int labgen(int n);
+	void outgo(int n);
+	void outcmnt(FILE * fd);
+	void outasis(FILE * fd);
+	void putbak(S_CHAR c);
+	void skpblk(FILE *fd);
+	void fold(S_CHAR token[]);
+	void outstr(S_CHAR str[]);
+	int type(S_CHAR c);
+	void pbstr(S_CHAR in[]);
+	void repcod(int *lab);
+	void otherc(S_CHAR lexstr[]);
+	void swend(int lab);
+	void baderr(S_CHAR msg[]);
+	void ifcode(int *lab);
+	void elseif(int lab);
+	void labelc(S_CHAR lexstr[]);
+	void synerr(S_CHAR *msg);
+	void swcode(int *lab);
+	void forcod(int *lab);
+	void whilec(int *lab);
+	void docode(int *lab);
+	int lex(S_CHAR lexstr[]);
+#endif
 
-int swvar(int lab);
-int untils(int lab, int token);
+void untils(int lab, int token);
 int caslab(int *n, int *t);
-int whiles(int lab);
-int ifgo(int lab);
-int outch(S_CHAR c);
-int outch(S_CHAR c);
-int outcon(int n);
-int outdon();
-int outnum(int n);
-int labgen(int n);
-int outtab();
-int outgo(int);
+void outdon();
+void outtab();
 int ctoi(S_CHAR in[], int *i);
 int itoc(int n, S_CHAR str[], int size);
 int relate(S_CHAR token[], FILE *fd);
-int outcmnt(FILE * fd);
-int outasis(FILE * fd);
-int scopy(S_CHAR from[], int i, S_CHAR to[], int j);
+void scopy(S_CHAR from[], int i, S_CHAR to[], int j);
 int equal(S_CHAR str1[], S_CHAR str2[]);
-int putbak(S_CHAR c);
-int skpblk(FILE *fd);
-int fold(S_CHAR token[]);
 int getdef(S_CHAR token[], int toksiz, S_CHAR defn[], int defsiz, FILE *fd);
 int look(S_CHAR name[], S_CHAR defn[]);
 int gtok(S_CHAR lexstr[], int toksiz, FILE *fd);
 int gettok(S_CHAR token[], int toksiz);
-int outstr(S_CHAR str[]);
 int gnbtok(S_CHAR token[], int toksiz);
-int type(S_CHAR c);
-int unstak(int *sp, int lextyp[], int labval[], S_CHAR token);
-int pbstr(S_CHAR in[]);
-int repcod(int *lab);
-int retcod();
-int strdcl();
-int brknxt(int sp, int lextyp[], int labval[], int token);
-int otherc(S_CHAR lexstr[]);
-int swend(int lab);
-int baderr(S_CHAR msg[]);
-int ifcode(int *lab);
-int elseif(int lab);
-int labelc(S_CHAR lexstr[]);
-int cascod(int lab, int token);
-int synerr(S_CHAR *msg);
-int swcode(int *lab);
-int forcod(int *lab);
-int whilec(int *lab);
-int docode(int *lab);
-int lex(S_CHAR lexstr[]);
-int parse();
-int initvars();
-int error(char *msg, S_CHAR *s);
+void unstak(int *sp, int lextyp[], int labval[], S_CHAR token);
+void retcod();
+void strdcl();
+void brknxt(int sp, int lextyp[], int labval[], int token);
+void cascod(int lab, int token);
+void parse();
+void initvars();
+void error(char *msg, S_CHAR *s);
 
 //********************
 
@@ -241,9 +272,7 @@ int leaveC = NO;		/* Flag for handling comments */
  * M A I N   L I N E  &  I N I T
  */
 
-main(argc,argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
 	int c, errflg = 0;
 	extern int optind77;
@@ -297,7 +326,7 @@ char *argv[];
 /*
  * initialise
  */
-initvars()
+void initvars()
 {
 	int i;
 
@@ -323,7 +352,7 @@ initvars()
  * P A R S E R
  */
 
-parse()
+void parse()
 {
 	S_CHAR lexstr[MAXTOK];
 	int lab, labval[MAXSTACK], lextyp[MAXSTACK], sp, i, token;
@@ -846,9 +875,11 @@ FILE *fd;
  * lex - return lexical type of token
  *
  */
-int
-lex(lexstr)
-S_CHAR lexstr[];
+#ifdef Z80
+	int lex(S_CHAR lexstr[]) __z88dk_fastcall
+#else
+	int lex(S_CHAR lexstr[])
+#endif
 {
 
 	int tok;
@@ -950,8 +981,11 @@ FILE *fd;
  * pbstr - push string back onto input
  *
  */
-pbstr(in)
-S_CHAR in[];
+#ifdef Z80
+	void pbstr(S_CHAR in[]) __z88dk_fastcall
+#else
+	void pbstr(S_CHAR in[])
+#endif
 {
 	int i;
 
@@ -963,8 +997,11 @@ S_CHAR in[];
  * putbak - push char back onto input
  *
  */
-putbak(c)
-S_CHAR c;
+#ifdef Z80
+	void putbak(S_CHAR c) __z88dk_fastcall
+#else
+	void putbak(S_CHAR c)
+#endif
 {
 
 	bp++;
@@ -1037,8 +1074,11 @@ FILE *fd;
  * skpblk - skip blanks and tabs in file  fd
  *
  */
-skpblk(fd)
-FILE *fd;
+#ifdef Z80
+	void skpblk(FILE *fd) __z88dk_fastcall
+#else
+	void skpblk(FILE *fd)
+#endif
 {
 	S_CHAR c;
 
@@ -1052,9 +1092,12 @@ FILE *fd;
  * type - return LETTER, DIGIT or char; works with ascii alphabet
  *
  */
-int
-type(c)
-S_CHAR c;
+
+#ifdef Z80
+	int type(S_CHAR c) __z88dk_fastcall
+#else
+	int type(S_CHAR c)
+#endif
 {
 	int t;
 
@@ -1076,7 +1119,7 @@ S_CHAR c;
 /*
  * brknxt - generate code for break n and next n; n = 1 is default
  */
-brknxt(sp, lextyp, labval, token)
+void brknxt(sp, lextyp, labval, token)
 int sp;
 int lextyp[];
 int labval[];
@@ -1121,8 +1164,11 @@ int token;
  * docode - generate code for beginning of do
  *
  */
-docode(lab)
-int *lab;
+#ifdef Z80
+	void docode(int *lab) __z88dk_fastcall
+#else
+	void docode(int *lab)
+#endif
 {
 	xfer = NO;
 	outtab();
@@ -1148,8 +1194,11 @@ int lab;
  * elseif - generate code for end of if before else
  *
  */
-elseif(lab)
-int lab;
+#ifdef Z80
+	void elseif(int lab) __z88dk_fastcall
+#else
+	void elseif(int lab)
+#endif
 {
 
 #ifdef F77
@@ -1166,8 +1215,11 @@ int lab;
  * forcod - beginning of for statement
  *
  */
-forcod(lab)
-int *lab;
+#ifdef Z80
+	void forcod(int *lab) __z88dk_fastcall
+#else
+	void forcod(int *lab)
+#endif
 {
 	S_CHAR t, token[MAXTOK];
 	int i, j, nlpar,tlab;
@@ -1273,8 +1325,11 @@ int lab;
  * ifcode - generate initial code for if
  *
  */
-ifcode(lab)
-int *lab;
+#ifdef Z80
+	void ifcode(int *lab) __z88dk_fastcall
+#else
+	void ifcode(int *lab)
+#endif
 {
 
 	xfer = NO;
@@ -1303,8 +1358,11 @@ ifend()
  * ifgo - generate "if(.not.(...))goto lab"
  *
  */
-ifgo(lab)
-int lab;
+#ifdef Z80
+	void ifgo(int lab) __z88dk_fastcall
+#else
+	void ifgo(int lab)
+#endif
 {
 
 	outtab();      /* get to column 7 */
@@ -1333,8 +1391,11 @@ ifthen()
  * labelc - output statement number
  *
  */
-labelc(lexstr)
-S_CHAR lexstr[];
+#ifdef Z80
+	void labelc(S_CHAR lexstr[]) __z88dk_fastcall
+#else
+	void labelc(S_CHAR lexstr[])
+#endif
 {
 
 	xfer = NO;   /* can't suppress goto's now */
@@ -1349,9 +1410,11 @@ S_CHAR lexstr[];
  * labgen - generate  n  consecutive labels, return first one
  *
  */
-int
-labgen(n)
-int n;
+#ifdef Z80
+	int labgen(int n) __z88dk_fastcall
+#else
+	int labgen(int n)
+#endif
 {
 	int i;
 
@@ -1364,8 +1427,11 @@ int n;
  * otherc - output ordinary Fortran statement
  *
  */
-otherc(lexstr)
-S_CHAR lexstr[];
+#ifdef Z80
+	void otherc(S_CHAR lexstr[]) __z88dk_fastcall
+#else
+	void otherc(S_CHAR lexstr[])
+#endif
 {
 	xfer = NO;
 	outtab();
@@ -1378,8 +1444,11 @@ S_CHAR lexstr[];
  * outch - put one char into output buffer
  *
  */
-outch(c)
-S_CHAR c;
+#ifdef Z80
+	void outch(S_CHAR c) __z88dk_fastcall
+#else
+	void outch(S_CHAR c)
+#endif
 {
 	int i;
 
@@ -1398,8 +1467,11 @@ S_CHAR c;
  * outcon - output "n   continue"
  *
  */
-outcon(n)
-int n;
+#ifdef Z80
+	void outcon(int n) __z88dk_fastcall
+#else
+	void outcon(int n)
+#endif
 {
 	xfer = NO;
 	if (n <= 0 && outp == 0)
@@ -1415,7 +1487,7 @@ int n;
  * outdon - finish off an output line
  *
  */
-outdon()
+void outdon()
 {
 
 	outbuf[outp] = NEWLINE;
@@ -1428,8 +1500,11 @@ outdon()
  * outcmnt - copy comment to output
  *
  */
-outcmnt(fd)
-FILE * fd;
+#ifdef Z80
+	void outcmnt(FILE * fd) __z88dk_fastcall
+#else
+	void outcmnt(FILE * fd)
+#endif
 {
         S_CHAR c;
         S_CHAR comout[81];
@@ -1458,8 +1533,11 @@ FILE * fd;
  * outasis - copy directly out
  *
  */
-outasis(fd)
-FILE * fd;
+#ifdef Z80
+	void outasis(FILE * fd) __z88dk_fastcall
+#else
+	void outasis(FILE * fd)
+#endif
 {
 	S_CHAR c;
 	while((c=ngetch(&c,fd)) != NEWLINE)
@@ -1471,8 +1549,11 @@ FILE * fd;
  * outgo - output "goto  n"
  *
  */
-outgo(n)
-int n;
+#ifdef Z80
+	void outgo(int n) __z88dk_fastcall
+#else
+	void outgo(int n)
+#endif
 {
 	if (xfer == YES)
 		return;
@@ -1486,8 +1567,11 @@ int n;
  * outnum - output decimal number
  *
  */
-outnum(n)
-int n;
+#ifdef Z80
+	void outnum(int n) __z88dk_fastcall
+#else
+	void outnum(int n)
+#endif
 {
 
 	S_CHAR chars[MAXCHARS];
@@ -1513,8 +1597,11 @@ int n;
  * outstr - output string
  *
  */
-outstr(str)
-S_CHAR str[];
+#ifdef Z80
+	void outstr(S_CHAR str[]) __z88dk_fastcall
+#else
+	void outstr(S_CHAR str[])
+#endif
 {
 	int i;
 
@@ -1526,7 +1613,7 @@ S_CHAR str[];
  * outtab - get past column 6
  *
  */
-outtab()
+void outtab()
 {
 	while (outp < 6)
 		outch(BLANK);
@@ -1537,8 +1624,11 @@ outtab()
  * repcod - generate code for beginning of repeat
  *
  */
-repcod(lab)
-int *lab;
+#ifdef Z80
+	void repcod(int *lab) __z88dk_fastcall
+#else
+	void repcod(int *lab)
+#endif
 {
 
 	int tlab;
@@ -1554,7 +1644,7 @@ int *lab;
  * retcod - generate code for return
  *
  */
-retcod()
+void retcod()
 {
 	S_CHAR token[MAXTOK], t;
 
@@ -1577,7 +1667,7 @@ retcod()
 
 
 /* strdcl - generate code for string declaration */
-strdcl()
+void strdcl()
 {
 	S_CHAR t, name[MAXNAME], init[MAXTOK];
 	int i, len;
@@ -1641,7 +1731,7 @@ strdcl()
  * unstak - unstack at end of statement
  *
  */
-unstak(sp, lextyp, labval, token)
+void unstak(sp, lextyp, labval, token)
 int *sp;
 int lextyp[];
 int labval[];
@@ -1688,9 +1778,7 @@ S_CHAR token;
  * untils - generate code for until or end of repeat
  *
  */
-untils(lab, token)
-int lab;
-int token;
+void untils(int lab, int token)
 {
 	S_CHAR ptoken[MAXTOK];
 
@@ -1709,8 +1797,11 @@ int token;
  * whilec - generate code for beginning of while
  *
  */
-whilec(lab)
-int *lab;
+#ifdef Z80
+	void whilec(int *lab) __z88dk_fastcall
+#else
+	void whilec(int *lab)
+#endif
 {
 	int tlab;
 
@@ -1730,10 +1821,12 @@ int *lab;
  * whiles - generate code for end of while
  *
  */
-whiles(lab)
-int lab;
+#ifdef Z80
+	void whiles(int lab) __z88dk_fastcall
+#else
+	void whiles(int lab)
+#endif
 {
-
 	outgo(lab);
 #ifdef F77
 	ifend();
@@ -1748,8 +1841,11 @@ int lab;
 /*
  *  baderr - print error message, then die
  */
-baderr(msg)
-S_CHAR msg[];
+#ifdef Z80
+	void baderr(S_CHAR msg[]) __z88dk_fastcall
+#else
+	void baderr(S_CHAR msg[])
+#endif
 {
 	synerr(msg);
 	exit(1);
@@ -1758,7 +1854,7 @@ S_CHAR msg[];
 /*
  * error - print error message with one parameter, then die
  */
-error(msg, s)
+void error(msg, s)
 char *msg;
 S_CHAR *s;
 {
@@ -1769,8 +1865,11 @@ S_CHAR *s;
 /*
  * synerr - report Ratfor syntax error
  */
-synerr(msg)
-S_CHAR *msg;
+#ifdef Z80
+	void synerr(S_CHAR *msg) __z88dk_fastcall
+#else
+	void synerr(S_CHAR *msg)
+#endif
 {
 	S_CHAR lc[MAXCHARS];
 	int i;
@@ -1822,8 +1921,11 @@ int *i;
  * fold - convert alphabetic token to single case
  *
  */
-fold(token)
-S_CHAR token[];
+#ifdef Z80
+	void fold(S_CHAR token[]) __z88dk_fastcall
+#else
+	void fold(S_CHAR token[])
+#endif
 {
 
 	int i;
@@ -1859,7 +1961,7 @@ S_CHAR str2[];
  * scopy - copy string at from[i] to to[j]
  *
  */
-scopy(from, i, to, j)
+void scopy(from, i, to, j)
 S_CHAR from[];
 int i;
 S_CHAR to[];
@@ -1931,7 +2033,7 @@ int size;
  * cascod - generate code for case or default label
  *
  */
-cascod (lab, token)
+void cascod (lab, token)
 int lab;
 int token;
 {
@@ -1997,10 +2099,7 @@ int token;
  * caslab - get one case label
  *
  */
-int
-caslab (n, t)
-int *n;
-int *t;
+int caslab(int *n, int *t)
 {
 	S_CHAR tok[MAXTOK];
 	int i, s;
@@ -2033,8 +2132,11 @@ int *t;
  * swcode - generate code for switch stmt.
  *
  */
-swcode (lab)
-int *lab;
+#ifdef Z80
+	void swcode(int *lab) __z88dk_fastcall
+#else
+	void swcode(int *lab)
+#endif
 {
 	S_CHAR scrtok[MAXTOK];
 
@@ -2066,8 +2168,11 @@ int *lab;
  * swend  - finish off switch statement; generate dispatch code
  *
  */
-swend(lab)
-int lab;
+#ifdef Z80
+	void swend(int lab) __z88dk_fastcall
+#else
+	void swend(int lab)
+#endif
 {
 	int lb, ub, n, i, j;
 
@@ -2163,8 +2268,11 @@ static	char *sand  	= ".and.";
 /*
  * swvar  - output switch variable Innn, where nnn = lab
  */
-swvar  (lab)
-int lab;
+#ifdef Z80
+	void swvar(int lab) __z88dk_fastcall
+#else
+	void swvar(int lab)
+#endif
 {
 
 	outch ('I');
