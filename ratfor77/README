@@ -1,9 +1,13 @@
 ****  GCC   ****
-gcc -DS_CHAR=char *.c
+gcc -DS_CHAR=char lookup.c getopt.c rat4.c
 
 
 ****  z88dk   ****
-zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 *.c
+zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 -pragma-define:CRT_INITIALIZE_BSS=0 lookup.c getopt.c rat4.c
+
+
+****  z88dk + sdcc ****
+zcc +cpm -create-app -DS_CHAR=char -DAMALLOC --fsigned-char -compiler=sdcc -SO3 --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 lookup.c getopt.c rat4.c
 
 
 ===============================================================
