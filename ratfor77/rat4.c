@@ -73,7 +73,7 @@ Compile Level
 // zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 -pragma-define:CRT_INITIALIZE_BSS=0 lookup.c getopt.c rat4.c
 
 // ****  z88dk + sdcc (not yet working) ****
-// zcc +cpm -create-app -DS_CHAR=char -DAMALLOC --fsigned-char -compiler=sdcc -SO3 --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 lookup.c getopt.c rat4.c
+// zcc +cpm -create-app -DS_CHAR=char --fsigned-char -DAMALLOC -compiler=sdcc -SO3 --max-allocs-per-node400000 lookup.c getopt.c rat4.c
 
 
 /* prototypes */
@@ -965,6 +965,7 @@ S_CHAR ngetch(S_CHAR *c, FILE *fd)
 
 	return(*c);
 }
+
 /*
  * pbstr - push string back onto input
  *
@@ -2127,6 +2128,7 @@ int caslab(int *n, int *t)
 	}
 }
 
+
 /*
  * swend  - finish off switch statement; generate dispatch code
  *
@@ -2139,6 +2141,7 @@ int caslab(int *n, int *t)
 {
 	int lb, ub, n, i;
 
+/*
 static	char *sif   	= "if (";
 static	char *slt   	= ".lt.1.or.";
 static	char *sgt   	= ".gt.";
@@ -2147,6 +2150,7 @@ static	char *seq   	= ".eq.";
 static	char *sge   	= ".ge.";
 static	char *sle   	= ".le.";
 static	char *sand  	= ".and.";
+*/
 
 	lb = swstak[swtop + 3];
 	ub = swstak[swlast - 2];
@@ -2203,18 +2207,23 @@ static	char *sand  	= ".and.";
 	if (n > 0) { 		/* # output linear search form */
 		for (i = swtop + 3; i < swlast; i = i + 3) {
 			outtab();		/* # if (Innn */
-			outstr (sif);
+			//outstr (sif);
+			outstr ("if (");
 			swvar  (lab);
 			if (swstak[i] == swstak[i+1]) {
-				outstr (seq); 	/* #   .eq....*/
+				//outstr (seq); 	/* #   .eq....*/
+				outstr (".eq."); 	/* #   .eq....*/
 				outnum (swstak[i]);
 			}
 			else {
-				outstr (sge);	/* #   .ge.lb.and.Innn.le.ub */
+				//outstr (sge);	/* #   .ge.lb.and.Innn.le.ub */
+				outstr (".ge.");	/* #   .ge.lb.and.Innn.le.ub */
 				outnum (swstak[i]);
-				outstr (sand);
+				//outstr (sand);
+				outstr (".and.");
 				swvar  (lab);
-				outstr (sle);
+				//outstr (sle);
+				outstr (".le.");
 				outnum (swstak[i + 1]);
 			}
 			outch (RPAREN);		/* #    ) goto ... */
