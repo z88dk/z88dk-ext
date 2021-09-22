@@ -62,7 +62,8 @@ S_CHAR *strsave(S_CHAR *s)
 struct hashlist *install(S_CHAR *name, S_CHAR *def)
 {
 	int hashval;
-	struct hashlist *np, *lookup();
+	struct hashlist *np;
+	//struct hashlist *np, *lookup();
 	//S_CHAR *strsave(), *malloc();
 
 	if ((np = lookup(name)) == NULL) {	/* not found.. */
