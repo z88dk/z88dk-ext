@@ -82,9 +82,8 @@ struct hashlist *install(S_CHAR *name, S_CHAR *def);
 int our_getopt(int argc, char *argv[], char *optstring);
 
 #ifdef Z80
-	void dostat(int lab) __z88dk_fastcall;
-	void fors(int lab) __z88dk_fastcall;
-
+//	void dostat(int lab) __z88dk_fastcall;
+//	void fors(int lab) __z88dk_fastcall;
 	void swvar(int lab) __z88dk_fastcall;
 	void whiles(int lab) __z88dk_fastcall;
 	void ifgo(int lab) __z88dk_fastcall;
@@ -102,7 +101,7 @@ int our_getopt(int argc, char *argv[], char *optstring);
 	int type(S_CHAR c) __z88dk_fastcall;
 	void pbstr(S_CHAR in[]) __z88dk_fastcall;
 	void repcod(int *lab) __z88dk_fastcall;
-	void otherc(S_CHAR lexstr[]);
+	void otherc(S_CHAR lexstr[]) __z88dk_fastcall;
 	void swend(int lab) __z88dk_fastcall;
 	void baderr(S_CHAR msg[]) __z88dk_fastcall;
 	void ifcode(int *lab) __z88dk_fastcall;
@@ -115,9 +114,8 @@ int our_getopt(int argc, char *argv[], char *optstring);
 	void docode(int *lab) __z88dk_fastcall;
 	int lex(S_CHAR lexstr[]) __z88dk_fastcall;
 #else
-	void dostat(int lab);
-	void fors(int lab);
-
+//	void dostat(int lab);
+//	void fors(int lab);
 	void swvar(int lab);
 	void whiles(int lab);
 	void ifgo(int lab);
@@ -148,6 +146,8 @@ int our_getopt(int argc, char *argv[], char *optstring);
 	void docode(int *lab);
 	int lex(S_CHAR lexstr[]);
 #endif
+
+// Possible further opt to experiment with:  __z88dk_callee  ?
 
 void untils(int lab, int token);
 int caslab(int *n, int *t);
@@ -1494,7 +1494,7 @@ void outdon()
 #endif
 {
         S_CHAR c;
-        S_CHAR comout[81];
+        S_CHAR comout[82];
         int comoutp=0;
 
         comoutp=1;
@@ -1955,10 +1955,11 @@ void scopy(S_CHAR from[], int i, S_CHAR to[], int j)
  */
 int look(S_CHAR name[], S_CHAR defn[])
 {
-	extern struct hashlist *lookup();
+	//extern struct hashlist *lookup();
 	struct hashlist *p;
 
-	if ((p = lookup(name)) == NULL)
+	//if ((p = lookup(name)) == NULL)
+	if (!(p = lookup(name)))
 		return(NO);
 	(void) strcpy((char *) (&defn[0]),(char *) (&((p->def)[0])));
 	return(YES);
