@@ -16,3 +16,6 @@ struct hashlist {
 #define HASHMAX	100			/* size of hashtable */
 
 					/* hash table itself */
+
+
+extern struct hashlist *lookup(S_CHAR *s);
