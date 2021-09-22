@@ -15,7 +15,7 @@ int fnamp;		/*   next free slot in fnames; init = 2 */
 S_CHAR fnames[MAXFNAMES];	/*   stack of include names; init fnames[1] = EOS */
 int avail;		/*   first first location in table; init = 1 */
 int tabptr[127];	/*   name pointers; init = 0 */
-int outp;		/*   last position filled in outbuf; init = 0 */
+int r_outp;		/*   last position filled in outbuf; init = 0 */
 S_CHAR outbuf[82];	/*   output lines collected here */
 S_CHAR fname[MAXNAME][NFILES];	/*   file names */
 int nfiles;		/*   number of files */
