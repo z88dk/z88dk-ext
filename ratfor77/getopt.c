@@ -5,8 +5,10 @@
 #include <stdio.h>
 #include <string.h>
 
-char	*optarg;	/* Global argument pointer. */
-int	optind77 = 0;	/* Global argv index. */
+extern char	*optarg;	/* Global argument pointer. */
+//extern int	optind77 = 0;	/* Global argv index. */
+extern int	optind77;	/* Global argv index. */
+int	optind77;
 
 static char	*scan = NULL;	/* Private scan pointer. */
 
