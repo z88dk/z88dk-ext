@@ -1,3 +1,18 @@
+
+
+// ****  z88dk   ****
+// zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 -pragma-define:CRT_INITIALIZE_BSS=0 lookup.c getopt.c rat4.c
+
+// ****  z88dk + sdcc (not yet working) ****
+// zcc +cpm -create-app -DS_CHAR=char --fsigned-char -DAMALLOC -compiler=sdcc -SO3 --max-allocs-per-node400000 lookup.c getopt.c rat4.c
+
+// ****  GCC   ****
+// gcc -DS_CHAR=char lookup.c getopt.c rat4.c
+
+
+
+
+
 /*< 
   ratfor77
  
@@ -67,13 +82,6 @@ Compile Level
 
 #include "ratdef.h"
 #include "ratcom.h"
-
-
-// ****  z88dk   ****
-// zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 -pragma-define:CRT_INITIALIZE_BSS=0 lookup.c getopt.c rat4.c
-
-// ****  z88dk + sdcc (not yet working) ****
-// zcc +cpm -create-app -DS_CHAR=char --fsigned-char -DAMALLOC -compiler=sdcc -SO3 --max-allocs-per-node400000 lookup.c getopt.c rat4.c
 
 
 /* prototypes */
@@ -284,11 +292,13 @@ int leaveC = NO;		/* Flag for handling comments */
  * M A I N   L I N E  &  I N I T
  */
 
+extern int	optind77;	/* Global argv index. */
+
 int main(int argc, char *argv[])
 {
 	int c, errflg = 0;
-	extern int optind77;
-	extern char *optarg;
+//	extern int optind77;
+//	extern char *optarg;
 
 	progname = argv[0];
 
@@ -341,6 +351,8 @@ int main(int argc, char *argv[])
 void initvars()
 {
 	int i;
+	
+	optind77=0;
 
 	r_outp = 0;		/* output character pointer */
 	level = 0;		/* file control */
