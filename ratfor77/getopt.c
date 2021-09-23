@@ -6,6 +6,8 @@
 #include <string.h>
 
 extern char	*optarg;	/* Global argument pointer. */
+char	*optarg;
+
 //extern int	optind77 = 0;	/* Global argv index. */
 extern int	optind77;	/* Global argv index. */
 int	optind77;
