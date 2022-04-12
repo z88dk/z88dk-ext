@@ -1075,9 +1075,8 @@ phase++;
 		if (multipoint(0,2,xt,yt)) {
 		  xt++;
 		  a=((xt-alien_x)/25);
-		  b=(yt-alien_y-8)/20;
 
-		  switch (b) {
+		  switch ((yt-alien_y-8)/20) {
 
 			case 4:
 			    if (a4[a] == 6)
