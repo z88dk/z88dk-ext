@@ -43,6 +43,46 @@
 #endif
 
 
+char restart_msg[] = {
+99, 32, 0x03 , 0x00 , 0x0C , 0x00 , 0x00 , 0x01 , 0xFF , 0xC0 , 0x00 , 0x00 , 0x03 
+, 0xE0 , 0x00 , 0x07 , 0x80 , 0x1E , 0x00 , 0x00 , 0x01 , 0xFF , 0xC0 , 0x00 
+, 0x00 , 0x03 , 0xE0 , 0x00 , 0x03 , 0xC0 , 0x3C , 0x00 , 0x00 , 0xFF , 0xFF 
+, 0xFF , 0x00 , 0x00 , 0x1F , 0xF8 , 0x00 , 0x00 , 0xE0 , 0x78 , 0x00 , 0x01 
+, 0xFF , 0xFF , 0xFF , 0x80 , 0x00 , 0x1F , 0xF8 , 0x00 , 0x03 , 0xFF , 0xFE 
+, 0x00 , 0x03 , 0xFF , 0xFF , 0xFF , 0xE0 , 0x00 , 0x7F , 0xFF , 0x00 , 0x07 
+, 0xFF , 0xFF , 0x00 , 0x07 , 0xFF , 0xFF , 0xFF , 0xF0 , 0x00 , 0xFF , 0xFF 
+, 0x00 , 0x07 , 0xFF , 0xFF , 0x00 , 0x07 , 0xFF , 0xFF , 0xFF , 0xF0 , 0x00 
+, 0xFF , 0xFF , 0x00 , 0x0F , 0xFF , 0xFF , 0x80 , 0x07 , 0xFF , 0xFF , 0xFF 
+, 0xF0 , 0x01 , 0xFF , 0xFF , 0xC0 , 0x1F , 0x3F , 0xCF , 0xC0 , 0x07 , 0xF8 
+, 0x7E , 0x0F , 0xF0 , 0x03 , 0xF3 , 0xE7 , 0xE0 , 0x1F , 0x3F , 0xCF , 0xC0 
+, 0x07 , 0xFB , 0x7E , 0xCF , 0xF0 , 0x03 , 0xF3 , 0xE7 , 0xE0 , 0x7F , 0xFF 
+, 0xFF , 0xF0 , 0x07 , 0xFF , 0xFF , 0xFF , 0xF0 , 0x03 , 0xFF , 0xFF , 0xE0 
+, 0xFF , 0xFF , 0xFF , 0xF8 , 0x07 , 0xFF , 0xFF , 0xFF , 0xF0 , 0x03 , 0xFF 
+, 0xFF , 0xE0 , 0xFF , 0xFF , 0xFF , 0xF8 , 0x03 , 0xFF , 0xFF , 0xFF , 0xE0 
+, 0x01 , 0xFF , 0xFF , 0xC0 , 0xF7 , 0xFF , 0xFE , 0x78 , 0x00 , 0x0F , 0xC1 
+, 0xF8 , 0x00 , 0x00 , 0x1C , 0x38 , 0x00 , 0xF7 , 0xFF , 0xFE , 0x78 , 0x00 
+, 0x0F , 0xC1 , 0xF8 , 0x00 , 0x00 , 0x1C , 0x38 , 0x00 , 0xF7 , 0x00 , 0x0E 
+, 0x78 , 0x00 , 0x7E , 0x7E , 0x7E , 0x00 , 0x00 , 0xF3 , 0xE7 , 0x00 , 0x97 
+, 0x00 , 0x0E , 0x48 , 0x00 , 0x7E , 0x7E , 0x7E , 0x00 , 0x00 , 0xF3 , 0xE7 
+, 0x00 , 0x97 , 0x00 , 0x0E , 0x48 , 0x00 , 0x7E , 0x7E , 0x7E , 0x00 , 0x00 
+, 0xF3 , 0xE7 , 0x00 , 0x01 , 0xF9 , 0xF8 , 0x00 , 0x07 , 0xC0 , 0x00 , 0x01 
+, 0xF0 , 0x03 , 0x9C , 0x38 , 0xE0 , 0x01 , 0xF9 , 0xF8 , 0x00 , 0x07 , 0xC0 
+, 0x00 , 0x01 , 0xF0 , 0x03 , 0x9C , 0x38 , 0xE0 , 0x01 , 0xF9 , 0xF8 , 0x00 
+, 0x07 , 0xC0 , 0x00 , 0x01 , 0xF0 , 0x03 , 0x9C , 0x38 , 0xE0 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x07 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x08 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x04 , 0x80 , 0x00 
+, 0x00 , 0x00 , 0x08 , 0x00 , 0x10 , 0x00 , 0x00 , 0x40 , 0x08 , 0x00 , 0x04 
+, 0xB3 , 0x33 , 0x0C , 0xE4 , 0x8A , 0x64 , 0x99 , 0x86 , 0x63 , 0x6C , 0xDC 
+, 0x00 , 0x07 , 0x24 , 0xC4 , 0x02 , 0x95 , 0x0C , 0x95 , 0x12 , 0x44 , 0x94 
+, 0x42 , 0x88 , 0x00 , 0x04 , 0x27 , 0x33 , 0x0E , 0x92 , 0x0C , 0xE2 , 0x12 
+, 0x44 , 0xF3 , 0x4E , 0x88 , 0x00 , 0x04 , 0x24 , 0x08 , 0x92 , 0x92 , 0x0A 
+, 0x82 , 0x12 , 0x44 , 0x81 , 0x4A , 0x88 , 0x00 , 0x04 , 0x23 , 0x33 , 0x0E 
+, 0x94 , 0x0A , 0x64 , 0x09 , 0x84 , 0x66 , 0x26 , 0x84 , 0x00  };
+
 
 #ifdef JOYSTICK_DIALOG
 
@@ -656,20 +696,30 @@ char gameover[] = {
 int stick;
 int a,i,j;
 int direction;
+
+// Cannon position
 int x;
-int aliens;
-int score, lives;
+
+// Alien troops position
 int xc,yc;
+// Torpedo position,  yt is zero when not fired.
 int xt,yt;
 
+// Temp storage to display the player's score
 char scoretxt[7];
+// Score,lives and kill count
+int score, lives, aliens;
 
+// The 4 alien waves
 int a1[8];
 int a2[8];
 int a3[8];
 int a4[8];
 
+// Animation counter
 int phase;
+
+// Alien troops position
 int y_bias, alien_x, alien_y;
 
 
@@ -739,7 +789,8 @@ int main ()
   srand((int)clock());
 
 
-
+//  Entry for New Game
+new_game:
 
  /****  JOYSTICK CHOICE AND TITLE PICTURES  ****/
 
@@ -774,6 +825,7 @@ int main ()
       printf("%u - %s\n",x+1,joystick_type[x]);
         
   stick=0;
+
   while ((stick<1) || (stick>GAME_DEVICES))
       stick=getk()-48;
 #else
@@ -789,8 +841,8 @@ int main ()
   lives=MAXLIVES;
 
 
-//  New alien wave
 restart:
+ /****  NEW ALIEN WAVE  ****/
 
 // Init the alien rows, they are all alive at the beginning
 // intermediate values are for animating their death (0=dead)
@@ -807,7 +859,7 @@ restart:
   showscore();
   aliens=32;  // Number of aliens still alive
   x=90;   // Initial cannon position
-  xc=0;   // Initial alien troop position
+  xc=0;   // Initial alien troops position
   yt=0;   // Our hero's bullet is not fired yet
 
 
@@ -815,7 +867,7 @@ restart:
 
   direction = 2;  // Alien troops direcion (-2=left, +2=right)
   alien_x = alien_y = 0;
-  y_bias = 8;	// Used to determine which alien was hit basing on its position
+  y_bias = 0;	// Used to determine which alien was hit basing on its position
   
   showlives();
 
@@ -847,11 +899,13 @@ restart:
   do {
 
 
-// DRAW ALIEN TROOPS
+// DRAW THE ALIEN TROOPS
 
 	  switch (yc) {
 		  case 3:
 			if (a1[xc]) {
+			  // spr_and would cover spr_or if it uses the "(i+phase+1)" shift expression
+			  // by the way, clga which is normally faster
 			  //putsprite (spr_and, alien_x + xc*25, alien_y+30, alien1 +50*((i+phase)%3));
 			  if ((alien_x==56) || (! alien_x))  // Is the alien troop stepping closer to the bottom ?
 				clga(alien_x + xc*25, alien_y+20, 24, 16);
@@ -859,7 +913,7 @@ restart:
 				clga(alien_x + xc*25, alien_y+30, 24, 16);
 
 			  if (a1[xc] == 6)
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, alien1 +50*((i+phase+1)%3));
+				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, alien1 +50*((xc+phase)%3));
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, death1 +50*(5- (--a1[xc])) );
 			  if (! a1[xc]) { aliens--; score +=50; showscore(); }
@@ -874,7 +928,7 @@ restart:
 				clga(alien_x + xc*25, alien_y+50, 24, 16);
 
 			  if (a2[xc] == 6)
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, alien2 +50*((i+phase+1)%3));
+				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, alien2 +50*((xc+phase)%3));
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, death2 +50*(5- (--a2[xc])) );
 			  if (! a2[xc]) { aliens--; score +=45; showscore(); }
@@ -889,7 +943,7 @@ restart:
 				clga(alien_x + xc*25, alien_y+70, 24, 16);
 
 			  if (a3[xc] == 6)
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, alien3 +50*((i+phase+1)%3));
+				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, alien3 +50*((xc+phase)%3));
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, death3 +50*(5- (--a3[xc])) );
 			  if (! a3[xc]) { aliens--; score +=20; showscore(); }
@@ -904,7 +958,7 @@ restart:
 			    clga(alien_x + xc*25, alien_y+90, 24, 16);
 
 			  if (a4[xc] == 6)
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, alien4 +50*((i+phase+1)%3));
+				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, alien4 +50*((xc+phase)%3));
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, death4 +50*(5- (--a4[xc])) );
 			  if (! a4[xc]) { aliens--; score +=15; showscore(); }
@@ -949,28 +1003,44 @@ phase++;
 // IF CANNON FIRED, MOVE BULLET
       if (yt) {
 		putsprite (spr_and, xt, yt, torpedo+6*(yt & 1));
-		  yt--;
+		yt--;
+#ifdef SOUND
+		bit_click();
+#endif
 
 // IF AN ALIEN WAS HIT, BEGIN ITS DEATH
 		//if (point(xt,yt)) {
 		if (multipoint(0,2,xt,yt)) {
 		  xt++;
 		  a=((xt-alien_x)/25);
-		  switch ((yt+alien_y-y_bias)/20) {
+		  switch ((yt-alien_y-8)/20) {
 			case 4:
 			    if (a4[a] == 6)
 				  a4[a]--;
+#ifdef SOUND
+				  bit_beep(6,550);
+#endif
+
 				break;
 			case 3:
 			    if (a3[a] == 6)
+#ifdef SOUND
+				  bit_beep(6,450);
+#endif
 				  a3[a]--;
 				break;
 			case 2:
 			    if (a2[a] == 6)
+#ifdef SOUND
+				  bit_beep(6,350);
+#endif
 				  a2[a]--;
 				break;
 			case 1:
 			    if (a1[a] == 6)
+#ifdef SOUND
+				  bit_beep(6,250);
+#endif
 				  a1[a]--;
 				break;		    
 		  }
@@ -985,7 +1055,7 @@ phase++;
 	  }
 
 
-// MOVE CANNON
+// MOVE CANNON (slow it down a little when we have few aliens left)
       if ((((aliens+3)/4)-xc)>0)
 	    move_cannon();
 
@@ -1018,7 +1088,13 @@ phase++;
 		// Now flash the "Game Over" message for a bit..
 		for (a=0; a<12000; a++)
 		  if ((a % 128) == 0) putsprite (spr_xor, 96, 80, gameover);
-		return(score);
+	  
+		//return(score);
+		clga (76, 48, 101, 34);
+		putsprite (spr_or, 78, 50, restart_msg);
+		while (getk()) {};
+		while (!getk()) {};
+		goto new_game;
 	  }
 
 
@@ -1029,6 +1105,7 @@ phase++;
 
   // LEVEL FINISHED !!
   score += 500;
+  lives++;
   goto restart;
 }
 
