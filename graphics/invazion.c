@@ -909,11 +909,18 @@ restart:
   do {
 
 
-// MOVE THE ALIEN BOMBS
+// MOVE THE ALIEN BOMBS (WHEN BEING DROPPED)
 
 	  if (by[xc]) {
+			  
 		  //clga(bx[xc], by[xc], 4, 4);
 		  putsprite(spr_and, bx[xc], by[xc], bullet);
+		  // THE ALIEN BOMBS SEEK FOR THE CANNON :)
+		  if (!(rand()&1)) {
+			  if (bx[xc] > (x+10)) bx[xc]--;
+			  if (bx[xc] < (x+10)) bx[xc]++;
+		  }
+		  
 		  by[xc]+=4;
 		  if (by[xc] > 182) {
 			  if (multipoint(0,4,bx[xc]-1,by[xc]+4)) {
@@ -930,6 +937,8 @@ restart:
 		  putsprite(spr_or, bx[xc], by[xc], bullet);
 	  }
   
+      
+
 
 // DRAW THE ALIEN TROOPS
 
@@ -948,7 +957,7 @@ restart:
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, alien1 +50*((xc+phase)%3));
 				if ((!(rand()&15))&& (!by[xc])) {
 					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+30;
+					by[xc]=alien_y+40;
 				}
 			  }
 			  else
@@ -968,7 +977,7 @@ restart:
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, alien2 +50*((xc+phase)%3));
 				if ((!(rand()&15))&& (!by[xc])) {
 					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+50;
+					by[xc]=alien_y+60;
 				}
 			  }
 			  else
@@ -988,7 +997,7 @@ restart:
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, alien3 +50*((xc+phase)%3));
 				if ((!(rand()&15))&& (!by[xc])) {
 					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+70;
+					by[xc]=alien_y+80;
 				}
 			  }
 			  else
@@ -1008,7 +1017,7 @@ restart:
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, alien4 +50*((xc+phase)%3));
 				if ((!(rand()&15))&& (!by[xc])) {
 					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+90;
+					by[xc]=alien_y+100;
 				}
 			  }
 			  else
@@ -1060,12 +1069,16 @@ phase++;
 		bit_click();
 #endif
 
+
 // IF AN ALIEN WAS HIT, BEGIN ITS DEATH
 		//if (point(xt,yt)) {
 		if (multipoint(0,2,xt,yt)) {
 		  xt++;
 		  a=((xt-alien_x)/25);
-		  switch ((yt-alien_y-8)/20) {
+		  b=(yt-alien_y-8)/20;
+
+		  switch (b) {
+
 			case 4:
 			    if (a4[a] == 6)
 				  a4[a]--;
@@ -1074,6 +1087,7 @@ phase++;
 #endif
 
 				break;
+
 			case 3:
 			    if (a3[a] == 6)
 #ifdef SOUND
@@ -1081,6 +1095,7 @@ phase++;
 #endif
 				  a3[a]--;
 				break;
+
 			case 2:
 			    if (a2[a] == 6)
 #ifdef SOUND
@@ -1088,13 +1103,14 @@ phase++;
 #endif
 				  a2[a]--;
 				break;
+
 			case 1:
 			    if (a1[a] == 6)
 #ifdef SOUND
 				  bit_beep(6,250);
 #endif
 				  a1[a]--;
-				break;		    
+				break;
 		  }
 		  yt=0;
 		}
