@@ -626,6 +626,12 @@ char cannon[] = { 22, 11, 0x00 , 0x30 , 0x00 , 0x00 , 0x78 , 0x00 , 0x00 , 0x30 
 , 0x00 , 0x30 , 0x67 , 0x4B , 0x98 , 0xC0 , 0x00 , 0x0C , 0x7F , 0xFF , 0xF8 
  };
 
+char explosion[] = { 22, 11, 0x00 , 0x88 , 0x80 , 0x60 , 0x89 , 0x80 , 0x10 , 0x10 , 0x00 , 0x09 , 0x21 
+, 0x38 , 0x00 , 0x88 , 0x00 , 0x69 , 0x44 , 0x00 , 0x00 , 0x14 , 0xBC , 0x06 
+, 0x40 , 0x00 , 0x1C , 0x49 , 0x80 , 0x20 , 0x84 , 0xC0 , 0x00 , 0x80 , 0x00 
+ };
+
+char shp[] = { 3, 3, 0xE0 , 0xE0 , 0xE0 };
 
 char bullet[] = { 4, 4, 0x60 , 0xB0 , 0xE0 , 0x40 };
 
@@ -716,6 +722,10 @@ int a2[8];
 int a3[8];
 int a4[8];
 
+int bx[8];
+int by[8];
+
+
 // Animation counter
 int phase;
 
@@ -746,9 +756,9 @@ void showlives ()
 {
   for (i=0; i<MAXLIVES; i++) {
     if (lives>i)
-      putsprite (spr_or, 6+i*6, 2, bullet);
+      putsprite (spr_or, 6+i*6, 2, shp);
     else
-      putsprite (spr_and, 6+i*6, 2, bullet);
+      putsprite (spr_and, 6+i*6, 2, shp);
   }
 }
 
@@ -851,6 +861,9 @@ restart:
 	a2[i]=6;
 	a3[i]=6;
 	a4[i]=6;
+	
+	bx[i]=0;
+	by[i]=0;
   }
 
   clg();
@@ -860,7 +873,7 @@ restart:
   aliens=32;  // Number of aliens still alive
   x=90;   // Initial cannon position
   xc=0;   // Initial alien troops position
-  yt=0;   // Our hero's bullet is not fired yet
+  yt=0;   // Our hero's torpedo is not fired yet
 
 
  /****  MATCH INITIALIZATION  ****/
@@ -876,15 +889,12 @@ restart:
 
 #ifdef SOUND
 
+
   bit_synth (60,200,201,40,41);
+  bit_synth (30,160,161,50,51);
+  bit_synth (60,200,201,30,31);
   bit_synth (30,160,161,50,51);
   bit_fx(6);
-  bit_synth (60,200,201,40,41);
-  bit_synth (30,160,161,50,51);
-  bit_fx(6);
-  bit_synth (60,200,201,40,41);
-  bit_synth (30,160,161,50,51);
-  bit_synth (255,100,100,25,25);
 
 #endif
 
@@ -899,6 +909,28 @@ restart:
   do {
 
 
+// MOVE THE ALIEN BOMBS
+
+	  if (by[xc]) {
+		  //clga(bx[xc], by[xc], 4, 4);
+		  putsprite(spr_and, bx[xc], by[xc], bullet);
+		  by[xc]+=4;
+		  if (by[xc] > 182) {
+			  if (multipoint(0,4,bx[xc]-1,by[xc]+4)) {
+				  putsprite (spr_xor, x, 180, explosion);
+#ifdef SOUND
+				  bit_fx(3);
+#endif
+				  lives--;
+				  showlives();
+				  putsprite (spr_xor, x, 180, explosion);
+			  }
+			  by[xc]=0;
+		  } else
+		  putsprite(spr_or, bx[xc], by[xc], bullet);
+	  }
+  
+
 // DRAW THE ALIEN TROOPS
 
 	  switch (yc) {
@@ -912,8 +944,13 @@ restart:
 			  else
 				clga(alien_x + xc*25, alien_y+30, 24, 16);
 
-			  if (a1[xc] == 6)
+			  if (a1[xc] == 6) {
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, alien1 +50*((xc+phase)%3));
+				if ((!(rand()&15))&& (!by[xc])) {
+					bx[xc]=alien_x + xc*25+10;
+					by[xc]=alien_y+30;
+				}
+			  }
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, death1 +50*(5- (--a1[xc])) );
 			  if (! a1[xc]) { aliens--; score +=50; showscore(); }
@@ -927,8 +964,13 @@ restart:
 			  else
 				clga(alien_x + xc*25, alien_y+50, 24, 16);
 
-			  if (a2[xc] == 6)
+			  if (a2[xc] == 6) {
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, alien2 +50*((xc+phase)%3));
+				if ((!(rand()&15))&& (!by[xc])) {
+					bx[xc]=alien_x + xc*25+10;
+					by[xc]=alien_y+50;
+				}
+			  }
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, death2 +50*(5- (--a2[xc])) );
 			  if (! a2[xc]) { aliens--; score +=45; showscore(); }
@@ -942,8 +984,13 @@ restart:
 			  else
 				clga(alien_x + xc*25, alien_y+70, 24, 16);
 
-			  if (a3[xc] == 6)
+			  if (a3[xc] == 6) {
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, alien3 +50*((xc+phase)%3));
+				if ((!(rand()&15))&& (!by[xc])) {
+					bx[xc]=alien_x + xc*25+10;
+					by[xc]=alien_y+70;
+				}
+			  }
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, death3 +50*(5- (--a3[xc])) );
 			  if (! a3[xc]) { aliens--; score +=20; showscore(); }
@@ -957,8 +1004,13 @@ restart:
 			  else
 			    clga(alien_x + xc*25, alien_y+90, 24, 16);
 
-			  if (a4[xc] == 6)
+			  if (a4[xc] == 6) {
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, alien4 +50*((xc+phase)%3));
+				if ((!(rand()&15))&& (!by[xc])) {
+					bx[xc]=alien_x + xc*25+10;
+					by[xc]=alien_y+90;
+				}
+			  }
 			  else
 				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, death4 +50*(5- (--a4[xc])) );
 			  if (! a4[xc]) { aliens--; score +=15; showscore(); }
@@ -1000,7 +1052,7 @@ phase++;
 
 
 
-// IF CANNON FIRED, MOVE BULLET
+// IF CANNON FIRED, MOVE TORPEDO
       if (yt) {
 		putsprite (spr_and, xt, yt, torpedo+6*(yt & 1));
 		yt--;
@@ -1086,12 +1138,12 @@ phase++;
 		}
 #endif
 		// Now flash the "Game Over" message for a bit..
-		for (a=0; a<12000; a++)
+		for (a=0; a<22000; a++)
 		  if ((a % 128) == 0) putsprite (spr_xor, 96, 80, gameover);
 	  
 		//return(score);
-		clga (76, 48, 101, 34);
-		putsprite (spr_or, 78, 50, restart_msg);
+		clga (73, 52, 104, 36);
+		putsprite (spr_or, 78, 55, restart_msg);
 		while (getk()) {};
 		while (!getk()) {};
 		goto new_game;
