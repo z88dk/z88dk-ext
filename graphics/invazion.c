@@ -8,6 +8,8 @@
         ==============
         ZX 48K
         zcc +zx -lndos -create-app -DSOUND -DJOYSTICK_DIALOG -pragma-redirect:CRT_FONT=_font_8x8_clairsys_bold invazion.c
+        (full packaging, with title screen and turbo loader)
+        zcc +zx -lndos -create-app -DSOUND -DJOYSTICK_DIALOG -pragma-redirect:CRT_FONT=_font_8x8_clairsys_bold invazion.c -Cz--screen -Czinvaders.scr -Cz--extreme
 
         MSX  (Way too slow, but works)
         zcc +msx -lndos -create-app -DSOUND -DJOYSTICK_DIALOG -subtype=rom -clib=ansi -DNODELAY invazion.c
@@ -471,7 +473,7 @@ char death1[] = {
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
-	24, 16, 0x00 , 0x00 , 0x00 , 0x1F , 0xC3 , 0xF8 , 0x35 , 0x66 , 0xAC , 0x28 , 0xBD 
+    24, 16, 0x00 , 0x00 , 0x00 , 0x1F , 0xC3 , 0xF8 , 0x35 , 0x66 , 0xAC , 0x28 , 0xBD 
 , 0x14 , 0x30 , 0x5A , 0x0C , 0x68 , 0xBD , 0x16 , 0x55 , 0xDB , 0xAA , 0x6B 
 , 0xFF , 0xD6 , 0x37 , 0x7E , 0xEC , 0x1E , 0xA5 , 0x78 , 0x0B , 0x42 , 0xD0 
 , 0x0D , 0x99 , 0xB0 , 0x30 , 0x24 , 0x0C , 0x28 , 0x00 , 0x14 , 0x00 , 0x00 
@@ -499,7 +501,7 @@ char death2[] = {
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
-	24, 16, 0x00 , 0x00 , 0x00 , 0x70 , 0x1C , 0x0E , 0x6D , 0x81 , 0xBE , 0x52 , 0x24 
+    24, 16, 0x00 , 0x00 , 0x00 , 0x70 , 0x1C , 0x0E , 0x6D , 0x81 , 0xBE , 0x52 , 0x24 
 , 0x4A , 0x49 , 0x00 , 0x92 , 0x24 , 0x24 , 0x24 , 0x12 , 0x14 , 0x48 , 0x09 
 , 0x08 , 0x90 , 0x07 , 0x81 , 0xA0 , 0x00 , 0x42 , 0x40 , 0x00 , 0x3E , 0x00 
 , 0x00 , 0xC3 , 0x00 , 0x03 , 0x00 , 0xC0 , 0x01 , 0x00 , 0x80 , 0x00 , 0x00 
@@ -527,7 +529,7 @@ char death3[] = {
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
-	24, 16, 0x00 , 0x00 , 0x00 , 0x01 , 0xC3 , 0x80 , 0x07 , 0xE7 , 0xE0 , 0x0E , 0x3C 
+    24, 16, 0x00 , 0x00 , 0x00 , 0x01 , 0xC3 , 0x80 , 0x07 , 0xE7 , 0xE0 , 0x0E , 0x3C 
 , 0x70 , 0x1C , 0x18 , 0x38 , 0x38 , 0x24 , 0x1C , 0x70 , 0x7E , 0x0E , 0x60 
 , 0xC3 , 0x06 , 0x77 , 0x99 , 0xEE , 0x3F , 0x7E , 0xFC , 0x33 , 0x42 , 0xCC 
 , 0x19 , 0xC3 , 0x98 , 0x0C , 0x00 , 0x30 , 0x0A , 0x00 , 0x50 , 0x00 , 0x00 
@@ -555,7 +557,7 @@ char death4[] = {
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
  0,  0, 0, 0, 0, 0, 0, 0, 0, 0,
-	24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x7E , 0x00 , 0x01 , 0xE3 , 0xC0 , 0x07 , 0x00 
+    24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x7E , 0x00 , 0x01 , 0xE3 , 0xC0 , 0x07 , 0x00 
 , 0x70 , 0x1C , 0x00 , 0x18 , 0x30 , 0x82 , 0x0C , 0x61 , 0x01 , 0x06 , 0x61 
 , 0x01 , 0x06 , 0x30 , 0x00 , 0x0C , 0x18 , 0x00 , 0x18 , 0x08 , 0x00 , 0x10 
 , 0x0E , 0x00 , 0x60 , 0x19 , 0x81 , 0x98 , 0x10 , 0x7E , 0x08 , 0x00 , 0x00 
@@ -585,16 +587,6 @@ char spaceship[] = { 24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x3C , 0x00 , 0x00 , 0x
 , 0x00 , 0x07 , 0xE7 , 0xE0 , 0x1F , 0xFF , 0xF8 , 0x3A , 0xEB , 0xAC , 0x75 
 , 0x55 , 0x56 , 0x7A , 0xEB , 0xAE , 0x7F , 0xFF , 0xFE , 0x3B , 0x6D , 0xBC 
 , 0x1F , 0xFF , 0xF8 , 0x05 , 0x81 , 0xA0 , 0x03 , 0x00 , 0xC0 , 0x00 , 0x00 
-, 0x00 , 0x00 , 0x00 , 0x00 ,
-                     24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x18 , 0x00 , 0x00 , 0x24 , 0x00 , 0x00 , 0x66 
-, 0x00 , 0x07 , 0xFF , 0xE0 , 0x1F , 0xFF , 0xF8 , 0x35 , 0xD7 , 0x5C , 0x6A 
-, 0xAA , 0xAE , 0x75 , 0xD7 , 0x5E , 0x7F , 0xFF , 0xFE , 0x3D , 0xB6 , 0xDC 
-, 0x1F , 0xFF , 0xF8 , 0x05 , 0x81 , 0xA0 , 0x03 , 0x00 , 0xC0 , 0x00 , 0x00 
-, 0x00 , 0x00 , 0x00 , 0x00 ,
-                     24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x18 , 0x00 , 0x00 , 0x24 
-, 0x00 , 0x07 , 0xE7 , 0xE0 , 0x1F , 0xFF , 0xF8 , 0x3A , 0xEB , 0xAC , 0x75 
-, 0x55 , 0x56 , 0x7A , 0xEB , 0xAE , 0x7F , 0xFF , 0xFE , 0x3E , 0xDB , 0x6C 
-, 0x1F , 0xFF , 0xF8 , 0x05 , 0x81 , 0xA0 , 0x03 , 0x00 , 0xC0 , 0x00 , 0x00 
 , 0x00 , 0x00 , 0x00 , 0x00  };
 
 char death_ship[] = { 24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x18 , 0x00 , 0x00 , 0x24 , 0x00 , 0x00 , 0x66 
@@ -617,6 +609,16 @@ char death_ship[] = { 24, 16, 0x00 , 0x00 , 0x00 , 0x00 , 0x18 , 0x00 , 0x00 , 0
 , 0x05 , 0xC0 , 0x0E , 0x01 , 0x40 , 0x04 , 0x00 , 0x80 , 0x00 , 0x00 , 0x00 
 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
 , 0x00 , 0x00 , 0x00 , 0x00  };
+
+
+// Extra graphics used to mark the first alien reaching the ground
+
+char landed[] = { 24, 20, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
+, 0x00 , 0x03 , 0xE7 , 0xC0 , 0x00 , 0x00 , 0x00 , 0x1F , 0xC3 , 0xF8 , 0x00 
+, 0x00 , 0x00 , 0xFF , 0x00 , 0xFF  };
 
 
 // Our hero's stuff
@@ -706,7 +708,10 @@ int direction;
 // Cannon position
 int x;
 
-// Alien troops position
+// Spaceship position
+int sx;
+
+// Counters for the alien troops matrix
 int xc,yc;
 // Torpedo position,  yt is zero when not fired.
 int xt,yt;
@@ -732,6 +737,8 @@ int phase;
 // Alien troops position
 int y_bias, alien_x, alien_y;
 
+// Wave jump distance
+int alien_step;
 
  /*************************
          SHOW SCORE
@@ -768,18 +775,18 @@ void showlives ()
   *************************/
 void move_cannon ()
 {
-	  if (joystick(stick) & MOVE_RIGHT) {
-		//putsprite (spr_and, x, 180, cannon);
-		clga(x, 180, 22, 11);
-		if (x<232) x+=2;
-		putsprite (spr_or, x, 180, cannon);
-	  }
-	  if (joystick(stick) & MOVE_LEFT) {
-		//putsprite (spr_and, x, 180, cannon);
-		clga(x, 180, 22, 11);
-		if (x>0) x-=2;
-		putsprite (spr_or, x, 180, cannon);
-	  }
+      if (joystick(stick) & MOVE_RIGHT) {
+        //putsprite (spr_and, x, 180, cannon);
+        clga(x, 180, 22, 11);
+        if (x<232) x+=2;
+        putsprite (spr_or, x, 180, cannon);
+      }
+      if (joystick(stick) & MOVE_LEFT) {
+        //putsprite (spr_and, x, 180, cannon);
+        clga(x, 180, 22, 11);
+        if (x>0) x-=2;
+        putsprite (spr_or, x, 180, cannon);
+      }
 }
 
 
@@ -811,24 +818,24 @@ new_game:
   clg();
 
   switch (rand()%6) {
-	case 0:
-		putsprite (spr_or, 150, 0, picture0);
-		break;
-	case 1:
-		putsprite (spr_or, 150, 0, picture1);
-		break;
-	case 2:
-		putsprite (spr_or, 150, 0, picture2);
-		break;
-	case 3:
-		putsprite (spr_or, 150, 0, picture3);
-		break;
-	case 4:
-		putsprite (spr_or, 150, 0, picture4);
-		break;
-	case 5:
-		putsprite (spr_or, 150, 0, picture5);
-		break;
+    case 0:
+        putsprite (spr_or, 150, 0, picture0);
+        break;
+    case 1:
+        putsprite (spr_or, 150, 0, picture1);
+        break;
+    case 2:
+        putsprite (spr_or, 150, 0, picture2);
+        break;
+    case 3:
+        putsprite (spr_or, 150, 0, picture3);
+        break;
+    case 4:
+        putsprite (spr_or, 150, 0, picture4);
+        break;
+    case 5:
+        putsprite (spr_or, 150, 0, picture5);
+        break;
   }
 
   for (x=0 ; x!=GAME_DEVICES; x++)
@@ -849,6 +856,7 @@ new_game:
 
   score=0;   phase=0;
   lives=MAXLIVES;
+  alien_step = 10;
 
 
 restart:
@@ -857,13 +865,13 @@ restart:
 // Init the alien rows, they are all alive at the beginning
 // intermediate values are for animating their death (0=dead)
   for (i=0;i<8;i++) {
-	a1[i]=6;
-	a2[i]=6;
-	a3[i]=6;
-	a4[i]=6;
-	
-	bx[i]=0;
-	by[i]=0;
+    a1[i]=6;
+    a2[i]=6;
+    a3[i]=6;
+    a4[i]=6;
+    
+    bx[i]=0;
+    by[i]=0;
   }
 
   clg();
@@ -874,13 +882,14 @@ restart:
   x=90;   // Initial cannon position
   xc=0;   // Initial alien troops position
   yt=0;   // Our hero's torpedo is not fired yet
+  sx=0;   // Reset the 'occasional spaceship transit'
 
 
  /****  MATCH INITIALIZATION  ****/
 
   direction = 2;  // Alien troops direcion (-2=left, +2=right)
   alien_x = alien_y = 0;
-  y_bias = 0;	// Used to determine which alien was hit basing on its position
+  y_bias = 0;    // Used to determine which alien was hit basing on its position
   
   showlives();
 
@@ -902,7 +911,7 @@ restart:
   showlives();
 
   putsprite (spr_or, x, 180, cannon);
-	
+    
 
 /****  BEGIN MATCH  ****/
 
@@ -911,258 +920,333 @@ restart:
 
 // MOVE THE ALIEN BOMBS (WHEN BEING DROPPED)
 
-	  if (by[xc]) {
-			  
-		  //clga(bx[xc], by[xc], 4, 4);
-		  putsprite(spr_and, bx[xc], by[xc], bullet);
-		  // THE ALIEN BOMBS SEEK FOR THE CANNON :)
-		  if (!(rand()&1)) {
-			  if (bx[xc] > (x+10)) bx[xc]--;
-			  if (bx[xc] < (x+10)) bx[xc]++;
-		  }
-		  
-		  by[xc]+=4;
-		  if (by[xc] > 182) {
-			  if (multipoint(0,4,bx[xc]-1,by[xc]+4)) {
-				  putsprite (spr_xor, x, 180, explosion);
+      if (by[xc]) {
+              
+          //clga(bx[xc], by[xc], 4, 4);
+          putsprite(spr_and, bx[xc], by[xc], bullet);
+          // THE ALIEN BOMBS SEEK FOR THE CANNON :)
+          if (!(rand()&1)) {
+              if (bx[xc] > (x+10)) bx[xc]--;
+              if (bx[xc] < (x+10)) bx[xc]++;
+          }
+          
+          by[xc]+=4;
+          if (by[xc] > 182) {
+              if (multipoint(0,4,bx[xc]-1,by[xc]+4)) {
+                  putsprite (spr_xor, x, 180, explosion);
 #ifdef SOUND
-				  bit_fx(3);
+                  bit_fx(3);
 #endif
-				  lives--;
-				  showlives();
-				  putsprite (spr_xor, x, 180, explosion);
-			  }
-			  by[xc]=0;
-		  } else
-		  putsprite(spr_or, bx[xc], by[xc], bullet);
-	  }
-  
-      
+                  lives--;
+                  showlives();
+                  putsprite (spr_xor, x, 180, explosion);
+              }
+              by[xc]=0;
+          } else
+          putsprite(spr_or, bx[xc], by[xc], bullet);
+      }
+
+
 
 
 // DRAW THE ALIEN TROOPS
 
-	  switch (yc) {
-		  case 3:
-			if (a1[xc]) {
-			  // spr_and would cover spr_or if it uses the "(i+phase+1)" shift expression
-			  // by the way, clga which is normally faster
-			  //putsprite (spr_and, alien_x + xc*25, alien_y+30, alien1 +50*((i+phase)%3));
-			  if ((alien_x==56) || (! alien_x))  // Is the alien troop stepping closer to the bottom ?
-				clga(alien_x + xc*25, alien_y+20, 24, 16);
-			  else
-				clga(alien_x + xc*25, alien_y+30, 24, 16);
+      switch (yc) {
+          case 3:
+            if (a1[xc]) {
+              // spr_and would cover the picture previously created with spr_or if it uses the "(i+phase+1)" shift expression
+              // by the way, clga is normally faster
+              //putsprite (spr_and, alien_x + xc*25, alien_y+30, alien1 +50*((i+phase)%3));
+              if ((alien_x==56) || (! alien_x))  // Is the alien wave moving forward ?
+                clga(alien_x + xc*25, alien_y+30-alien_step, 24, 16);
+              else
+                clga(alien_x + xc*25, alien_y+30, 24, 16);
 
-			  if (a1[xc] == 6) {
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, alien1 +50*((xc+phase)%3));
-				if ((!(rand()&15))&& (!by[xc])) {
-					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+40;
-				}
-			  }
-			  else
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, death1 +50*(5- (--a1[xc])) );
-			  if (! a1[xc]) { aliens--; score +=50; showscore(); }
-			}
-			break;
+              if (a1[xc] == 6) {
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, alien1 +50*((xc+phase)%3));
+                if ((alien_y+30) >= 160) {
+                    lives=0;   // did the aliens land ?
+                    putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, landed);
+                }
+                if ((!(rand()&15))&& (!by[xc])) {    // Choose randomly whether it's time to drop a bomb
+                    bx[xc]=alien_x + xc*25+10;
+                    by[xc]=alien_y+40;
+                }
+              }
+              else
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+30, death1 +50*(5- (--a1[xc])) );
+              if (! a1[xc]) { aliens--; score +=50; showscore(); }
+            }
+            break;
 
-		  case 2:
-			if (a2[xc]) {
-			  if ((alien_x==56) || (! alien_x))  // Is the alien troop stepping closer to the bottom ?
-				clga(alien_x + xc*25, alien_y+40, 24, 16);
-			  else
-				clga(alien_x + xc*25, alien_y+50, 24, 16);
+          case 2:
+            if (a2[xc]) {
+              if ((alien_x==56) || (! alien_x))  // Is the alien wave moving forward ?
+                clga(alien_x + xc*25, alien_y+50-alien_step, 24, 16);
+              else
+                clga(alien_x + xc*25, alien_y+50, 24, 16);
 
-			  if (a2[xc] == 6) {
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, alien2 +50*((xc+phase)%3));
-				if ((!(rand()&15))&& (!by[xc])) {
-					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+60;
-				}
-			  }
-			  else
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, death2 +50*(5- (--a2[xc])) );
-			  if (! a2[xc]) { aliens--; score +=45; showscore(); }
-			}
-			break;
+              if (a2[xc] == 6) {
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, alien2 +50*((xc+phase)%3));
+                if ((alien_y+50) >= 160) {
+                    lives=0;   // did the aliens land ?
+                    putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, landed);
+                }
+                if ((!(rand()&15))&& (!by[xc])) {    // Choose randomly whether it's time to drop a bomb
+                    bx[xc]=alien_x + xc*25+10;
+                    by[xc]=alien_y+60;
+                }
+              }
+              else
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+50, death2 +50*(5- (--a2[xc])) );
+              if (! a2[xc]) { aliens--; score +=45; showscore(); }
+            }
+            break;
 
-		  case 1:
-			if (a3[xc]) {
-			  if ((alien_x==56) || (! alien_x))  // Is the alien troop stepping closer to the bottom ?
-			    clga(alien_x + xc*25, alien_y+60, 24, 16);
-			  else
-				clga(alien_x + xc*25, alien_y+70, 24, 16);
+          case 1:
+            if (a3[xc]) {
+              if ((alien_x==56) || (! alien_x))  // Is the alien wave moving forward ?
+                clga(alien_x + xc*25, alien_y+70-alien_step, 24, 16);
+              else
+                clga(alien_x + xc*25, alien_y+70, 24, 16);
 
-			  if (a3[xc] == 6) {
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, alien3 +50*((xc+phase)%3));
-				if ((!(rand()&15))&& (!by[xc])) {
-					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+80;
-				}
-			  }
-			  else
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, death3 +50*(5- (--a3[xc])) );
-			  if (! a3[xc]) { aliens--; score +=20; showscore(); }
-			}
-			break;
+              if (a3[xc] == 6) {
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, alien3 +50*((xc+phase)%3));
+                if ((alien_y+70) >= 160) {
+                    lives=0;   // did the aliens land ?
+                    putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, landed);
+                }
+                if ((!(rand()&15))&& (!by[xc])) {    // Choose randomly whether it's time to drop a bomb
+                    bx[xc]=alien_x + xc*25+10;
+                    by[xc]=alien_y+80;
+                }
+              }
+              else
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+70, death3 +50*(5- (--a3[xc])) );
+              if (! a3[xc]) { aliens--; score +=20; showscore(); }
+            }
+            break;
 
-		  case 0:
-			if (a4[xc]) {
-			  if ((alien_x==56) || (! alien_x))  // Is the alien troop stepping closer to the bottom ?
-			    clga(alien_x + xc*25, alien_y+80, 24, 16);
-			  else
-			    clga(alien_x + xc*25, alien_y+90, 24, 16);
+          case 0:
+            if (a4[xc]) {
+              if ((alien_x==56) || (! alien_x))  // Is the alien wave moving forward ?
+                clga(alien_x + xc*25, alien_y+90-alien_step, 24, 16);
+              else
+                clga(alien_x + xc*25, alien_y+90, 24, 16);
 
-			  if (a4[xc] == 6) {
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, alien4 +50*((xc+phase)%3));
-				if ((!(rand()&15))&& (!by[xc])) {
-					bx[xc]=alien_x + xc*25+10;
-					by[xc]=alien_y+100;
-				}
-			  }
-			  else
-				putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, death4 +50*(5- (--a4[xc])) );
-			  if (! a4[xc]) { aliens--; score +=15; showscore(); }
-			}
-			break;
+              if (a4[xc] == 6) {
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, alien4 +50*((xc+phase)%3));
+                if ((alien_y+90) >= 160) {
+                    lives=0;   // did the aliens land ?
+                    putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, landed);
+                }
+                if ((!(rand()&15))&& (!by[xc])) {    // Choose randomly whether it's time to drop a bomb
+                    bx[xc]=alien_x + xc*25+10;
+                    by[xc]=alien_y+100;
+                }
+              }
+              else
+                putsprite (spr_or, alien_x+direction + xc*25, alien_y+90, death4 +50*(5- (--a4[xc])) );
+              if (! a4[xc]) { aliens--; score +=15; showscore(); }
+            }
+            break;
 
-	  }
+      }
 
 phase++;
 // ALIEN TROOPS MOVE (A SINGLE ALIEN PER TURN)
-	  if (xc++ == 7) {
-		xc=0;
-		if (yc++ == 4) {
-			yc=0;
-			alien_x+=direction;
+      if (xc++ == 7) {
+        xc=0;
+        if (yc++ == 4) {
+            yc=0;
+            alien_x+=direction;
 
-	// Have the aliens reached the right margin ?
-		  if (alien_x==56) {
-			  direction=-2;
-			  alien_y+=10;
-			  y_bias+=10;
-		  }
+    // Have the aliens reached the right margin ?
+          if (alien_x==56) {
+              direction=-2;
+              alien_y+=alien_step;
+              y_bias+=10;
+          }
 
-	// Keep the animation counter within a valid numeric range
-	//	  if (phase==3399) phase=1159;
+    // Keep the animation counter within a valid numeric range
+    //      if (phase==3399) phase=1159;
 
-	// Have the aliens reached the left margin ?
-		  if (alien_x==0) {
-			  direction=2;
-			  alien_y+=10;
-			  y_bias+=10;
-		  }
+    // Have the aliens reached the left margin ?
+          if (alien_x==0) {
+              direction=2;
+              alien_y+=alien_step;
+              y_bias+=10;
+          }
 
-		}
-	  }
-		  
-	  
-	  
+        }
+      }
+
+
 
 
 
 // IF CANNON FIRED, MOVE TORPEDO
       if (yt) {
-		putsprite (spr_and, xt, yt, torpedo+6*(yt & 1));
-		yt--;
+        putsprite (spr_and, xt, yt, torpedo+6*(yt & 1));
+        yt--;
 #ifdef SOUND
-		bit_click();
+        bit_click();
 #endif
 
 
 // IF AN ALIEN WAS HIT, BEGIN ITS DEATH
-		//if (point(xt,yt)) {
-		if (multipoint(0,2,xt,yt)) {
-		  xt++;
-		  a=((xt-alien_x)/25);
+        //if (point(xt,yt)) {
+        if (multipoint(0,2,xt,yt)) {
+          xt++;
+          a=((xt-alien_x)/25);
 
-		  switch ((yt-alien_y-8)/20) {
+          switch ((yt-alien_y-8)/20) {
 
-			case 4:
-			    if (a4[a] == 6)
-				  a4[a]--;
+            case 4:
+                if (a4[a] == 6) {
 #ifdef SOUND
-				  bit_beep(6,550);
+                  bit_beep(6,550);
+                  bit_beep(4,250);
 #endif
+                  a4[a]--;
+                }
 
-				break;
+                break;
 
-			case 3:
-			    if (a3[a] == 6)
+            case 3:
+                if (a3[a] == 6) {
 #ifdef SOUND
-				  bit_beep(6,450);
+                  bit_beep(6,450);
+                  bit_beep(4,250);
 #endif
-				  a3[a]--;
-				break;
+                  a3[a]--;
+                }
+                break;
 
-			case 2:
-			    if (a2[a] == 6)
+            case 2:
+                if (a2[a] == 6) {
 #ifdef SOUND
-				  bit_beep(6,350);
+                  bit_beep(6,350);
+                  bit_beep(4,250);
 #endif
-				  a2[a]--;
-				break;
+                  a2[a]--;
+                }
+                break;
 
-			case 1:
-			    if (a1[a] == 6)
+            case 1:
+                if (a1[a] == 6) {
 #ifdef SOUND
-				  bit_beep(6,250);
+                  bit_beep(6,250);
+                  bit_beep(4,150);
 #endif
-				  a1[a]--;
-				break;
-		  }
-		  yt=0;
-		}
-		putsprite (spr_or, xt, yt, torpedo+6*(yt & 1));
+                  a1[a]--;
+                }
+                break;
+          }
+          // WAS THE ALIEN SPACESHIP HIT ?
+          if ((yt>8) && (yt<25)) {
+              putsprite (spr_xor, xt, yt, explosion);
+#ifdef SOUND
+              bit_fx(4);
+#endif
+              putsprite (spr_xor, xt, yt, explosion);
+              clga (sx, 8, 24,16);
+              putsprite (spr_or, sx, 8, death_ship);
+#ifdef SOUND
+              bit_fx(4);
+#endif
+              clga (sx, 8, 24,16);
+              putsprite (spr_or, sx, 8, death_ship+50);
+#ifdef SOUND
+              bit_fx(4);
+#endif
+              clga (sx, 8, 24,16);
+              putsprite (spr_or, sx, 8, death_ship+100);
+#ifdef SOUND
+              bit_fx(4);
+#endif
+              clga (sx, 8, 24,16);
+              putsprite (spr_or, sx, 8, death_ship+150);
+#ifdef SOUND
+              bit_fx(4);
+#endif
+              clga (sx, 8, 24,16);
+
+              sx=0;
+              score += 2100;              
+              showscore();
+          }
+              
+          yt=0;
+        }
+        putsprite (spr_or, xt, yt, torpedo+6*(yt & 1));
       }
 
+// Stop torpedo when out of screen
       if (yt<8) {
-		  putsprite (spr_and, xt, yt, torpedo+6*(yt & 1));
-		  yt=0;
-	  }
+        putsprite (spr_and, xt, yt, torpedo+6*(yt & 1));
+        yt=0;
+      }
 
 
 // MOVE CANNON (slow it down a little when we have few aliens left)
       if ((((aliens+3)/4)-xc)>0)
-	    move_cannon();
+        move_cannon();
 
 
 // CANNON FIRES ?
-	  if ((yt==0) && (joystick(stick) & MOVE_FIRE)) {
-		xt=x+10;
-		yt=175;
-		putsprite (spr_or, xt, yt, torpedo+6*(yt & 1));
-	  }
+      if ((yt==0) && (joystick(stick) & MOVE_FIRE)) {
+        xt=x+10;
+        yt=175;
+        putsprite (spr_or, xt, yt, torpedo+6*(yt & 1));
+      }
 
 
+// Decide whether it's time for the alien spaceship to show up
+      //if (phase&4096) {
+      if (phase&2048) {
+        phase = 0;
+        sx = 230;
+      }
+      
+// MOVE THE ALIEN SPACESHIP
+      if ((phase&1)&&(sx>0)) {
+        clga (sx, 8, 24,16);
+        sx--;
+        putsprite (spr_or, sx, 8, spaceship);
+        if (!sx)
+            clga (sx, 8, 24,16);
+      }
+
+    
 
 // NO MORE LIVES ?  ->   GAME OVER
-	    if (lives==0) {
-		// Game Over, clear space for message
-		for (i=-2; i<3; i++) {
-		  for (j=-1; j<2; j++) {
-			putsprite (spr_and, 96+i, 80+j, gameover);
-		  }
-		}
-		// Print the "Game Over" message
-		putsprite (spr_or, 96, 80, gameover);
+        if (lives==0) {
+        // Game Over, clear space for message
+        for (i=-2; i<3; i++) {
+          for (j=-1; j<2; j++) {
+            putsprite (spr_and, 96+i, 80+j, gameover);
+          }
+        }
+        // Print the "Game Over" message
+        putsprite (spr_or, 96, 80, gameover);
 #ifdef SOUND
-		for (i=-2; i<3; i++) {
-		  bit_fx(1);
-		  bit_fx2(2);
-		}
+        for (i=-2; i<3; i++) {
+          bit_fx(1);
+          bit_fx2(2);
+        }
 #endif
-		// Now flash the "Game Over" message for a bit..
-		for (a=0; a<22000; a++)
-		  if ((a % 128) == 0) putsprite (spr_xor, 96, 80, gameover);
-	  
-		//return(score);
-		clga (73, 52, 104, 36);
-		putsprite (spr_or, 78, 55, restart_msg);
-		while (getk()) {};
-		while (!getk()) {};
-		goto new_game;
-	  }
+        // Now flash the "Game Over" message for a bit..
+        for (a=0; a<22000; a++)
+          if ((a % 128) == 0) putsprite (spr_xor, 96, 80, gameover);
+      
+        //return(score);
+        clga (73, 52, 104, 36);
+        putsprite (spr_or, 78, 55, restart_msg);
+        while (getk()) {};
+        while (!getk()) {};
+        goto new_game;
+      }
 
 
 
@@ -1171,8 +1255,9 @@ phase++;
 
 
   // LEVEL FINISHED !!
-  score += 500;
+  score += 2500;
   lives++;
+  if (alien_step<24) alien_step +=2;
   goto restart;
 }
 
