@@ -14,8 +14,6 @@
         MSX  (Way too slow, but works)
         zcc +msx -lndos -create-app -DSOUND -DJOYSTICK_DIALOG -subtype=rom -clib=ansi -DNODELAY invazion.c
 
-        ZX81 32K  (Even slower, but works)
-        zcc +zx81 -subtype=wrx -clib=ansi -create-app -DJOYSTICK_DIALOG invazion.c
 
 
         $Id: invazion.c $
@@ -798,12 +796,17 @@ void move_cannon ()
   *************************
   *************************/
 
+//#include <sys/ioctl.h>
+//int mode = 1;
+
 int main ()
 {
 
+//console_ioctl(IOCTL_GENCON_SET_MODE, &mode);
+
 //  Initialize random number generator.
 //  It is used to pick a random picture for the title screen.
-  srand((int)clock());
+  //srand((int)clock());
 
 
 //  Entry for New Game
@@ -843,8 +846,10 @@ new_game:
         
   stick=0;
 
-  while ((stick<1) || (stick>GAME_DEVICES))
+  while ((stick<1) || (stick>GAME_DEVICES)) {
+	  rand();
       stick=getk()-48;
+  }
 #else
   stick=1;
 #endif
