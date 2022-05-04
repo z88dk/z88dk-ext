@@ -1,0 +1,4 @@
+Screen pictures - ZX Spectrum format
+
+The sprite tool in z88dk is able to load the pictures and export them in "monochrome sprite" format.
+putsprite() will permit to make the pictures visible also on targets different than the ZX Spectrum
