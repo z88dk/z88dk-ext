@@ -1,0 +1,3 @@
+ZX Spectrum pictures in "SCREEN$" format.
+
+This format can be read with the z88dk's sprite tool and exported for being used with the portable putsprite() function.
