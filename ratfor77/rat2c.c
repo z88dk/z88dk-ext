@@ -4,12 +4,15 @@
    z88dk conversion
 
    to build:
-      zcc +cpm -create-app rat2c.c
+      zcc +cpm rat2c.c
    
    Original header follows
    NOTE: THIS VERSION IS NOT VALID FOR BDS C ANYMORE !
 
 */
+
+
+
 
 /* BDS C program to convert from RATFOR to C style comments
  * source:  rat2c.bds
