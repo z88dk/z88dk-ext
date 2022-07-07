@@ -17,10 +17,13 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "math.h"
-#define PI  (3.141592653589793)
-#define PI2 (6.283185307179586)
+//#define PI  (3.141592653589793)
+//#define PI2 (6.283185307179586)
+#define PI M_PI
+#define PI2 M_TWOPI
 #define NFMAX (128)  /* maximum filter length */
-#define EPS (1e-24)  /* small number */
+//#define EPS (1e-24)  /* small number */
+#define EPS FLT_EPSILON
 #define ITRMAX (25)  /* maximum number of iterations */
 #define NBMAX  (10)  /* maximum number of bands */
 
