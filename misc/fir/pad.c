@@ -47,7 +47,7 @@ while(chan1 == 0){
 i = 1;
 do{
    j = fscanf(chan,"%s",temp);
-   //if(j == 0){printf("Error reading %s\n",nam); exit(0);}
+   if(j == 0){printf("Error reading %s\n",nam); exit(0);}
    if(j == EOF || i > size) break;
    fprintf(chan1,"%s ",temp);
    if(!(i%6)){fprintf(chan1,"\r"); fprintf(chan1,"\n");}
