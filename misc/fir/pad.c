@@ -48,7 +48,7 @@ i = 1;
 do{
    j = fscanf(chan,"%s",temp);
 
-   if(j == 0) j = fscanf(chan,"%s",temp);	//  <--  fixing a z88dk bug
+   if(j == 0) j = fscanf(chan,"%s",temp);	//  <--  solve a possible problem with CR/LF
 
    if(j == 0) {printf("Error reading %s\n",nam); exit(0);}
    if(j == EOF || i > size) break;
