@@ -13,6 +13,10 @@
 
 //  zcc +cpm -create-app -lm -O3 rmezgoto.c
 
+//  Smaller version
+//  zcc +cpm -create-app -lm -O3 -DNOFILE -DOPTIMIZE  -custom-copt-rules rmez.opt rmezgoto.c
+
+
 
 #include "stdio.h"
 #include "stdlib.h"
@@ -34,6 +38,74 @@ double grid[16*(NFMAX/2+2)+1];
 double wt[16*(NFMAX/2+2)+1];
 double dev;
 double ad[(NFMAX/2+2)+1],x[(NFMAX/2+2)+1],y[(NFMAX/2+2)+1];
+
+
+#ifdef OPTIMIZE
+
+#undef putchar
+#define putchar fputc_cons
+
+#asm
+.rmez_opt1
+   pop bc
+   ld  (retadd+1),bc
+   add hl,sp
+;   inc hl
+;   inc hl
+   ld a,(hl+)
+   ld h,(hl)
+   ld l,a
+
+   ld	b,h
+   ld	c,l
+   add	hl,bc
+   add	hl,bc
+   add	hl,hl
+
+   pop	de
+   add	hl,de
+
+retadd:
+	jp 0
+
+;-------------------------
+
+.rmez_opt2
+   pop bc
+   ld  (retadd2+1),bc
+   add hl,sp
+;   inc hl
+;   inc hl
+   ld a,(hl+)
+   ld h,(hl)
+   ld l,a
+	
+   ex	de,hl
+   and	a
+   sbc	hl,de
+   ld	b,h
+   ld	c,l
+   add	hl,bc
+   add	hl,bc
+   add	hl,hl
+   pop	de
+   add	hl,de
+retadd2:
+	jp 0
+
+;-------------------------
+
+.rmez_opt3
+   inc	(hl)
+   ld	a,(hl)
+   inc	hl
+   jr	nz,ASMPC+3
+   inc	(hl)
+   ret
+
+#endasm
+
+#endif
 
 
 void rerror(char error_text[]) {
