@@ -74,11 +74,18 @@ void Initialize(void);
 //void ReportStatus(void);
 
 void Bar3DDemo(void);
+
+
 void PieDemo(void);
 void PutPixelDemo(void);
 void LineToDemo(void);
 void BarDemo(void);
+void LineRelDemo(void);
+void ArcDemo(void);
+void CircleDemo(void);
+
 void FillStyleDemo(void);
+
 void SayGoodbye(void);
 void Pause(void);
 void MainWindow(char *header);
@@ -96,13 +103,17 @@ int main()
 
   Initialize(); 		/* Set system into Graphics mode	*/
 //  ReportStatus();		/* Report results of the initialization */
+
   PutPixelDemo();
   Bar3DDemo();
   BarDemo();
-  
+  ArcDemo();
+  CircleDemo();
   PieDemo();
+  LineRelDemo();
   LineToDemo();
   FillStyleDemo();
+
   SayGoodbye(); 		/* Give user the closing screen 	*/
 
   closegraph(); 		/* Return the system to text mode	*/
@@ -281,7 +292,7 @@ radius = getmaxy()/3;
   x = xcenter + (int)( cos( radians ) * (double)lradius );
   y = ycenter - (int)( sin( radians ) * (double)lradius * AspectRatio );
   settextjustify( LEFT_TEXT, BOTTOM_TEXT );
-  outtextxy( x, y, "25 %" );
+  outtextxy( x+10, y, "25 %" );
 
   setfillstyle( WIDE_DOT_FILL, GREEN );
   pieslice( xcenter, ycenter, 90, 135, radius );
@@ -289,7 +300,7 @@ radius = getmaxy()/3;
   x = xcenter + (int)( cos( radians ) * (double)lradius );
   y = ycenter - (int)( sin( radians ) * (double)lradius * AspectRatio );
   settextjustify( RIGHT_TEXT, BOTTOM_TEXT );
-  outtextxy( x, y, "12.5 %" );
+  outtextxy( x-8, y, "12.5 %" );
 
   setfillstyle( INTERLEAVE_FILL, YELLOW );
   settextjustify( RIGHT_TEXT, CENTER_TEXT );
@@ -298,7 +309,7 @@ radius = getmaxy()/3;
   x = xcenter + (int)( cos( radians ) * (double)lradius );
   y = ycenter - (int)( sin( radians ) * (double)lradius * AspectRatio );
   settextjustify( RIGHT_TEXT, CENTER_TEXT );
-  outtextxy( x, y, "25 %" );
+  outtextxy( x-20, y, "25 %" );
 
   setfillstyle( HATCH_FILL, BLUE );
   pieslice( xcenter, ycenter, 225, 360, radius );
@@ -306,7 +317,7 @@ radius = getmaxy()/3;
   x = xcenter + (int)( cos( radians ) * (double)lradius );
   y = ycenter - (int)( sin( radians ) * (double)lradius * AspectRatio );
   settextjustify( LEFT_TEXT, TOP_TEXT );
-  outtextxy( x, y, "37.5 %" );
+  outtextxy( x-5, y, "37.5 %" );
 
   Pause();				/* Pause for user's response    */
 
@@ -465,7 +476,7 @@ void Bar3DDemo(void)
     outtextxy( 3, j-3, buffer );
     j -= ystep;
   }
-  line( h, getmaxy()-h, getmaxx()-h, getmaxy()-h );
+  //line( h, getmaxy()-h, getmaxx()-h, getmaxy()-h );
 
   j = h;
   settextjustify( CENTER_TEXT, TOP_TEXT );
@@ -618,3 +629,131 @@ void FillStyleDemo(void)
   Pause();				/* Wait for user's response     */
 
 }
+
+
+/*									*/
+/*	CIRCLEDEMO: Display a random pattern of circles on the screen	*/
+/*	until the user says enough.					*/
+/*									*/
+
+void CircleDemo(void)
+{
+  int mradius;				/* Maximum radius allowed	*/
+
+  MainWindow( "Circle Demonstration" );
+  StatusLine( "ESC Aborts - Press a Key to stop" );
+
+  mradius = MaxY / 10;			/* Determine the maximum radius */
+
+  while( getk() ){}
+  while( !getk() ){			/* Repeat until a key is hit	*/
+    setcolor( random( MaxColors - 1 ) + 1 );	/* Randomly select a color	*/
+    circle( random(MaxX), 10+random(MaxY-30), random(mradius) );
+  }					/* End of WHILE not KBHIT	*/
+
+  Pause();				/* Wait for user's response     */
+
+}
+
+/*									*/
+/*	ARCDEMO: Display a random pattern of arcs on the screen */
+/*	until the user says enough.					*/
+/*									*/
+
+void ArcDemo(void)
+{
+  int mradius;				/* Maximum radius allowed	*/
+  int eangle;				/* Random end angle of Arc	*/
+  //struct arccoordstype ai;		/* Used to read Arc Cord info	*/
+
+  MainWindow( "Arc Demonstration" );
+  StatusLine( "ESC Aborts - Press a Key to stop" );
+
+  mradius = MaxY / 10;			/* Determine the maximum radius */
+
+  setfillstyle( EMPTY_FILL, MaxColors-1);
+  
+
+  while( getk() ){}
+  while( !getk() ){			/* Repeat until a key is hit	*/
+    setcolor( random( MaxColors - 1 ) + 1 );	/* Randomly select a color	*/
+    eangle = random( 358 ) + 1; 	/* Select an end angle		*/
+	
+    arc( random(MaxX-mradius*2)+mradius, random(MaxY-mradius*2)+mradius, random(eangle), eangle, mradius );
+	//getarccoords( &ai );		/* Read Cord data		*/
+    //line( ai.x, ai.y, ai.xstart, ai.ystart ); /* line from start to center */
+    //line( ai.x, ai.y,	ai.xend,   ai.yend ); /* line from end to center   */
+	
+	
+	
+  }					/* End of WHILE not KBHIT	*/
+
+  Pause();				/* Wait for user's response     */
+
+}
+
+/*									*/
+/*	LINERELDEMO: Display pattern using moverel and linerel cmds.	*/
+/*									*/
+
+void LineRelDemo(void)
+{
+  //struct viewporttype vp;
+  int h, w, dx, dy, cx, cy;
+  struct PTS outs[7];
+
+
+  MainWindow( "MoveRel / LineRel Demonstration" );
+  //StatusLine( "Any key to continue, SPACE to Abort" );
+
+  //getviewsettings( &vp );
+  cx = getmaxx() / 2;	/* Center of the screen coords	*/
+  cy = getmaxy( ) / 2;
+
+  h  = cx / 8;
+  w  = cy / 9;
+
+  dx = 2 * w;
+  dy = 2 * h;
+
+  setcolor( BLACK );
+
+  setfillstyle( WIDE_DOT_FILL, BLUE );
+  bar( 0, 10, getmaxx(), getmaxy()-10 );	/* Draw backgnd */
+
+
+
+  /*	Draw a Tesseract object on the screen using the LineRel and	*/
+  /*	MoveRel drawing commands.					*/
+
+  moveto( cx-dx, cy-dy );
+  linerel(  w, -h );
+  linerel(  3*w,	0 );
+  linerel(   0,  5*h );
+  linerel( -w,	h );
+  linerel( -3*w,	0 );
+  linerel(   0, -5*h );
+
+  moverel( w, -h );
+  linerel(   0,  5*h );
+  linerel( w+(w/2), 0 );
+  linerel(   0, -3*h );
+  linerel( w/2,   -h );
+  linerel( 0, 5*h );
+
+  moverel(  0, -5*h );
+  linerel( -(w+(w/2)), 0 );
+  linerel( 0, 3*h );
+  linerel( -w/2, h );
+
+  moverel( w/2, -h );
+  linerel( w, 0 );
+
+  moverel( 0, -2*h );
+  linerel( -w, 0 );
+
+  Pause();				/* Wait for user's response     */
+
+}
+
+
