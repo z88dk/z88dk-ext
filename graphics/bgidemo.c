@@ -5,8 +5,12 @@
    ..reworked for z88dk in 2022
    
     zcc +zx -lndos -llib3d -lm -create-app bgidemo.c
+	zcc +zx81 -subtype=wrx -clib=wrx -llib3d -create-app -lm81 -O3 bgidemo.c
 */
 
+#ifdef __ZX81__
+#pragma output hrgpage = 36096
+#endif
 
 //#include <dos.h>
 #include <math.h>
@@ -73,16 +77,22 @@ struct palettetype palette;		/* Used to read palette info	*/
 void Initialize(void);
 //void ReportStatus(void);
 
+#ifndef __ZX81__
 void Bar3DDemo(void);
+#endif
 
 
 void PieDemo(void);
+#ifndef __ZX81__
 void PutPixelDemo(void);
+#endif
 void LineToDemo(void);
 void BarDemo(void);
+#ifndef __ZX81__
 void LineRelDemo(void);
 void ArcDemo(void);
 void CircleDemo(void);
+#endif
 
 void FillStyleDemo(void);
 
@@ -104,13 +114,21 @@ int main()
   Initialize(); 		/* Set system into Graphics mode	*/
 //  ReportStatus();		/* Report results of the initialization */
 
+#ifndef __ZX81__
   PutPixelDemo();
   Bar3DDemo();
+#endif
   BarDemo();
+
+#ifndef __ZX81__
   ArcDemo();
   CircleDemo();
+#endif
+
   PieDemo();
+#ifndef __ZX81__
   LineRelDemo();
+#endif
   LineToDemo();
   FillStyleDemo();
 
@@ -433,6 +451,7 @@ void StatusLine( char *msg )
 }
 
 
+#ifndef __ZX81__
 
 /*									*/
 /*	BAR3DDEMO: Display a 3-D bar chart on the screen.		*/
@@ -501,7 +520,6 @@ void Bar3DDemo(void)
 }
 
 
-
 /*									*/
 /*	PUTPIXELDEMO: Display a pattern of random dots on the screen	*/
 /*	and pick them back up again.					*/
@@ -541,6 +559,8 @@ void PutPixelDemo(void)
   Pause();				/* Wait for user's response     */
 
 }
+#endif
+
 
 
 /*									*/
@@ -631,6 +651,7 @@ void FillStyleDemo(void)
 }
 
 
+#ifndef __ZX81__
 /*									*/
 /*	CIRCLEDEMO: Display a random pattern of circles on the screen	*/
 /*	until the user says enough.					*/
@@ -641,7 +662,7 @@ void CircleDemo(void)
   int mradius;				/* Maximum radius allowed	*/
 
   MainWindow( "Circle Demonstration" );
-  StatusLine( "ESC Aborts - Press a Key to stop" );
+  StatusLine( "Press a Key to stop" );
 
   mradius = MaxY / 10;			/* Determine the maximum radius */
 
@@ -667,7 +688,7 @@ void ArcDemo(void)
   //struct arccoordstype ai;		/* Used to read Arc Cord info	*/
 
   MainWindow( "Arc Demonstration" );
-  StatusLine( "ESC Aborts - Press a Key to stop" );
+  StatusLine( "Press a Key to stop" );
 
   mradius = MaxY / 10;			/* Determine the maximum radius */
 
@@ -757,3 +778,4 @@ void LineRelDemo(void)
 }
 
 
+#endif
