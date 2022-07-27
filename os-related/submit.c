@@ -12,7 +12,13 @@
 /********************************************************/
 
 
-// Converted to z88dk by Stefano Bodrato in 2022
+// This program was originally written for a customized SMALL C variant, later known as MESCC
+// Such compiler had its own esoteric way to access the CP/M files
+// At the time the compiler was in turn built with BDS C v1.4
+// (which had its original way to deal with files, yet different !)
+
+// Adapted to z88dk by Stefano Bodrato in 2022
+
 // The original program was probably bigger but had the advantage to write
 // the final SUB file only after having completed it in memory.
 // This version deletes the intermediate file if an error occurs.
