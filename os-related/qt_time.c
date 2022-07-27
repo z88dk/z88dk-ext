@@ -3,7 +3,7 @@
 /*      copyright March ,1981 By Mike Bernson           */
 /*                                                      */
 /*      program used to set and display time on QT      */
-/*      s-100 clock calendar board                      */
+/*      S-100 clock calendar board                      */
 /*                                                      */
 /*      command format:                                 */
 /*      time [hh:mm:ss] [am,pm] [mm/dd/yy] [day]        */
@@ -11,7 +11,10 @@
 /********************************************************/
 
 
-// Ported to z88dk in 2002 by Stefano Bodrato - NOT TESTED !
+
+// This program was originally written for a customized SMALL C variant
+// for the CP/M systems, later known as MESCC
+// Adapted to z88dk in 2002 by Stefano Bodrato - NOT TESTED !
 
 // This tool was written to deal with the CompuTime/QT Clock Boards
 // The circuit was based on the OKI MSM5832 chip and could also produce
