@@ -13,10 +13,17 @@
 
 
 // Converted to z88dk by Stefano Bodrato in 2022
+// The original program was probably bigger but had the advantage to write
+// the final SUB file only after having completed it in memory.
+// This version deletes the intermediate file if an error occurs.
+// I tested the results on MAME, (NCR DecisionMate V)
+// and it seems to work as expected
+
 // zcc +cpm -create-app submit.c
 
 
 #include <stdio.h>
+#include <fcntl.h>
 #include <string.h>
 
 
@@ -170,6 +177,8 @@ error(char *msg)
         my_puts(msg);              /* print error message */
         my_puts(" at line ");      /* print "at line" */
         outdec(line);           /* print line number */
+		fclose(outfcb);
+		remove("A:$$$.SUB");
         exit() ;                /* end back to cpm */
         }
 
@@ -360,4 +369,5 @@ main(int argc, char *argv[])
                 //dooutput();
                 }
         }
+
 
