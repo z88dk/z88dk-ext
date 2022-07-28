@@ -1,7 +1,8 @@
 
 /*
  * Fractal tree
- * zcc +zx -lndos -create-app -lm fractal_tree.c
+ *
+ *  zcc +zx -lndos -create-app -lm fractal_tree.c
  */
 
 
@@ -16,15 +17,15 @@
 
 #define SCALE          50     // determines how quickly branches shrink (higher value means faster shrinking)
 #define BRANCHES       8    // number of branches
-#define INITIAL_LENGTH 20    // length of first branch
+#define INITIAL_LENGTH 24    // length of first branch
 
  
 double rand_fl(){
   return (double)rand() / (double)RAND_MAX;
 }
  
-void draw_tree(double offsetx, double offsety,
-               double directionx, double directiony, double size,
+void draw_tree(int offsetx, int offsety,
+               double directionx, double directiony, int size,
                double rotation, int depth) {
   draw(
       (int)offsetx, (int)offsety,
@@ -61,8 +62,8 @@ int main(){
   clg();
  
   draw_tree(
-      getmaxx() / 2.0,
-      getmaxy() - 10.0,
+      getmaxx() / 2,
+      getmaxy() - 10,
       0.0, -1.0,
       INITIAL_LENGTH,
       M_PI / 8,
