@@ -1,3 +1,12 @@
+/* Z88DK conversion, somewhat good also for building with gcc
+   Adapted by Stefano Bodrato Jul 2022
+   
+   zcc +cpm -create-app crypt.c
+   zcc +cpm -create-app -compiler=sdcc -SO3 --max-allocs-per-node400000 crypt.c
+*/
+
+//#pragma scanf "%s"
+
 /* last update 7 May 81
 
 CRYPT program by kathy bacon and neal somos
@@ -11,30 +20,30 @@ If you forget your keyword...well, sorry.
 CRYPT accepts command line arguments of three forms:
 
 	 INFILE
-	 INFILE>OUTFILE
-	 <KEYWORD
+	 INFILE,OUTFILE
+	 .KEYWORD
 
 If no output file is specified, the encrypted form of INFILE will be
 written out as INFILE.CRP ( if the input file has an extension of 
 ".CRP", however, it will be written out as TEMP.$$$ ).
-	In the second case, the ">" means that the output file name
+	In the second case, the "," means that the output file name
 will follow.
 	The key word itself can also be specified on the command line,
 which is useful if you want to use a submit file. Only one keyword per
 command line, however.
 	CRYPT will ask for the keyword if none is given; it will not
-be echoed to the console.
+be echoed to the console.x
 
 	:::::::::::::::::::::::::::::::::::::::::::
 
-NOTE!!!!!  There should be NO SPACES between a ">" and the filenames;
-	   nor between a "<" and its keyword.
+NOTE!!!!!  There should be NO SPACES between a "-" and the filenames;
+	   nor between a "!" and its keyword.
 
 	:::::::::::::::::::::::::::::::::::::::::::
 
 a sample call might therefore be:
 
-A>crypt  tomb.c  help.crp>help.c   <yippeezoop
+A>crypt  tomb.c  help.crp,help.c   .yippeezoop
 
 
 ************************************************************/
@@ -46,8 +55,8 @@ A>crypt  tomb.c  help.crp>help.c   <yippeezoop
 
 int debug;
 
-#define	KEYCHAR	'<'
-#define OUTCHAR '>'
+#define	KEYCHAR	'.'
+#define OUTCHAR ','
 #define READ	0
 #define	ERROR_EXIT	{ fclose(fd_in);	exit(0);	}
 #define NEWLINE	'\n'
@@ -73,10 +82,8 @@ int debug;
 as received. Assumes that "input" is big enough to handle input.
 Returns length of input string.
 ******************************************************************/
-int no_echo (input)
-char *input;
+int no_echo (char *input)
 {
-int c;
 char *cp;
 
 cp = input;
@@ -100,9 +107,7 @@ return (strlen(input));
 	get a seed for the ramnod number generator
 "seed" should be a 3-integer array
 *************************************************************/
-void get_seed (key, seed)
-char *key;
-int *seed;
+void get_seed (char *key, int *seed)
 {
 char *ptr;
 int i, length;
@@ -117,8 +122,7 @@ for (i=0; i< length/2; i++)
  returns index of t in s, ERROR if not found.  Thanx to Kernighan
  and Ritchie, p. 67
 *********************************************************************/
-int my_index (s, t)
-char *s, *t;
+int my_index (char *s, char *t)
 {
 int i, j, k;
 
@@ -131,10 +135,7 @@ for (i=0; s[i] != NUL; i++)
 return (ERROR);
 }
 
-
-int main(argc, argv)
-int argc;
-char **argv;
+void main(int argc, char **argv)
 {
 char filename[30], filecrypt[30], after[10];
 char key[100], t[100], argument[100];
@@ -142,9 +143,10 @@ char *comarg;
 char cryptbuf [8*SECSIZ];
 FILE *fd_in;
 FILE *fd_crypt;
-int i, j, k, l, len;
+int i, l, len;
 int seed[3];
 int keylen, fine, nread;
+int ssplit;
 
 debug = FALSE;
 if (argc == 1)	/* we'll change this later, so no snide remarks, neal */
@@ -204,9 +206,18 @@ while (--argc)
 		continue;
 	      }
 
+
 	setmem (filename, 30, NUL); setmem(filecrypt, 30, NUL);
-	if (ERROR != my_index (argument, ">"))
-	      sscanf (argument, "%s>%s", filename, filecrypt);
+	
+	//if (ERROR != my_index (argument, ","))
+	if (ERROR != (ssplit = my_index (argument, ","))) {
+	      //sscanf (argument, "%s,%s", filename, filecrypt);
+		*(argument+ssplit)='\0';
+		strcpy(filename,argument);
+		strcpy(filecrypt,argument+ssplit+1);
+		//*(argument+ssplit)=',';	 // re-join strings
+	}
+
 	else strcpy (filename, argument);
 
 	printf("\nNow processing file <%s>", filename);
@@ -217,7 +228,12 @@ while (--argc)
 	      }
 
 	if (filecrypt[0] == NUL)	/* outfile not specified */
-	      {	sscanf (filename, "%s.%s", filecrypt, after);
+	      {	//sscanf (filename, "%s.%s", filecrypt, after);
+		  	if (ERROR != (ssplit = my_index (filename, "."))) {
+				*(filename+ssplit)='\0';
+				strcpy(filecrypt,filename);
+				strcpy(after,filename+ssplit+1);
+			} else strcpy(filecrypt,filename);
 		if (OK == strcmp (after, "CRP"))
 			strcpy (filecrypt, "TEMP.$$$");
 		else strcat (filecrypt, ".CRP");
