@@ -77,6 +77,16 @@ int debug;
 #define OK 0		/* General purpose "no error" return value */
 
 
+
+// Customized puts, to avoid the final NEWLINE
+// outec() and my_puts() replace printf() and save a little bit of memory
+int my_puts(char *s) {
+	int i;
+    for (i = 0; s[i]; ++i)
+        fputc_cons (s[i]);
+}
+
+
 /*************************************************************
 	gets input from keyboard char by char, blanking out
 as received. Assumes that "input" is big enough to handle input.
@@ -167,22 +177,22 @@ for (i=1; i<argc; i++)		/* check for key */
 if (i == argc)			/* no key found on command line */
       {
 	while (1)	/* get 'key' for encrypting file */
-	      { puts ("\nkey ?     (no echo)\n");
+	      { my_puts ("\nkey ?     (no echo)\n");
 		if (0 != (keylen =no_echo (key)))
 		      { if DEBUG printf("\nthanks that was <%s>",key);
-			puts("\nplease retype for verification:\n");
+			my_puts("\nplease retype for verification:\n");
 			if (0 != (l = no_echo (t)))
 			      { if (OK != strcmp (key,t))
-				      { puts("\nthey aren't the same,");
-					puts(" so we'd better start over.\n");
+				      { my_puts("\nthey aren't the same,");
+					my_puts(" so we'd better start over.\n");
 					continue;	/* while (1) */
 				      }
-				else puts("\nkey verified.");
+				else my_puts("\nkey verified.");
 				break;	/* from while (1) */
 			      }
 		      }
 	
-		puts ("\nOK, be that way!");
+		my_puts ("\nOK, be that way!");
 		
 		exit(0);
 	
@@ -200,8 +210,8 @@ while (--argc)
 
 	len = strlen (argument);
 	if (argument[0]==OUTCHAR || argument[len-1]== OUTCHAR)	/* ERROR!!*/
-	      { puts("\n\nPROFOUND error:");
-	        puts ("\nNO spaces allowed around output specifier > ");
+	      { my_puts("\n\nPROFOUND error:");
+	        my_puts ("\nNO spaces allowed around output specifier > ");
 		printf("\n%s is illegal.", argument);
 		continue;
 	      }
@@ -280,7 +290,7 @@ while (--argc)
 	if (OK != fclose (fd_in))
 		printf("\nerror closing file <%s>", filename);
 	if (OK != fclose (fd_crypt))
-	      { puts ("\nerror closing temporary file");
+	      { my_puts ("\nerror closing temporary file");
 		exit(0);
 	      }
 	remove (filecrypt);
