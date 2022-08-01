@@ -21,7 +21,7 @@
 
 // The original program was probably bigger but had the advantage to write
 // the final SUB file only after having completed it in memory.
-// This version deletes the intermediate file if an error occurs.
+// This version deletes the intermediate file on exit, if an error occurs.
 // I tested the results on MAME, (NCR DecisionMate V)
 // and it seems to work as expected
 
@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 
 // exit() must force a warm boot to permit the SUBMIT trick to work
@@ -88,7 +89,7 @@ int getbuff()
 */
 int getbuff()
 {
-	return strupr(fgetc(infcb));
+	return toupper(fgetc(infcb));
 	}
 
 /********************************************************
