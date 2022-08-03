@@ -3,6 +3,10 @@
    
    zcc +cpm -create-app crypt.c
    zcc +cpm -create-app -compiler=sdcc -SO3 --max-allocs-per-node400000 crypt.c
+   zcc +cpm -create-app -DBDSC_COMPAT crypt.c
+   
+   gcc crypt.c
+
 */
 
 //#pragma scanf "%s"
@@ -55,10 +59,13 @@ A>crypt  tomb.c  help.crp,help.c   .yippeezoop
 
 int debug;
 
+FILE *fd_in;
+FILE *fd_crypt;
+
 #define	KEYCHAR	'.'
 #define OUTCHAR ','
 #define READ	0
-#define	ERROR_EXIT	{ fclose(fd_in);	exit(0);	}
+//#define	ERROR_EXIT	{ fclose(fd_in);	exit(0);	}
 #define NEWLINE	'\n'
 #define DEBUG 	(debug != 0)
 #define	BLANK	' '
@@ -78,14 +85,135 @@ int debug;
 
 
 
+#ifdef BDSC_COMPAT
+
+void nrand (int n, int a, int b, int c)
+{
+
+#asm
+	ld hl,9		;get n (1st arg)
+	add hl,sp
+	ld a,(hl)
+	cp 255	;was it -1 (set seed) ?
+	JP	NZ,nrand1
+	
+	pop de
+	pop hl
+	LD	(bdsc_seed+4),HL
+	pop hl
+	LD	(bdsc_seed+2),HL
+	pop hl
+	LD	(bdsc_seed),HL
+	push hl
+	push hl
+	push hl
+	push de	; ret addr
+	ret		;all done
+
+
+
+nrand1:
+	PUSH	BC
+	; (we remove the interactive "randomize", not necessary)
+
+nrand3:	LD	A,(bdsc_seed)	;now compute next random number. from this
+	OR	1	; point on, the code is that of Prof. Paul Gans
+	LD	(bdsc_seed),A	;lsb of SEED must be 1
+	
+	LD 	b,6	;clear 6 PROD bytes to 0
+	LD	HL,bdsc_prod
+randm1:	LD 	(HL),0
+	INC	HL
+	DEC	b
+	JP	NZ,randm1
+
+	LD	BC,6	;set byte counter
+randm2:	LD	HL,plier-1
+	ADD	HL,BC	;make addr of lsb of PLIER
+	LD 	a,(HL)	;PLIER byte
+	PUSH	BC	;save byte counter
+	LD 	b,8	;set bit counter
+
+randm3:	LD 	d,a	;save PLIER byte
+	LD	HL,bdsc_prod	;shift whole PROD left one bit
+	LD 	c,6
+	XOR	a
+randm4:	LD 	a,(HL)	;get byte	
+	RLA		;shift left
+	LD 	(HL),a	;put byte
+	INC	HL
+	DEC	c
+	JP	NZ,randm4
+
+	LD 	a,d	;recover PLIER byte
+	RLA		;look at current high bit
+	JP	NC,randm6	;0 means no add cycle
+
+	PUSH	AF	;add SEED to PROD
+	XOR	a
+	LD 	c,6
+	LD	HL,bdsc_prod
+	LD	DE,bdsc_seed
+randm5:	LD	A,(DE)
+	ADC	A,(HL)
+	LD 	(HL),a
+	INC	HL
+	INC	DE
+	DEC	c
+	JP	NZ,randm5
+	POP	AF
+
+randm6:	DEC	b	;test bit counter
+	JP	NZ,randm3	;go cycle more bits
+	POP	BC	;recover byte counter
+	DEC	c	;test it
+	JP	NZ,randm2	;go process more bytes
+
+	LD 	b,6	;complement PROD, add 1 to it,
+	LD	HL,bdsc_seed	;and transfer it to SEED.
+	LD	DE,bdsc_prod
+	XOR	a
+	CCF
+randm7:	LD	A,(DE)
+	CPL
+	ADC	A,0
+	LD 	(HL),a
+	INC	HL
+	INC	DE
+	DEC	b
+	JP	NZ,randm7
+
+	DEC	HL	;put the two high order bytes
+	LD 	a,(HL)	;into HL for return to C, not
+	AND	7fh	;neglecting to zero the high
+	LD 	h,a	;order bit so a positive int
+	LD	A,(bdsc_seed+4)	;is returned
+	LD 	l,a
+	POP	BC
+	ret
+
+plier:	DEFM	0c5h,87h,1
+	DEFM	0eh,9ah,0e0h	
+
+bdsc_seed:	DEFM	1,0,0,0,0,0
+
+bdsc_prod:	DEFM	0,0,0,0,0,0
+
+#endasm
+}
+
+#endif
+
+
 // Customized puts, to avoid the final NEWLINE
-// outec() and my_puts() replace printf() and save a little bit of memory
 int my_puts(char *s) {
 	int i;
     for (i = 0; s[i]; ++i)
-        fputc_cons (s[i]);
+        putchar (s[i]);
 }
 
+void ERROR_EXIT()
+{ fclose(fd_in);	exit(0);	}
 
 /*************************************************************
 	gets input from keyboard char by char, blanking out
@@ -145,18 +273,17 @@ for (i=0; s[i] != NUL; i++)
 return (ERROR);
 }
 
+int keylen, fine, nread;
+int seed[3];
+int ssplit;
+
 void main(int argc, char **argv)
 {
 char filename[30], filecrypt[30], after[10];
 char key[100], t[100], argument[100];
 char *comarg;
 char cryptbuf [8*SECSIZ];
-FILE *fd_in;
-FILE *fd_crypt;
-int i, l, len;
-int seed[3];
-int keylen, fine, nread;
-int ssplit;
+int i, l;
 
 debug = FALSE;
 if (argc == 1)	/* we'll change this later, so no snide remarks, neal */
@@ -208,10 +335,10 @@ while (--argc)
 	if (argument[0] == KEYCHAR)		/* key */
 		continue;
 
-	len = strlen (argument);
-	if (argument[0]==OUTCHAR || argument[len-1]== OUTCHAR)	/* ERROR!!*/
+	//len = strlen (argument);
+	if (argument[0]==OUTCHAR || argument[strlen (argument)-1]== OUTCHAR)	/* ERROR!!*/
 	      { my_puts("\n\nPROFOUND error:");
-	        my_puts ("\nNO spaces allowed around output specifier > ");
+	        my_puts ("\nNO spaces allowed around output specifier ',' ");
 		printf("\n%s is illegal.", argument);
 		continue;
 	      }
@@ -259,8 +386,12 @@ while (--argc)
 /* set up seed for the number generator */
 	seed[0] = seed[1] = seed[2] = 0;
 	get_seed (key, seed);
-	//nrand (-1, seed[0], seed[1], seed[2] );
+
+#ifdef BDSC_COMPAT
+	nrand (-1, seed[0], seed[1], seed[2] );
+#else
 	srand(seed[0]+256*seed[1]+512*seed[2]);
+#endif
 	
 	if DEBUG printf("\nfd_in=%d, fd_crypt=%d",fd_in,fd_crypt);
 	fine = FALSE;	/* musical end */
@@ -272,18 +403,20 @@ while (--argc)
 		      { printf("\nread returned %d for <%s>",
 					      nread,  filename );
 			if DEBUG printf("\nfd_in=%d",fd_in);
-			ERROR_EXIT
+			ERROR_EXIT();
 		      }
 			  */
 		for (i=0; i<nread; i++)
-			//cryptbuf[i] ^= nrand(1);
+#ifdef BDSC_COMPAT
+			cryptbuf[i] ^= nrand(1,0,0,0);
+#else
 			cryptbuf[i] ^= rand()%0xff;
-
+#endif
 		//if (nread != write (fd_crypt, cryptbuf, nread))
 		if (fwrite(cryptbuf, 1, nread, fd_crypt) < nread)
 		      { printf("\nerror writing to temporary file");
 			if DEBUG printf("\nfd_crypt=%d",fd_crypt);
-			ERROR_EXIT
+			ERROR_EXIT();
 		      }
 		if (nread == 0 || nread != (8*SECSIZ))	fine = TRUE;
 	      }
