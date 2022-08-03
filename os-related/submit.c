@@ -160,7 +160,7 @@ outdec(int number)
 
 
 // Customized puts, to avoid the final NEWLINE
-// outec() and my_puts() replace printf() and save a little bit of memory
+// outdec() and my_puts() replace printf() and save a little bit of memory
 int my_puts(char *s) {
 	int i;
     for (i = 0; s[i]; ++i)
