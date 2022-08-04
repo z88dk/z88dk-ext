@@ -87,17 +87,20 @@ FILE *fd_crypt;
 
 #ifdef BDSC_COMPAT
 
-void nrand (int n, int a, int b, int c)
+int nrand (int n, int a, int b, int c)
 {
 
 #asm
-	ld hl,9		;get n (1st arg)
+
+
+	ld hl,9       ;get n (1st arg)
 	add hl,sp
 	ld a,(hl)
-	cp 255	;was it -1 (set seed) ?
+	cp 255        ;was it -1 (set seed) ?
 	JP	NZ,nrand1
-	
-	pop de
+
+
+	pop de        ; ret addr
 	pop hl
 	LD	(bdsc_seed+4),HL
 	pop hl
@@ -107,92 +110,124 @@ void nrand (int n, int a, int b, int c)
 	push hl
 	push hl
 	push hl
-	push de	; ret addr
-	ret		;all done
-
+	push de        ; ret addr
+	ret            ;all done
 
 
 nrand1:
-	PUSH	BC
-	; (we remove the interactive "randomize", not necessary)
-
-nrand3:	LD	A,(bdsc_seed)	;now compute next random number. from this
-	OR	1	; point on, the code is that of Prof. Paul Gans
-	LD	(bdsc_seed),A	;lsb of SEED must be 1
+	; (we avoid the interactive "randomize" option, not necessary)
+	; and a                ;is it 0 (randomize)?
+	; jr nz,nrand3
+	;pop de        ; ret addr
+	;pop bc
+	;pop hl
+	;push hl
+	;push bc
+	;push de
+	;push hl
+	;call puts_cons
+    ;pop hl
+	;	
+;	LD	HL,5a97h	;start w/something odd
+;nrand2:
+;	PUSH	HL
+;	LD 	c,cstat	;interrogate console status
+;	call	bdos
+;	POP	HL
+;	INC	HL	;and keep it odd
+;	INC	HL	;and growing
+;	OR	a
+;	JP	Z,nrand2	;until user types something.
+;	LD	(seed),HL	;then plaster the value all over the
+;	LD	(seed+2),HL	;seed.
+;	LD	(seed+4),HL
+;	ret
 	
-	LD 	b,6	;clear 6 PROD bytes to 0
+
+nrand3:
+	LD	A,(bdsc_seed)    ;now compute next random number. from this
+	OR	1                ; point on, the code is that of Prof. Paul Gans
+	LD	(bdsc_seed),A    ;lsb of SEED must be 1
+	
+	LD 	B,6              ;clear 6 PROD bytes to 0
 	LD	HL,bdsc_prod
-randm1:	LD 	(HL),0
+randm1:
+	LD 	(HL),0
 	INC	HL
-	DEC	b
+	DEC	B
 	JP	NZ,randm1
 
-	LD	BC,6	;set byte counter
-randm2:	LD	HL,plier-1
-	ADD	HL,BC	;make addr of lsb of PLIER
-	LD 	a,(HL)	;PLIER byte
-	PUSH	BC	;save byte counter
-	LD 	b,8	;set bit counter
+	LD	BC,6             ;set byte counter
+randm2:
+	LD	HL,plier-1
+	ADD	HL,BC            ;make addr of lsb of PLIER
+	LD 	A,(HL)           ;PLIER byte
+	PUSH	BC           ;save byte counter
+	LD 	B,8              ;set bit counter
 
-randm3:	LD 	d,a	;save PLIER byte
-	LD	HL,bdsc_prod	;shift whole PROD left one bit
-	LD 	c,6
-	XOR	a
-randm4:	LD 	a,(HL)	;get byte	
-	RLA		;shift left
-	LD 	(HL),a	;put byte
+randm3:
+	LD 	D,A              ;save PLIER byte
+	LD	HL,bdsc_prod     ;shift whole PROD left one bit
+	LD 	C,6
+	XOR	A
+randm4:
+	LD 	A,(HL)           ;get byte	
+	RLA                  ;shift left
+	LD 	(HL),A           ;put byte
 	INC	HL
-	DEC	c
+	DEC	C
 	JP	NZ,randm4
 
-	LD 	a,d	;recover PLIER byte
-	RLA		;look at current high bit
-	JP	NC,randm6	;0 means no add cycle
+	LD 	A,D              ;recover PLIER byte
+	RLA                  ;look at current high bit
+	JP	NC,randm6        ;0 means no add cycle
 
-	PUSH	AF	;add SEED to PROD
-	XOR	a
-	LD 	c,6
+	PUSH	AF           ;add SEED to PROD
+	XOR	A
+	LD 	C,6
 	LD	HL,bdsc_prod
 	LD	DE,bdsc_seed
-randm5:	LD	A,(DE)
+randm5:
+	LD	A,(DE)
 	ADC	A,(HL)
-	LD 	(HL),a
+	LD 	(HL),A
 	INC	HL
 	INC	DE
-	DEC	c
+	DEC	C
 	JP	NZ,randm5
 	POP	AF
 
-randm6:	DEC	b	;test bit counter
-	JP	NZ,randm3	;go cycle more bits
-	POP	BC	;recover byte counter
-	DEC	c	;test it
-	JP	NZ,randm2	;go process more bytes
+randm6:	DEC	B            ;test bit counter
+	JP	NZ,randm3        ;go cycle more bits
+	POP	BC               ;recover byte counter
+	DEC	C                ;test it
+	JP	NZ,randm2        ;go process more bytes
 
-	LD 	b,6	;complement PROD, add 1 to it,
-	LD	HL,bdsc_seed	;and transfer it to SEED.
+	LD 	B,6              ;complement PROD, add 1 to it,
+	LD	HL,bdsc_seed     ;and transfer it to SEED.
 	LD	DE,bdsc_prod
-	XOR	a
+	XOR	A
 	CCF
-randm7:	LD	A,(DE)
+randm7:
+	LD	A,(DE)
 	CPL
 	ADC	A,0
-	LD 	(HL),a
+	LD 	(HL),A
 	INC	HL
 	INC	DE
-	DEC	b
+	DEC	B
 	JP	NZ,randm7
 
-	DEC	HL	;put the two high order bytes
-	LD 	a,(HL)	;into HL for return to C, not
-	AND	7fh	;neglecting to zero the high
-	LD 	h,a	;order bit so a positive int
-	LD	A,(bdsc_seed+4)	;is returned
-	LD 	l,a
-	POP	BC
-	ret
+	DEC	HL               ;put the two high order bytes
+	LD 	A,(HL)           ;into HL for return to C, not
+	AND	7Fh              ;neglecting to zero the high
+	LD 	H,A              ;order bit so a positive int
+	LD	A,(bdsc_seed+4)  ;is returned
+	LD 	L,A
+	RET
 
-plier:	DEFM	0c5h,87h,1
+plier:
+	DEFM	0c5h,87h,1
 	DEFM	0eh,9ah,0e0h	
 
 bdsc_seed:	DEFM	1,0,0,0,0,0
@@ -241,9 +276,37 @@ while (1)
 return (strlen(input));
 }
 
+#ifdef BDSC_COMPAT
+
+/* This version reproduces the buggy results of the original function when build with BDS C.
+   This permits to decode old files with a z88dk build. */
+
+void get_seed (char *key, int *seed)
+{
+char *ptr;
+int a, i, length;
+
+length = strlen (key);
+ptr = key;
+for (i=0; i< length; i++) {
+	if (i&1)
+		seed [(i/2)] += ptr[i]*256;
+	else
+		seed [(i/2)] += ptr[i];
+	}
+
+if (i&1) 
+{ i--; seed [(i/2)] -= ptr[i];}
+
+}
+
+#else
 /*************************************************************
-	get a seed for the ramnod number generator
+	get a seed for the random number generator
 "seed" should be a 3-integer array
+
+NOTE: this function is buggy, a single character key won't change the seed
+      moreover it has a different behavior when compiled with BDS C
 *************************************************************/
 void get_seed (char *key, int *seed)
 {
@@ -255,6 +318,8 @@ ptr = key;
 for (i=0; i< length/2; i++)
 	seed [i%3] +=	*ptr++;
 }
+#endif
+
 
 /*********************************************************************
  returns index of t in s, ERROR if not found.  Thanx to Kernighan
@@ -272,6 +337,7 @@ for (i=0; s[i] != NUL; i++)
       }
 return (ERROR);
 }
+
 
 int keylen, fine, nread;
 int seed[3];
