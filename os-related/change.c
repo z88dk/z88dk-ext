@@ -12,6 +12,8 @@
 */
 
 
+/* NOTE: at the moment on z88dk it works well only if both the file redirections are specified. */ 
+
 
 /* change - change "from" into "to" 
 
@@ -92,8 +94,10 @@ int	i;
 */
 
 
+//#define cindex(a,b) index(a,b)
 
 /* cindex - find character c in string str */
+
 int  cindex(char *str, int c)
 {
 int	i;
@@ -168,7 +172,7 @@ char	c;
 
 
 /* maksub -make substitution string in sub */
-maksub(char arg[], int from, char delim, char *sub)
+int  maksub(char arg[], int from, char delim, char *sub)
 {
 	int	i;
 
@@ -192,7 +196,7 @@ maksub(char arg[], int from, char delim, char *sub)
 
 
 /* getsub - get substitution pattern into sub */
-getsub(char	*arg, char *sub)
+int  getsub(char	*arg, char *sub)
 {
 	return(maksub(arg, 0, EOS, sub));
 }
@@ -380,7 +384,7 @@ char	c;
 
 
 /* getpat - convert argument into pattern */
-getpat(char *arg, char *pat)
+int  getpat(char *arg, char *pat)
 {
 	return(makpat(arg, 0, EOS, pat));
 }
@@ -388,7 +392,7 @@ getpat(char *arg, char *pat)
 
 
 /* locate - look for c in char class at pat(offset) */
-locate(char c, char pat[], int	offset)
+int  locate(char c, char pat[], int	offset)
 {
 	int	i;
 
@@ -400,7 +404,7 @@ locate(char c, char pat[], int	offset)
 
 
 /* omatch - try to match a single pattern at pat(j) */
-omatch(char lin[], int *i, char pat[], int j)
+int omatch(char lin[], int *i, char pat[], int j)
 {
 	int	bump;
 	char	c;
@@ -442,7 +446,7 @@ omatch(char lin[], int *i, char pat[], int j)
 
 
 /* patsiz - returns size of pattern entry at pat(n) */
-patsiz(char pat[], int n)
+int patsiz(char pat[], int n)
 {
 	switch (pat[n]) {
 		case BPAT :
@@ -466,7 +470,7 @@ patsiz(char pat[], int n)
 
 
 /* amatch (non-recursive) - look for match starting at lin(from) */
-amatch(char lin[], int from, char pat[], char sub[10][MAXPAT], int maxsub)
+int amatch(char lin[], int from, char pat[], char sub[10][MAXPAT], int maxsub)
 //char	lin[], pat[], sub[10][MAXPAT];
 //int	from, maxsub;
 {
@@ -528,9 +532,9 @@ int	c;
 
 
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-	char	lin[MAXLINE+1], pat[MAXPAT], new[MAXLINE+1], sub[10][MAXLINE+1];
+	char	lin[MAXLINE+1], pat[MAXPAT], new[MAXLINE+1], sub[10][MAXPAT];
 	char	cmd[2][MAXLINE+1];
 	char	opt_l, opt_v, *ap;
 	int	i, k, lastm, m, lno, maxsub, nl, nx;
@@ -538,6 +542,9 @@ main(int argc, char **argv)
 	//dioinit(&argc, argv);
 	opt_l = opt_v = OFF;
 	nl = 1; i = 0;
+#ifdef Z80
+//	argv+=2;
+#endif
 	while (--argc > 0) {
 		if ((*++argv)[0] == '-') /* check option */
 			for (ap = argv[0]+1; *ap != '\0'; ap++) {
@@ -569,8 +576,10 @@ main(int argc, char **argv)
 		}
 	else
 		sub[0][0] = EOS;
-	printf("Changed to "); puts(&sub[0][0]); printf("\n");
-	//fprintf(stderr, "Changed to %s\n", &sub[0][0]);
+
+	//printf("Changed to "); puts(&sub[0][0]); printf("\n");
+	fprintf(stderr, "Changing %s to %s\n", cmd[0], &sub[0][0]);
+	
 	lno = 0;
 	while (getlin(lin, MAXLINE) > 0) {
 		lno += nl;	k = 0;	lastm =	-1;
