@@ -11,6 +11,8 @@
 *****************************************************************
 */
 
+
+
 /* change - change "from" into "to" 
 
 	Usage: change [-l][-v] from [to] <infile [>outfile]
@@ -232,17 +234,20 @@ int	k, limit;
 }
 
 
+char digits[] = "0123456789";
+char lowalf[] = "abcdefghijklmnopqrstuvwxyz";
+char upalf[]  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char kana[]   = "¦§§¨©ª«¬­®¯±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜ¦Ý";
+
 
 /* filset - expand set at array[i] into set[j], stop at delim */ 
 void filset(char delim, char array[], int *i, char set[], int *j, int maxsiz)
 {
-char	*digits, *lowalf, *upalf ,*kana, c;
+//char	*digits, *lowalf, *upalf ,*kana, c;
 //void dodash();
 
-	digits = "0123456789";
-	lowalf = "abcdefghijklmnopqrstuvwxyz";
-	upalf  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	kana   = "¦§§¨©ª«¬­®¯±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜ¦Ý";
+char c;
+
 	for (; (c = array[*i]) != delim && c != EOS; (*i)++)
 		if (c == ESCAPE)			/*Modify 1986-11-27*/
 			addset(esc(array, i), set, j, maxsiz);
@@ -547,7 +552,7 @@ main(int argc, char **argv)
 					opt_v = ON;
 				else
 					fprintf(stderr,
-					"[-%c]:Illigal option\n",tolower(*ap));
+					"[-%c]:Illegal option\n",tolower(*ap));
 				}
 		else if (i < 2)
 			strcpy(cmd[i++], *argv);
@@ -565,6 +570,7 @@ main(int argc, char **argv)
 	else
 		sub[0][0] = EOS;
 	printf("Changed to "); puts(&sub[0][0]); printf("\n");
+	//fprintf(stderr, "Changed to %s\n", &sub[0][0]);
 	lno = 0;
 	while (getlin(lin, MAXLINE) > 0) {
 		lno += nl;	k = 0;	lastm =	-1;
