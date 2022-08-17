@@ -122,7 +122,6 @@
 #endif
 
 // PRAGMA DEFINES
-#pragma output REGISTER_SP = 0xDC00             // below the CP/M CCP
 #pragma printf = "%c %s %d %02u %lu %02X %08lX" // enables %c, %s, %d, %u, %lu, %X %lX only
 
 // DEFINES
