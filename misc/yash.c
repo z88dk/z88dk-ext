@@ -41,7 +41,7 @@
 #include <lib/rc2014/time.h>        /* Declaration of system time */
 #warning No timer calculation possible.
 #else
-#error Do you have time?
+#warning Do you have time?
 #endif
 
 // Note that since z88dk-lib only copies ONE header file automatically to the library header locations, the ffconf.h file needs to be ADDED MANUALLY to the 
@@ -57,7 +57,7 @@
 #include <arch/yaz180/diskio.h>     /* Declarations of diskio & IDE functions */
 
 #elif __RC2014
-// zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/time -llib/rc2014/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
 // Drive 0:
@@ -65,7 +65,7 @@
 #include <lib/rc2014/ff.h>          /* Declarations of FatFs API */
 #include <arch/rc2014/diskio.h>     /* Declarations of diskio functions */
 
-// zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -109,34 +109,50 @@
 #include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
 #pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
+#elif __CPM  // a hacked solution for __RC2014 8085 CPU running CP/M from classic library
+//  zcc +cpm -clib=8085 -O2 -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+#include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085.h>
+#include <_DEVELOPMENT/sccz80/arch/rc2014.h>            /* Declarations of RC2014 specifics */
+#include <_DEVELOPMENT/sccz80/lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
+#include <_DEVELOPMENT/sccz80/lib/rc2014/ff.h>          /* Declarations of FatFs API */
+#include <_DEVELOPMENT/sccz80/arch/rc2014/diskio.h>     /* Declarations of diskio functions */
+
 #else
 #warning - no FatFs library available
 #endif
 
-// PRAGMAS
-
-#pragma printf = "%s %c %u %li %lu %X" // enables %s, %c, %u, %li, %lu %X only
+// PRAGMA DEFINES
+#pragma output REGISTER_SP = 0xDC00             // below the CP/M CCP
+#pragma printf = "%c %s %d %02u %lu %02X %08lX" // enables %c, %s, %d, %u, %lu, %X %lX only
 
 // DEFINES
 
-#define MAX_FILES 2                 // number of files open at any time
-#define BUFFER_SIZE 1024            // size of working buffer (on heap)
-#define LINE_SIZE 256               // size of a command line (on heap)
+#define MAX_FILES 2             // number of files open at any time
+#define BUFFER_SIZE 1024        // size of working buffer (on heap)
+#define LINE_SIZE 256           // size of a command line (on heap)
+
+#define TOK_BUFSIZE 32
+#define TOK_DELIM " \t\r\n\a"
+
+#define KEY_BS      8
+#define KEY_LF      10
+#define KEY_CR      13
+#define KEY_SPACE   32
+#define KEY_DEL     127
 
 // GLOBALS
 
 extern uint32_t cpm_dsk0_base[4];
 
-static FATFS *fs;                   /* FatFs work area needed for each volume */
-                                    /* Pointer to the filesystem object (on heap) */
+static void * buffer;           /* create a scratch buffer on heap later */
+                                /* for romwbw hbios buffer must be in bss (which is above 0x8000) */
 
-static DIR *dir;                    /* Pointer to the directory object (on heap) */
+static FATFS * fs;              /* FatFs work area needed for each volume */
+                                /* Pointer to the filesystem object (on heap) */
+static DIR * dir;               /* Pointer to the directory object (on heap) */
 
-static FILINFO Finfo;               /* File Information */
-static FIL File[MAX_FILES];         /* File object needed for each open file */
-
-static void * buffer;               /* create a scratch buffer on heap later */
-                                    /* for romwbw hbios buffer must be in bss (which is above 0x8000) */
+static FILINFO Finfo;           /* File Information */
+static FIL File[MAX_FILES];     /* File object needed for each open file */
 
 
 /*
@@ -144,57 +160,58 @@ static void * buffer;               /* create a scratch buffer on heap later */
  */
 
 // CP/M related functions
-int8_t ya_dmount(char **args);      // mount a CP/M drive
+int8_t ya_dmount(char ** args); // mount a CP/M drive
 
 // system related functions
-int8_t ya_md(char **args);          // memory dump
-int8_t ya_help(char **args);        // help
-int8_t ya_exit(char **args);        // exit
+int8_t ya_md(char ** args);     // memory dump
+int8_t ya_help(char ** args);   // help
+int8_t ya_exit(char ** args);   // exit
 
 // fat related functions
-int8_t ya_mount(char **args);       // mount a FAT file system
-int8_t ya_umount(char **args);      // unmount a FAT file system
-int8_t ya_ls(char **args);          // directory listing
-int8_t ya_rm(char **args);          // delete a file
-int8_t ya_cp(char **args);          // copy a file
-int8_t ya_mv(char **args);          // move (rename) a file
-int8_t ya_cd(char **args);          // change the current working directory
-int8_t ya_pwd(char **args);         // show the current working directory
-int8_t ya_mkdir(char **args);       // create a new directory
-int8_t ya_chmod(char **args);       // change file or directory attributes
+int8_t ya_mount(char ** args);  // mount a FAT file system
+int8_t ya_umount(char ** args); // unmount a FAT file system
+int8_t ya_ls(char ** args);     // directory listing
+int8_t ya_rm(char ** args);     // delete a file
+int8_t ya_cp(char ** args);     // copy a file
+int8_t ya_mv(char ** args);     // move (rename) a file
+int8_t ya_cd(char ** args);     // change the current working directory
+int8_t ya_pwd(char ** args);    // show the current working directory
+int8_t ya_mkdir(char ** args);  // create a new directory
+int8_t ya_chmod(char ** args);  // change file or directory attributes
 
 // disk related functions
-int8_t ya_ds(char **args);          // disk status
-int8_t ya_dd(char **args);          // disk dump sector
+int8_t ya_ds(char ** args);     // disk status
+int8_t ya_dd(char ** args);     // disk dump sector
 
 // time related functions
-#if !__RC2014
-int8_t ya_clock(char **args);       // set the time (UNIX epoch)
-int8_t ya_tz(char **args);          // set timezone (no daylight savings, so adjust manually)
-int8_t ya_diso(char **args);        // print the local time in ISO: 2013-03-23 01:03:52
-int8_t ya_date(char **args);        // print the local time in US: Sun Mar 23 01:03:52 2013
+#if !__RC2014 && !__CPM
+int8_t ya_clock(char ** args);  // set the time (UNIX epoch)
+int8_t ya_tz(char ** args);     // set timezone (no daylight savings, so adjust manually)
+int8_t ya_diso(char ** args);   // print the local time in ISO: 2013-03-23 01:03:52
+int8_t ya_date(char ** args);   // print the local time in US: Sun Mar 23 01:03:52 2013
 #endif
 
 // helper functions
 static void put_rc (FRESULT rc);    // print error codes to defined error IO
-static void put_dump (const uint8_t *buff, uint32_t ofs, uint8_t cnt);
+static void put_dump (const uint8_t * buff, uint32_t ofs, uint8_t cnt);
 
 // RC2014 CP/M-IDE & YAZ180 CP/M stores four LBA bases from cpm_dsk0_base.
-// Adjust this base to suit the current build.
+// XXX Adjust this base value to suit the current build.
 static void dsk0_helper (void);
-#if __RC2014
+#if __RC2014 || __CPM
 static void dsk0_helper(void) __naked
 {
     __asm
-;       defc _cpm_dsk0_base = 0xF6C0    ; Uncomment for RC2014 SIO Build
-;       defc _cpm_dsk0_base = 0xF808    ; Uncomment for RC2014 ACIA Build
+        INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc"
+;       defc _cpm_dsk0_base = 0xF700    ; XXX Uncomment for RC2014 SIO Build
+        defc _cpm_dsk0_base = 0xF800    ; XXX Uncomment for RC2014 ACIA & ACIA 8085 Build
     __endasm;
 }
 #elif __YAZ180
 static void dsk0_helper(void) __naked
 {
     __asm
-        defc _cpm_dsk0_base = 0x0040    ; Uncomment for YAZ180 Build
+        defc _cpm_dsk0_base = 0x0040    ; For YAZ180 Build
     __endasm;
 }
 #else
@@ -206,9 +223,9 @@ static void dsk0_helper(void) __naked
  */
 
 struct Builtin {
-  const char *name;
-  int8_t (*func) (char** args);
-  const char *help;
+  const char * name;
+  int8_t (*func) (char ** args);
+  const char * help;
 };
 
 struct Builtin builtins[] = {
@@ -237,7 +254,7 @@ struct Builtin builtins[] = {
     { "dd", &ya_dd, "[drive][sector] - disk dump, drive in decimal, sector in decimal"},
 
 // time related functions
-#if !__RC2014
+#if !__RC2014 && !__CPM
     { "clock", &ya_clock, "[timestamp] - set the time (UNIX epoch) 'date +%s'"},
     { "tz", &ya_tz, "[tz] - set timezone (no daylight saving)"},
     { "diso", &ya_diso, "- local time ISO format: 2013-03-23 01:03:52"},
@@ -250,6 +267,11 @@ uint8_t ya_num_builtins() {
 }
 
 
+/*
+  Builtin function implementations.
+*/
+
+
 // CP/M related functions
 
 /**
@@ -257,7 +279,7 @@ uint8_t ya_num_builtins() {
    @param args List of args.  args[0] is "dmount". args[1] drive letter. [2] drive file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_dmount(char **args)    // mount a drive on CP/M
+int8_t ya_dmount(char ** args)    // mount a drive on CP/M
 {
     FRESULT res;
     uint8_t i = 0;
@@ -266,7 +288,6 @@ int8_t ya_dmount(char **args)    // mount a drive on CP/M
         fprintf(stdout, "Expected 2 arguments to \"dmount\"\n");
 #if __RC2014 || __YAZ180
     } else {
-
         res = f_mount(fs, (const TCHAR*)"", 0);
         if (res != FR_OK) { put_rc(res); return 1; }
 
@@ -294,7 +315,7 @@ int8_t ya_dmount(char **args)    // mount a drive on CP/M
    @param args List of args.  args[0] is "md". args[1] is the origin address.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_md(char **args)       // dump RAM contents from nominated origin.
+int8_t ya_md(char ** args)       // dump RAM contents from nominated origin.
 {
     static uint8_t * origin = 0;
     uint32_t ofs;
@@ -322,7 +343,7 @@ int8_t ya_md(char **args)       // dump RAM contents from nominated origin.
    @param args List of args.  args[0] is "help".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_help(char **args)
+int8_t ya_help(char ** args)
 {
     uint8_t i;
     (void *)args;
@@ -342,7 +363,7 @@ int8_t ya_help(char **args)
    @param args List of args.  args[0] is "exit".
    @return Always returns 0, to terminate execution.
  */
-int8_t ya_exit(char **args)
+int8_t ya_exit(char ** args)
 {
     (void *)args;
     f_mount(0, (const TCHAR*)"", 0);        /* Unmount the default drive */
@@ -360,7 +381,7 @@ int8_t ya_exit(char **args)
    @param args List of args.  args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mount(char **args)    // mount a FAT file system
+int8_t ya_mount(char ** args)   // mount a FAT file system
 {
     if (args[1] == NULL) {
         put_rc(f_mount(fs, (const TCHAR*)"0:", 0));
@@ -376,7 +397,7 @@ int8_t ya_mount(char **args)    // mount a FAT file system
    @param args List of args.  args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_umount(char **args)   // unmount a FAT file system
+int8_t ya_umount(char ** args)  // unmount a FAT file system
 {
     if (args[1] == NULL) {
         put_rc(f_mount(0, (const TCHAR*)"0:", 0));
@@ -392,7 +413,7 @@ int8_t ya_umount(char **args)   // unmount a FAT file system
    @param args List of args.  args[0] is "ls".  args[1] is the path.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_ls(char **args)
+int8_t ya_ls(char ** args)
 {
     FRESULT res;
     uint32_t p1;
@@ -448,7 +469,7 @@ int8_t ya_ls(char **args)
    @param args List of args.  args[0] is "rm".  args[1] is the directory or file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_rm(char **args)       // delete a directory or file
+int8_t ya_rm(char ** args)       // delete a directory or file
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"rm\"\n");
@@ -464,13 +485,13 @@ int8_t ya_rm(char **args)       // delete a directory or file
    @param args List of args.  args[0] is "cp".  args[1] is the src, args[2] is the dst
    @return Always returns 1, to continue executing.
  */
-int8_t ya_cp(char **args)       // copy a file
+int8_t ya_cp(char ** args)       // copy a file
 {
     FRESULT res;
     uint32_t p1;
     uint16_t s1, s2;
 
-#if !__RC2014
+#if !__RC2014 && !__CPM
     struct timespec startTime, endTime, resTime;
 #endif
 
@@ -488,7 +509,7 @@ int8_t ya_cp(char **args)       // copy a file
             return 1;
         }
         fprintf(stdout,"Copying file...");
-#if !__RC2014
+#if !__RC2014 && !__CPM
         clock_gettime( CLOCK_MONOTONIC, &startTime );
 #endif
         p1 = 0;
@@ -499,7 +520,7 @@ int8_t ya_cp(char **args)       // copy a file
             p1 += s2;
             if (res != FR_OK || s2 < s1) break;   /* error or disk full */
         }
-#if !__RC2014
+#if !__RC2014 && !__CPM
         clock_gettime( CLOCK_MONOTONIC, &endTime );
 #endif
         f_close(&File[1]);
@@ -507,7 +528,7 @@ int8_t ya_cp(char **args)       // copy a file
 
         fprintf(stdout, "\nCopied %lu bytes", p1);
 
-#if !__RC2014
+#if !__RC2014 && !__CPM
         timersub(&endTime, &startTime, &resTime);
         fprintf(stdout, ", the time taken was %li.%.4lu seconds", resTime.tv_sec, resTime.tv_nsec/100000);
 #endif
@@ -521,7 +542,7 @@ int8_t ya_cp(char **args)       // copy a file
    @param args List of args.  args[0] is "mv".  args[1] is the src, args[2] is the dst
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mv(char **args)       // move (rename) a file
+int8_t ya_mv(char ** args)       // move (rename) a file
 {
     if (args[1] == NULL || args[2] == NULL) {
         fprintf(stdout, "yash: expected 2 arguments to \"mv\"\n");
@@ -537,7 +558,7 @@ int8_t ya_mv(char **args)       // move (rename) a file
    @param args List of args.  args[0] is "cd".  args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_cd(char **args)
+int8_t ya_cd(char ** args)
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"cd\"\n");
@@ -553,7 +574,7 @@ int8_t ya_cd(char **args)
    @param args List of args.  args[0] is "pwd".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_pwd(char **args)      // show the current working directory
+int8_t ya_pwd(char ** args)     // show the current working directory
 {
     FRESULT res;
     uint8_t * directory;                         /* put directory buffer on heap */
@@ -563,7 +584,7 @@ int8_t ya_pwd(char **args)      // show the current working directory
     directory = (uint8_t *)malloc(sizeof(uint8_t)*LINE_SIZE);     /* Get area for directory name buffer */
 
     if (directory != NULL) {
-        res = f_getcwd(directory, sizeof(uint8_t)*LINE_SIZE);
+        res = f_getcwd((char *)directory, sizeof(uint8_t)*LINE_SIZE);
         if (res != FR_OK) {
             put_rc(res);
         } else {
@@ -571,16 +592,17 @@ int8_t ya_pwd(char **args)      // show the current working directory
         }
         free(directory);
     }
+
     return 1;
 }
 
 
 /**
    @brief Builtin command:
-   @param args List of args.  args[0] is "mkdir".  args[1] is the directory.
+   @param args List of args.  args[0] is "mkdir". args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mkdir(char **args)    // create a new directory
+int8_t ya_mkdir(char ** args)    // create a new directory
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"mkdir\"\n");
@@ -596,7 +618,7 @@ int8_t ya_mkdir(char **args)    // create a new directory
    @param args List of args.  args[0] is "chmod".  args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_chmod(char **args)    // change file or directory attributes
+int8_t ya_chmod(char ** args)    // change file or directory attributes
 {
 #if !FF_USE_CHMOD
     (void *)args;
@@ -621,7 +643,7 @@ int8_t ya_chmod(char **args)    // change file or directory attributes
    @param args List of args.  args[0] is "ds". args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_ds(char **args)       // disk status
+int8_t ya_ds(char ** args)       // disk status
 {
     FRESULT res;
     int32_t p1;
@@ -650,7 +672,7 @@ int8_t ya_ds(char **args)       // disk status
    @param args List of args.  args[0] is "dd". args[1] is the drive number. args[2] is the sector in decimal.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_dd(char **args)       // disk dump
+int8_t ya_dd(char ** args)       // disk dump
 {
     FRESULT res;
     static BYTE drive;
@@ -663,15 +685,11 @@ int8_t ya_dd(char **args)       // disk dump
         sect = strtoul(args[2], NULL, 10);
     }
 
-    fprintf(stdout, "Drive:%u LBA:%lu\n", drive, sect);
-
     res = disk_read( drive, buffer, sect, 1);
     if (res != FR_OK) { fprintf(stdout, "rc=%d\n", (WORD)res); return 1; }
-
+    fprintf(stdout, "Drive:%u LBA:%lu\n", drive, sect++);
     for (ptr=(uint8_t *)buffer, ofs = 0; ofs < 0x200; ptr += 16, ofs += 16)
         put_dump(ptr, ofs, 16);
-
-    ++sect;
     return 1;
 }
 
@@ -680,14 +698,14 @@ int8_t ya_dd(char **args)       // disk dump
   time related functions
  */
 
-#if !__RC2014
+#if !__RC2014 && !__CPM
 
 /**
    @brief Builtin command:
    @param args List of args.  args[0] is "clock".  args[1] is the UNIX time.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_clock(char **args)    // set the time (using UNIX epoch)
+int8_t ya_clock(char ** args)    // set the time (using UNIX epoch)
 {
     if (args[1] != NULL) {
         set_system_time(atol(args[1]) - UNIX_OFFSET);
@@ -701,7 +719,7 @@ int8_t ya_clock(char **args)    // set the time (using UNIX epoch)
    @param args List of args.  args[0] is "tz".  args[1] is TZ offset in hours.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_tz(char **args)       // set timezone (no daylight savings, so adjust manually)
+int8_t ya_tz(char ** args)       // set timezone (no daylight savings, so adjust manually)
 {
     if (args[1] != NULL) {
         set_zone(atol(args[1]) * ONE_HOUR);
@@ -715,7 +733,7 @@ int8_t ya_tz(char **args)       // set timezone (no daylight savings, so adjust 
    @param args List of args.  args[0] is "diso".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_diso(char **args)     // print the local time in ISO std: 2013-03-23 01:03:52
+int8_t ya_diso(char ** args)     // print the local time in ISO std: 2013-03-23 01:03:52
 {
     time_t theTime;
     struct tm CurrTimeDate;     // set up an array for the RTC info.
@@ -737,7 +755,7 @@ int8_t ya_diso(char **args)     // print the local time in ISO std: 2013-03-23 0
    @param args List of args.  args[0] is "date".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_date(char **args)     // print the local time: Sun Mar 23 01:03:52 2013
+int8_t ya_date(char ** args)     // print the local time: Sun Mar 23 01:03:52 2013
 {
     time_t theTime;
     struct tm CurrTimeDate;     // set up an array for the RTC info.
@@ -778,12 +796,12 @@ void put_rc (FRESULT rc)
     for (i = 0; i != res && *str; ++i) {
         while (*str++) ;
     }
-    fprintf(stderr,"rc=%u FR_%s\r\n", res, str);
+    fprintf(stderr,"\r\nrc=%u FR_%s\r\n", res, str);
 }
 
 
 static
-void put_dump (const uint8_t *buff, uint32_t ofs, uint8_t cnt)
+void put_dump (const uint8_t * buff, uint32_t ofs, uint8_t cnt)
 {
     uint8_t i;
 
@@ -810,7 +828,7 @@ void put_dump (const uint8_t *buff, uint32_t ofs, uint8_t cnt)
    @param args Null terminated list of arguments.
    @return 1 if the shell should continue running, 0 if it should terminate
  */
-int8_t ya_execute(char **args)
+int8_t ya_execute(char ** args)
 {
     uint8_t i;
 
@@ -827,68 +845,117 @@ int8_t ya_execute(char **args)
     return 1;
 }
 
-#define YA_TOK_BUFSIZE 32
-#define YA_TOK_DELIM " \t\r\n\a"
+#if __RC2014 && __CPM
+
+/**
+   @brief Read a line of input from stdin, echo it to stdout.
+   @return The line from stdin.
+ */
+void ya_getline(char * line, uint16_t len)
+{
+    char c;
+    uint16_t position = 0;
+
+    while (--len) {
+
+        // Read a character
+        c = fgetc(stdin);
+
+        // If we hit EOF, replace it with a null character and return.
+        if (c == EOF || c == KEY_LF || c == KEY_CR) {
+            line[position] = '\0';
+            // Echo the character
+            fputc(c, stdout);
+            return;
+        }
+
+        else if ((c == KEY_BS || c == KEY_DEL) && position > 0) {
+            line[--position] = '\0';
+            ++len;
+            // Remove the character
+            fputc(KEY_BS, stdout);
+            fputc(KEY_SPACE, stdout);
+            fputc(KEY_BS, stdout);
+        }
+
+        else {
+            line[position++] = c;
+            // Echo the character
+            fputc(c, stdout);
+        }
+    }
+    line[position] = '\0';
+}
+
+#endif
+
 /**
    @brief Split a line into tokens (very naively).
    @param line The line.
    @return Null-terminated array of tokens.
  */
-char **ya_split_line(char *line)
+char ** ya_split_line(char * line)
 {
-    uint16_t bufsize = YA_TOK_BUFSIZE;
+    uint16_t bufsize = TOK_BUFSIZE;
     uint16_t position = 0;
-    char *token;
-    char **tokens, **tokens_backup;
+    char * token;
+    char ** tokens_backup;
+
+    static char ** tokens;
 
     tokens = (char **)malloc(bufsize * sizeof(char*));
 
     if (tokens && line)
     {
-        token = strtok(line, YA_TOK_DELIM);
+        token = strtok(line, TOK_DELIM);
         while (token != NULL) {
-            tokens[position] = token;
-            position++;
+        tokens[position++] = token;
 
             // If we have exceeded the tokens buffer, reallocate.
             if (position >= bufsize) {
-                bufsize += YA_TOK_BUFSIZE;
+                bufsize += TOK_BUFSIZE;
                 tokens_backup = tokens;
                 tokens = (char **)realloc(tokens, bufsize * sizeof(char*));
                 if (tokens == NULL) {
                     free(tokens_backup);
-                    fprintf(stdout, "yash: tokens realloc failure\n");
+                    fprintf(stdout, "yash: tokens realloc failed\n");
                     exit(EXIT_FAILURE);
                 }
             }
 
-            token = strtok(NULL, YA_TOK_DELIM);
+            token = strtok(NULL, TOK_DELIM);
         }
+
         tokens[position] = NULL;
     }
     return tokens;
 }
+
 
 /**
    @brief Loop getting input and executing it.
  */
 void ya_loop(void)
 {
-    char **args;
+    char ** args;
     int status;
-    char *line;
+    char * line;
     uint16_t len;
 
     line = (char *)malloc(LINE_SIZE * sizeof(char));    /* Get work area for the line buffer */
     if (line == NULL) return;
 
-    len = LINE_SIZE;
+    len = LINE_SIZE-1;
 
     do {
-        fprintf(stdout,"\n> ");
         fflush(stdin);
+        fprintf(stdout,"\n> ");
 
+#if __RC2014 && __CPM
+        ya_getline(line, LINE_SIZE-1);
+#else
         getline(&line, &len, stdin);
+#endif
         args = ya_split_line(line);
 
         status = ya_execute(args);
@@ -902,13 +969,16 @@ void ya_loop(void)
 
 /**
    @brief Main entry point.
+   @param argc Argument count.
+   @param argv Argument vector.
+   @return status code
  */
-int main(int argc, char **argv)
+int main(int argc, char ** argv)
 {
     (void)argc;
     (void *)argv;
 
-#if !__RC2014
+#if !__RC2014 && !__CPM
     set_zone((int32_t)11 * ONE_HOUR);                   /* Australian Eastern Summer Time */
     set_system_time(1606780800 - UNIX_OFFSET);          /* Initial time: 00.00 December 1, 2020 UTC */
 #endif
@@ -928,3 +998,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
