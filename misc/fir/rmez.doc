@@ -1,0 +1,34 @@
+                                                31 October 1989
+
+The files RMEZGOTO.C and RMEZLOOP.C are translations into the C
+language of the classic Parks McClellan Remez FIR filter design
+program.
+
+The translations are based on the FORTRAN program as listed in
+the 1975 Prentice Hall book "Theory and Application of Digital
+Signal Processing" by Rabiner & Gold.  The file RMEZGOTO.C is a
+direct, almost line for line translation including 47 goto
+statements; RMEZLOOP.C substitutes "while()" loops where
+appropriate, reducing the number of gotos to 5.
+
+The program has been modified to output the file IMPULSE.RMZ in
+lieu of punched cards.
+
+The file PAD.C reads a commandline-specified file and writes the
+file PADDED.DAT containing the commandline number of data
+points.  Adds "0.0"s if needed to create sufficient points.
+Useful for zero padding short impulse response sequences so that
+a long FFT can be used to obtain good frequency resolution.
+Usage:    pad filename #points.
+Example:  pad impulse.rmz 512.
+
+The file COEFF.C estimates the required number of filter
+coefficients and is based on the formula on p. 156 of the book by
+Rabiner & Gold.  It has been written to specify passband ripple
+in dB instead of in percent deviation.
+
+These translations are released to the public domain.
+
+                                        Bob Briggs
+                                        1337 Rossway Ct.
+                                        Los Altos, CA 94024

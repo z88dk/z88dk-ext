@@ -1,0 +1,33 @@
+
+	call	l_gintsp	;
+	ld	b,h
+	ld	c,l
+	add	hl,bc
+	add	hl,bc
+	add	hl,hl
+	pop	de
+	add	hl,de
+=
+	call	rmez_opt1
+
+	call	l_gintsp	;
+	ex	de,hl
+	and	a
+	sbc	hl,de
+	ld	b,h
+	ld	c,l
+	add	hl,bc
+	add	hl,bc
+	add	hl,hl
+	pop	de
+	add	hl,de
+=
+	call	rmez_opt2
+
+	inc	(hl)
+	ld	a,(hl)
+	inc	hl
+	jr	nz,ASMPC+3
+	inc	(hl)
+=
+	call	rmez_opt3

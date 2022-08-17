@@ -1,0 +1,40 @@
+
+
+
+ ****  z88dk   ****
+ zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 lookup.c getopt.c rat4.c
+
+
+ ****  z88dk + sdcc (not yet working) ****
+ zcc +cpm -create-app -DS_CHAR=char --fsigned-char -DAMALLOC -compiler=sdcc -SO3 --max-allocs-per-node400000 lookup.c getopt.c rat4.c
+
+
+ ****  GCC   ****
+ gcc -DS_CHAR=char lookup.c getopt.c rat4.c
+
+
+
+
+===============================================================
+
+This is a C version of ratfor, derived from a UofA ratfor
+	in ratfor. It was originally released to the net sometime
+	ago, and It is re-released for the benefit of those sites
+	who only get mod->comp.sources.
+
+	It now includes minor changes to produce F77 code as well.
+
+	This code *is* PD. You (public) have all the rights to the code.
+	[But this also means you (singular) do not have any *extra*
+	rights to the code, hence it is impossible for you to restrict
+	the use and distribution of this code in any way.]
+
+	I would, as usual, appreciate hearing about bug fixes and
+	improvements.
+
+	oz
+
+	Usenet: [decvax|ihnp4]!utzoo!yetti!oz ||
+		    ...seismo!mnetor!yetti!oz
+	Bitnet: oz@[yusol|yuyetti].BITNET
+	Phonet: [416] 736-5257 x 3976
