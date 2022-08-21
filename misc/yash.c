@@ -58,6 +58,7 @@
 
 #elif __RC2014
 // zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/ff yash.c -o yash -create-app
+// zcc +rc2014 -clib=new -subtype=cpm -O2 -v -m --list -llib/rc2014/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
 // Drive 0:
@@ -109,9 +110,15 @@
 #include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
 #pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
-#elif __CPM  // a hacked solution for __RC2014 8085 CPU running CP/M from classic library
+#elif __CPM
+// a hacked solution for __RC2014 8085 CPU running CP/M from classic library
 //  zcc +cpm -clib=8085 -O2 -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
 #include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085.h>
+
+// a hacked solution for __RC2014 Z80 CPU running CP/M from classic library
+//  zcc +cpm -clib=default -O2 -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+//#include <../../../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014.h>
+
 #include <_DEVELOPMENT/sccz80/arch/rc2014.h>            /* Declarations of RC2014 specifics */
 #include <_DEVELOPMENT/sccz80/lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
 #include <_DEVELOPMENT/sccz80/lib/rc2014/ff.h>          /* Declarations of FatFs API */
@@ -201,9 +208,10 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-        INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc"
-;       defc _cpm_dsk0_base = 0xF700    ; XXX Uncomment for RC2014 SIO Build
-        defc _cpm_dsk0_base = 0xF800    ; XXX Uncomment for RC2014 ACIA & ACIA 8085 Build
+;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX only needed for sccz80/classic
+        defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
+;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX only needed for sccz80/classic
+;       defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
     __endasm;
 }
 #elif __YAZ180
