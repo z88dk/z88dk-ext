@@ -241,11 +241,6 @@ struct Builtin builtins[] = {
   // CP/M related functions
     { "dmount", &ya_dmount, "drive: [path]file - mount a CP/M drive"},
 
-// system related functions
-    { "md", &ya_md, "- [origin] - memory dump"},
-    { "help", &ya_help, "- this is it"},
-    { "exit", &ya_exit, "- exit"},
-
 // fat related functions
     { "mount", &ya_mount, "[drive:] - mount a FAT file system"},
     { "umount", &ya_umount, "[drive:] - unmount a FAT file system"},
@@ -267,8 +262,13 @@ struct Builtin builtins[] = {
     { "clock", &ya_clock, "[timestamp] - set the time (UNIX epoch) 'date +%s'"},
     { "tz", &ya_tz, "[tz] - set timezone (no daylight saving)"},
     { "diso", &ya_diso, "- local time ISO format: 2013-03-23 01:03:52"},
-    { "date", &ya_date, "- local time: Sun Mar 23 01:03:52 2013" }
+    { "date", &ya_date, "- local time: Sun Mar 23 01:03:52 2013" },
 #endif
+
+// system related functions
+    { "md", &ya_md, "[origin] - memory dump, origin in hexadecimal"},
+    { "help", &ya_help, "- this is it"},
+    { "exit", &ya_exit, "- exit and return to CCP"}
 };
 
 uint8_t ya_num_builtins() {
@@ -318,14 +318,14 @@ int8_t ya_dmount(char ** args)    // mount a drive on CP/M
 
 /*
   system related functions
-*/
+ */
 
 /**
    @brief Builtin command:
    @param args List of args.  args[0] is "md". args[1] is the origin address.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_md(char ** args)       // dump RAM contents from nominated origin.
+int8_t ya_md(char ** args)              /* dump RAM contents from nominated origin. */
 {
     static uint8_t * origin = 0;
     uint32_t ofs;
@@ -343,7 +343,7 @@ int8_t ya_md(char ** args)       // dump RAM contents from nominated origin.
         put_dump(ptr, ofs, 16);
     }
 
-    origin += 0x100;                        // go to next page (next time)
+    origin += 0x100;                    /* go to next page (next time) */
     return 1;
 }
 
@@ -376,7 +376,8 @@ int8_t ya_help(char ** args)
 int8_t ya_exit(char ** args)
 {
     (void *)args;
-    f_mount(0, (const TCHAR*)"", 0);        /* Unmount the default drive */
+
+    f_mount(0, (const TCHAR*)"", 0);    /* Unmount the default drive */
     return 0;
 }
 
@@ -584,14 +585,12 @@ int8_t ya_cd(char ** args)
    @param args List of args.  args[0] is "pwd".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_pwd(char ** args)     // show the current working directory
+int8_t ya_pwd(char ** args)             /* show the current working directory */
 {
     FRESULT res;
-    uint8_t * directory;                         /* put directory buffer on heap */
-
     (void *)args;
 
-    directory = (uint8_t *)malloc(sizeof(uint8_t)*LINE_SIZE);     /* Get area for directory name buffer */
+    uint8_t * directory = (uint8_t *)malloc(sizeof(uint8_t)*LINE_SIZE);     /* Get area for directory name buffer */
 
     if (directory != NULL) {
         res = f_getcwd((char *)directory, sizeof(uint8_t)*LINE_SIZE);
@@ -787,7 +786,7 @@ int8_t ya_date(char ** args)     // print the local time: Sun Mar 23 01:03:52 20
   helper functions
  */
 
-//  use put_rc to get a plain text interpretation of the disk return or error code.
+/*  use put_rc to get a plain text interpretation of the disk return or error code. */
 static
 void put_rc (FRESULT rc)
 {
@@ -893,6 +892,7 @@ void ya_loop(void)
     if (args == NULL) return;
 
     do {
+        fflush(stdin);
         fprintf(stdout,"\n> ");
 
 #if __RC2014 && __CPM
