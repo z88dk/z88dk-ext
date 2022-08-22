@@ -117,7 +117,7 @@
 
 // a hacked solution for __RC2014 Z80 CPU running CP/M from classic library
 //  zcc +cpm -clib=default -O2 -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
-//#include <../../../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014.h>
+//#include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014.h>
 
 #include <_DEVELOPMENT/sccz80/arch/rc2014.h>            /* Declarations of RC2014 specifics */
 #include <_DEVELOPMENT/sccz80/lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
@@ -130,14 +130,16 @@
 
 // PRAGMA DEFINES
 #pragma printf = "%c %s %d %02u %lu %02X %08lX" // enables %c, %s, %d, %u, %lu, %X %lX only
+#pragma output CLIB_DISABLE_FGETS_CURSOR=1      // disable classic lib stdio cursor
 
 // DEFINES
 
 #define MAX_FILES 2             // number of files open at any time
+
 #define BUFFER_SIZE 1024        // size of working buffer (on heap)
 #define LINE_SIZE 256           // size of a command line (on heap)
+#define TOK_BUFSIZE 64          // size of token pointer buffer (on heap)
 
-#define TOK_BUFSIZE 32
 #define TOK_DELIM " \t\r\n\a"
 
 #define KEY_BS      8
@@ -208,10 +210,10 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX only needed for sccz80/classic
-        defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
-;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX only needed for sccz80/classic
-;       defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
+;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX only needed for cpm/sccz80/classic/z80
+        INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX only needed for cpm/sccz80/classic/8085
+;       defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
+        defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
     __endasm;
 }
 #elif __YAZ180
@@ -314,8 +316,9 @@ int8_t ya_dmount(char ** args)    // mount a drive on CP/M
     return 1;
 }
 
-
-// system related functions
+/*
+  system related functions
+*/
 
 /**
    @brief Builtin command:
@@ -784,7 +787,6 @@ int8_t ya_date(char ** args)     // print the local time: Sun Mar 23 01:03:52 20
   helper functions
  */
 
-
 //  use put_rc to get a plain text interpretation of the disk return or error code.
 static
 void put_rc (FRESULT rc)
@@ -852,90 +854,27 @@ int8_t ya_execute(char ** args)
     return 1;
 }
 
-#if __RC2014 && __CPM
-
-/**
-   @brief Read a line of input from stdin, echo it to stdout.
-   @return The line from stdin.
- */
-void ya_getline(char * line, uint16_t len)
-{
-    char c;
-    uint16_t position = 0;
-
-    while (--len) {
-
-        // Read a character
-        c = fgetc(stdin);
-
-        // If we hit EOF, replace it with a null character and return.
-        if (c == EOF || c == KEY_LF || c == KEY_CR) {
-            line[position] = '\0';
-            // Echo the character
-            fputc(c, stdout);
-            return;
-        }
-
-        else if ((c == KEY_BS || c == KEY_DEL) && position > 0) {
-            line[--position] = '\0';
-            ++len;
-            // Remove the character
-            fputc(KEY_BS, stdout);
-            fputc(KEY_SPACE, stdout);
-            fputc(KEY_BS, stdout);
-        }
-
-        else {
-            line[position++] = c;
-            // Echo the character
-            fputc(c, stdout);
-        }
-    }
-    line[position] = '\0';
-}
-
-#endif
 
 /**
    @brief Split a line into tokens (very naively).
-   @param line The line.
-   @return Null-terminated array of tokens.
+   @param tokens, null terminated array of token pointers.
+   @param line, the line.
  */
-char ** ya_split_line(char * line)
+void ya_split_line(char ** tokens, char * line)
 {
-    uint16_t bufsize = TOK_BUFSIZE;
     uint16_t position = 0;
     char * token;
-    char ** tokens_backup;
 
-    static char ** tokens;
-
-    tokens = (char **)malloc(bufsize * sizeof(char*));
-
-    if (tokens && line)
-    {
+    if (tokens && line) {
         token = strtok(line, TOK_DELIM);
-        while (token != NULL) {
-        tokens[position++] = token;
 
-            // If we have exceeded the tokens buffer, reallocate.
-            if (position >= bufsize) {
-                bufsize += TOK_BUFSIZE;
-                tokens_backup = tokens;
-                tokens = (char **)realloc(tokens, bufsize * sizeof(char*));
-                if (tokens == NULL) {
-                    free(tokens_backup);
-                    fprintf(stdout, "yash: tokens realloc failed\n");
-                    exit(EXIT_FAILURE);
-                }
-            }
-
+        while ((token != NULL) && (position < TOK_BUFSIZE-1)) {
+            tokens[position++] = token;
             token = strtok(NULL, TOK_DELIM);
         }
 
         tokens[position] = NULL;
     }
-    return tokens;
 }
 
 
@@ -944,32 +883,30 @@ char ** ya_split_line(char * line)
  */
 void ya_loop(void)
 {
-    char ** args;
-    int status;
-    char * line;
-    uint16_t len;
+    int8_t status;
+    uint16_t len = LINE_SIZE-1;
 
-    line = (char *)malloc(LINE_SIZE * sizeof(char));    /* Get work area for the line buffer */
+    char * line = (char *)malloc(LINE_SIZE * sizeof(char));    /* Get work area for the line buffer */
     if (line == NULL) return;
 
-    len = LINE_SIZE-1;
+    char ** args = (char **)malloc(TOK_BUFSIZE * sizeof(char*));    /* Get tokens buffer ready */
+    if (args == NULL) return;
 
     do {
-        fflush(stdin);
         fprintf(stdout,"\n> ");
 
 #if __RC2014 && __CPM
-        ya_getline(line, LINE_SIZE-1);
+        fgets_cons(line, (size_t)len);
 #else
         getline(&line, &len, stdin);
 #endif
-        args = ya_split_line(line);
+        ya_split_line(args, line);
 
         status = ya_execute(args);
-        free(args);
 
     } while (status);
 
+    free(args);
     free(line);
 }
 
