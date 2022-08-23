@@ -48,7 +48,7 @@
 // It should be located in the correct directory (along with ff.h) as per the examples provided below.
 
 #if __YAZ180
-// zcc +yaz180 -subtype=cpm -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
+// zcc +yaz180 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/yaz180/time -llib/yaz180/ff yash.c -o yash -create-app
 // This is for the YAZ180, using the 82C55 IDE interface. There is only one drive supported. The program is loaded and run from the monitor.
 // Drive 0:
 #include <arch/yaz180.h>
@@ -58,15 +58,16 @@
 
 #elif __RC2014
 // zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/ff yash.c -o yash -create-app
-// zcc +rc2014 -clib=new -subtype=cpm -O2 -v -m --list -llib/rc2014/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=cpm -clib=new -O2 -v -m --list -llib/rc2014/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
 // Drive 0:
+#include <arch/rc2014.h>
 #include <lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
 #include <lib/rc2014/ff.h>          /* Declarations of FatFs API */
 #include <arch/rc2014/diskio.h>     /* Declarations of diskio functions */
 
-// zcc +rc2014 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +rc2014 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -78,15 +79,15 @@
 //#pragma output CRT_ORG_BSS = 0x9000 // move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __SCZ180
-// zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
+// zcc +scz180 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
 // Drive 0: (as we're not using hbios api, but calling SD directly)
 //#include <arch/scz180.h>           /* Declarations of SD functions */
 //#include <lib/scz180/ffconf.h>     /* Declarations of FatFs configuration */
 //#include <lib/scz180/ff.h>         /* Declarations of FatFs API */
 //#include <lib/scz180/diskio_sd.h>  /* Declarations of SD diskio functions */
-//#pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
+//#pragma output CRT_ORG_BSS = 0xA800 // move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
-// zcc +scz180 -subtype=hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +scz180 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the SCZ180 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -96,10 +97,10 @@
 #include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
-#pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
+#pragma output CRT_ORG_BSS = 0xA800 // move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __HBIOS
-// zcc +hbios -clib=sdcc_iy -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
+// zcc +hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for any RetroBrew target when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
 // The HEX program is loaded in the dbgmon monitor M L, and started by R100.
 // Drive 2: (or whichever is nominated by hbios).
@@ -108,7 +109,7 @@
 #include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
-#pragma output CRT_ORG_BSS = 0xA000 // move bss origin to address 0xA000 (check to confirm there is no overlap between data and bss sections, and set as needed)
+#pragma output CRT_ORG_BSS = 0xA800 // move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 #elif __CPM
 // a hacked solution for __RC2014 8085 CPU running CP/M from classic library
@@ -129,6 +130,7 @@
 #endif
 
 // PRAGMA DEFINES
+
 #pragma printf = "%c %s %d %02u %lu %02X %08lX" // enables %c, %s, %d, %u, %lu, %X %lX only
 #pragma output CLIB_DISABLE_FGETS_CURSOR=1      // disable classic lib stdio cursor
 
@@ -141,12 +143,6 @@
 #define TOK_BUFSIZE 64          // size of token pointer buffer (on heap)
 
 #define TOK_DELIM " \t\r\n\a"
-
-#define KEY_BS      8
-#define KEY_LF      10
-#define KEY_CR      13
-#define KEY_SPACE   32
-#define KEY_DEL     127
 
 // GLOBALS
 
@@ -210,10 +206,10 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX only needed for cpm/sccz80/classic/z80
-        INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX only needed for cpm/sccz80/classic/8085
 ;       defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
         defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
+;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
+;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX uncomment only for cpm/sccz80/classic/z80
     __endasm;
 }
 #elif __YAZ180
@@ -281,8 +277,6 @@ uint8_t ya_num_builtins() {
 */
 
 
-// CP/M related functions
-
 /**
    @brief Builtin command:
    @param args List of args.  args[0] is "dmount". args[1] drive letter. [2] drive file.
@@ -316,9 +310,11 @@ int8_t ya_dmount(char ** args)    // mount a drive on CP/M
     return 1;
 }
 
+
 /*
   system related functions
  */
+
 
 /**
    @brief Builtin command:
@@ -358,7 +354,7 @@ int8_t ya_help(char ** args)
     uint8_t i;
     (void *)args;
 
-    fprintf(stdout,"yash v1.0 2020\n");
+    fprintf(stdout,"yash v1.1 2022\n");
     fprintf(stdout,"The following functions are built in:\n");
 
     for (i = 0; i < ya_num_builtins(); ++i) {
