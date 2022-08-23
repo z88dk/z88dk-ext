@@ -291,7 +291,7 @@ int8_t ya_dmount(char ** args)    // mount a drive on CP/M
         fprintf(stdout, "Expected 2 arguments to \"dmount\"\n");
 #if __RC2014 || __YAZ180
     } else {
-        res = f_mount(fs, (const TCHAR*)"", 0);
+        res = f_mount(fs, (const TCHAR*)"0:", 0);
         if (res != FR_OK) { put_rc(res); return 1; }
 
         // set up CPM drive LBA location
@@ -426,7 +426,7 @@ int8_t ya_ls(char ** args)
     uint32_t p1;
     uint16_t s1, s2;
 
-    res = f_mount(fs, (const TCHAR*)"", 0);
+    res = f_mount(fs, (const TCHAR*)"0:", 0);
     if (res != FR_OK) { put_rc(res); return 1; }
 
     if(args[1] == NULL) {
@@ -800,7 +800,7 @@ void put_rc (FRESULT rc)
     for (i = 0; i != res && *str; ++i) {
         while (*str++) ;
     }
-    fprintf(stderr,"\r\nrc=%u FR_%s\r\n", res, str);
+    fprintf(stderr,"\nrc=%u FR_%s\n", res, str);
 }
 
 
