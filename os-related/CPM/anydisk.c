@@ -787,7 +787,9 @@ void main()
 		bufp = gets(buff);
 
 		/* The 'X' request must be the only thing on a line. */
-		if (tolower(*bufp) == 'x' && *(bufp + 1) == '\0') {
+		//if (tolower(*bufp) == 'x' && *(bufp + 1) == '\0') {
+		// z88dk fix, August 2022
+		if (toupper(*bufp) == 'X') {
 			break;
 		}
 
