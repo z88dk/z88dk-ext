@@ -40,13 +40,6 @@ The authors
 The original version of this program was written by Richard Damon.
 Robert Ward rewrote the program and called it DDNDISK.
 Edward K. Ream further modified DDNDISK to produce ANYDISK.
-Please send all reports of bugs to:
-
-	Edward K. Ream
-	1850 Summit Ave.  
-	Madison, WI 53705
-	(608) 231 - 2952
-
 
 
 This program allows the operator to examine and modifya CP/M disk.  
