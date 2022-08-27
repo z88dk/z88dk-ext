@@ -113,11 +113,11 @@
 
 #elif __CPM
 // a hacked solution for __RC2014 8085 CPU running CP/M from classic library
-//  zcc +cpm -clib=8085 -O2 -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+//  zcc +cpm -clib=8085 -O2 --opt-code-speed -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
 #include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085.h>
 
 // a hacked solution for __RC2014 Z80 CPU running CP/M from classic library
-//  zcc +cpm -clib=default -O2 -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+//  zcc +cpm -clib=default -O2 --opt-code-speed -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
 //#include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014.h>
 
 #include <_DEVELOPMENT/sccz80/arch/rc2014.h>            /* Declarations of RC2014 specifics */
@@ -151,9 +151,8 @@ extern uint32_t cpm_dsk0_base[4];
 static void * buffer;           /* create a scratch buffer on heap later */
                                 /* for romwbw hbios buffer must be in bss (which is above 0x8000) */
 
-static FATFS * fs;              /* FatFs work area needed for each volume */
-                                /* Pointer to the filesystem object (on heap) */
-static DIR * dir;               /* Pointer to the directory object (on heap) */
+static FATFS * fs;              /* Pointer to the filesystem object (on heap) */
+                                /* FatFs work area needed for each volume */
 
 static FILINFO Finfo;           /* File Information */
 static FIL File[MAX_FILES];     /* File object needed for each open file */
@@ -169,7 +168,7 @@ int8_t ya_dmount(char ** args); // mount a CP/M drive
 // system related functions
 int8_t ya_md(char ** args);     // memory dump
 int8_t ya_help(char ** args);   // help
-int8_t ya_exit(char ** args);   // exit
+int8_t ya_exit(char ** args);   // exit to CP/M
 
 // fat related functions
 int8_t ya_mount(char ** args);  // mount a FAT file system
@@ -282,7 +281,7 @@ uint8_t ya_num_builtins() {
    @param args List of args.  args[0] is "dmount". args[1] drive letter. [2] drive file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_dmount(char ** args)    // mount a drive on CP/M
+int8_t ya_dmount(char ** args)  // mount a drive on CP/M
 {
     FRESULT res;
     uint8_t i = 0;
@@ -321,7 +320,7 @@ int8_t ya_dmount(char ** args)    // mount a drive on CP/M
    @param args List of args.  args[0] is "md". args[1] is the origin address.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_md(char ** args)              /* dump RAM contents from nominated origin. */
+int8_t ya_md(char ** args)      /* dump RAM contents from nominated origin. */
 {
     static uint8_t * origin = 0;
     uint32_t ofs;
@@ -339,7 +338,7 @@ int8_t ya_md(char ** args)              /* dump RAM contents from nominated orig
         put_dump(ptr, ofs, 16);
     }
 
-    origin += 0x100;                    /* go to next page (next time) */
+    origin += 0x100;            /* go to next page (next time) */
     return 1;
 }
 
@@ -349,7 +348,7 @@ int8_t ya_md(char ** args)              /* dump RAM contents from nominated orig
    @param args List of args.  args[0] is "help".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_help(char ** args)
+int8_t ya_help(char ** args)    // print some help
 {
     uint8_t i;
     (void *)args;
@@ -369,7 +368,7 @@ int8_t ya_help(char ** args)
    @param args List of args.  args[0] is "exit".
    @return Always returns 0, to terminate execution.
  */
-int8_t ya_exit(char ** args)
+int8_t ya_exit(char ** args)    // exit to CP/M
 {
     (void *)args;
 
@@ -420,8 +419,9 @@ int8_t ya_umount(char ** args)  // unmount a FAT file system
    @param args List of args.  args[0] is "ls".  args[1] is the path.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_ls(char ** args)
+int8_t ya_ls(char ** args)      // print directory contents
 {
+    DIR dir;                    /* Get work area for the directory */
     FRESULT res;
     uint32_t p1;
     uint16_t s1, s2;
@@ -430,15 +430,15 @@ int8_t ya_ls(char ** args)
     if (res != FR_OK) { put_rc(res); return 1; }
 
     if(args[1] == NULL) {
-        res = f_opendir(dir, (const TCHAR*)".");
+        res = f_opendir(&dir, (const TCHAR*)".");
     } else {
-        res = f_opendir(dir, (const TCHAR*)args[1]);
+        res = f_opendir(&dir, (const TCHAR*)args[1]);
     }
     if (res != FR_OK) { put_rc(res); return 1; }
 
     p1 = s1 = s2 = 0;
     while(1) {
-        res = f_readdir(dir, &Finfo);
+        res = f_readdir(&dir, &Finfo);
         if ((res != FR_OK) || !Finfo.fname[0]) break;
         if (Finfo.fattrib & AM_DIR) {
             s2++;
@@ -463,7 +463,7 @@ int8_t ya_ls(char ** args)
         res = f_getfree( (const TCHAR*)args[1], (DWORD*)&p1, &fs);
     }
     if (res == FR_OK) {
-        fprintf(stdout, ", %10lu bytes free\n", p1 * fs->csize * 512);
+        fprintf(stdout, ", %10lu bytes free\n", p1 * (DWORD)(fs->csize * 512));
     } else {
         put_rc(res);
     }
@@ -476,7 +476,7 @@ int8_t ya_ls(char ** args)
    @param args List of args.  args[0] is "rm".  args[1] is the directory or file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_rm(char ** args)       // delete a directory or file
+int8_t ya_rm(char ** args)      // delete a directory or file
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"rm\"\n");
@@ -492,7 +492,7 @@ int8_t ya_rm(char ** args)       // delete a directory or file
    @param args List of args.  args[0] is "cp".  args[1] is the src, args[2] is the dst
    @return Always returns 1, to continue executing.
  */
-int8_t ya_cp(char ** args)       // copy a file
+int8_t ya_cp(char ** args)      // copy a file
 {
     FRESULT res;
     uint32_t p1;
@@ -549,7 +549,7 @@ int8_t ya_cp(char ** args)       // copy a file
    @param args List of args.  args[0] is "mv".  args[1] is the src, args[2] is the dst
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mv(char ** args)       // move (rename) a file
+int8_t ya_mv(char ** args)      // move (rename) a file
 {
     if (args[1] == NULL || args[2] == NULL) {
         fprintf(stdout, "yash: expected 2 arguments to \"mv\"\n");
@@ -561,7 +561,7 @@ int8_t ya_mv(char ** args)       // move (rename) a file
 
 
 /**
-   @brief Builtin command: change directory.
+   @brief Builtin command:
    @param args List of args.  args[0] is "cd".  args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
@@ -581,7 +581,7 @@ int8_t ya_cd(char ** args)
    @param args List of args.  args[0] is "pwd".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_pwd(char ** args)             /* show the current working directory */
+int8_t ya_pwd(char ** args)     /* show the current working directory */
 {
     FRESULT res;
     (void *)args;
@@ -607,7 +607,7 @@ int8_t ya_pwd(char ** args)             /* show the current working directory */
    @param args List of args.  args[0] is "mkdir". args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mkdir(char ** args)    // create a new directory
+int8_t ya_mkdir(char ** args)   // create a new directory
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"mkdir\"\n");
@@ -623,7 +623,7 @@ int8_t ya_mkdir(char ** args)    // create a new directory
    @param args List of args.  args[0] is "chmod".  args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_chmod(char ** args)    // change file or directory attributes
+int8_t ya_chmod(char ** args)   // change file or directory attributes
 {
 #if !FF_USE_CHMOD
     (void *)args;
@@ -648,7 +648,7 @@ int8_t ya_chmod(char ** args)    // change file or directory attributes
    @param args List of args.  args[0] is "ds". args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_ds(char ** args)       // disk status
+int8_t ya_ds(char ** args)      // disk status
 {
     FRESULT res;
     int32_t p1;
@@ -665,7 +665,7 @@ int8_t ya_ds(char ** args)       // disk status
     fprintf(stdout, "FAT type = FAT%u\nBytes/Cluster = %lu\nNumber of FATs = %u\n"
         "Root DIR entries = %u\nSectors/FAT = %lu\nNumber of clusters = %lu\n"
         "Volume start (lba) = %lu\nFAT start (lba) = %lu\nDIR start (lba,cluster) = %lu\nData start (lba) = %lu\n",
-        ft[fs->fs_type & 3], (DWORD)fs->csize * 512, fs->n_fats,
+        ft[fs->fs_type & 3], (DWORD)(fs->csize * 512), fs->n_fats,
         fs->n_rootdir, fs->fsize, (DWORD)fs->n_fatent - 2,
         fs->volbase, fs->fatbase, fs->dirbase, fs->database);
     return 1;
@@ -677,7 +677,7 @@ int8_t ya_ds(char ** args)       // disk status
    @param args List of args.  args[0] is "dd". args[1] is the drive number. args[2] is the sector in decimal.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_dd(char ** args)       // disk dump
+int8_t ya_dd(char ** args)      // disk dump
 {
     FRESULT res;
     static BYTE drive;
@@ -710,7 +710,7 @@ int8_t ya_dd(char ** args)       // disk dump
    @param args List of args.  args[0] is "clock".  args[1] is the UNIX time.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_clock(char ** args)    // set the time (using UNIX epoch)
+int8_t ya_clock(char ** args)   // set the time (using UNIX epoch)
 {
     if (args[1] != NULL) {
         set_system_time(atol(args[1]) - UNIX_OFFSET);
@@ -724,7 +724,7 @@ int8_t ya_clock(char ** args)    // set the time (using UNIX epoch)
    @param args List of args.  args[0] is "tz".  args[1] is TZ offset in hours.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_tz(char ** args)       // set timezone (no daylight savings, so adjust manually)
+int8_t ya_tz(char ** args)      // set timezone (no daylight savings, so adjust manually)
 {
     if (args[1] != NULL) {
         set_zone(atol(args[1]) * ONE_HOUR);
@@ -738,7 +738,7 @@ int8_t ya_tz(char ** args)       // set timezone (no daylight savings, so adjust
    @param args List of args.  args[0] is "diso".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_diso(char ** args)     // print the local time in ISO std: 2013-03-23 01:03:52
+int8_t ya_diso(char ** args)    // print the local time in ISO std: 2013-03-23 01:03:52
 {
     time_t theTime;
     struct tm CurrTimeDate;     // set up an array for the RTC info.
@@ -760,7 +760,7 @@ int8_t ya_diso(char ** args)     // print the local time in ISO std: 2013-03-23 
    @param args List of args.  args[0] is "date".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_date(char ** args)     // print the local time: Sun Mar 23 01:03:52 2013
+int8_t ya_date(char ** args)    // print the local time: Sun Mar 23 01:03:52 2013
 {
     time_t theTime;
     struct tm CurrTimeDate;     // set up an array for the RTC info.
@@ -919,21 +919,19 @@ int main(int argc, char ** argv)
     (void *)argv;
 
 #if !__RC2014 && !__CPM
-    set_zone((int32_t)11 * ONE_HOUR);                   /* Australian Eastern Summer Time */
-    set_system_time(1606780800 - UNIX_OFFSET);          /* Initial time: 00.00 December 1, 2020 UTC */
+    set_zone((int32_t)10 * ONE_HOUR);               /* Australian Eastern Standard Time */
+    set_system_time(1606780800 - UNIX_OFFSET);      /* Initial time: 00.00 December 1, 2020 UTC */
 #endif
 
     fs = (FATFS *)malloc(sizeof(FATFS));                /* Get work area for the volume */
-    dir = (DIR *)malloc(sizeof(DIR));                   /* Get work area for the directory */
     buffer = (char *)malloc(sizeof(char)*BUFFER_SIZE);  /* Get working buffer space */
 
     // Run command loop if we got all the memory allocations we need.
-    if ( fs && dir && buffer)
+    if ( fs && buffer)
         ya_loop();
 
     // Perform any shutdown/cleanup.
     free(buffer);
-    free(dir);
     free(fs);
 
     return 0;
