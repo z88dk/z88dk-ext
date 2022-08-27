@@ -1,0 +1,3 @@
+This is an abstract of the CP/M commands written in C for the Olivetti M20.
+It probably was a joint effort of Digital Research and Zilog to overcome the lack of a PL/M compiler for the Zilog Z8001 CPU.
+The commands were written with the portability in mind, thus we are trying to backport them to cp/m 80.
