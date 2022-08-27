@@ -391,10 +391,22 @@
 
 #include "portab.h"                             /* Portable program defs    */
 #include "bdos.h"                               /* BDOS calls & structures  */
-#include "basepage.h"                           /* CP/M base page structure */
-#include "setjmp.h"                             /* Non-local goto           */
+//#include "basepage.h"                           /* CP/M base page structure */
+//#include "setjmp.h"                             /* Non-local goto           */
 
-extern BYTE     *sbrk();                        /* Memory allocator         */
+
+//-------------------------------------------------------
+
+#include <stdlib.h>
+#undef sbrk
+#define sbrk malloc
+
+#define _main main
+#define _exit exit
+
+//-------------------------------------------------------
+
+//extern BYTE     *sbrk();                        /* Memory allocator         */
 
 struct fcbtab   *fcb;                           /* Default file control blk */
 char            *buff;                          /* Default DMA buffer       */
@@ -407,7 +419,7 @@ char            copyright[] =
 /*                        Version dependencies                              */
 /****************************************************************************/
 
-#define CPM             0x0000                  /* Vanilla flavor CP/M      */
+#define _CPM             0x0000                  /* Vanilla flavor CP/M      */
 #define MPM             0x1000                  /* MP/M                     */
 #define PCPM            0x2000                  /* Portable CP/M            */
 #define ONE_X           0x00                    /* Version 1.x              */
@@ -415,7 +427,7 @@ char            copyright[] =
 #define THREE_X         0x30                    /* Version 3.x              */
 
 #define IS_MPM(x)       (((x) & 0xff00) == MPM)
-#define HAS_GET_DFS(x)  ((((x) & 0xff00) != CPM) || (((x) & 0xf0) >= THREE_X))
+#define HAS_GET_DFS(x)  ((((x) & 0xff00) != _CPM) || (((x) & 0xf0) >= THREE_X))
 #define HAS_GSET_SCB(x) (((x) & 0xf0) >= THREE_X)
 #define HAS_RETERR(x)   ((((x) & 0xff00) == MPM) || (((x) & 0xf0) >= THREE_X))
 #define HAS_SETMSC(x)   ((((x) & 0xff00) == MPM) || (((x) & 0xf0) >= THREE_X))
@@ -725,23 +737,23 @@ char    optype[26] =
 
 char    io[] [DEVLEN] =                         /* Logical device names     */
         {
-                'O', 'U', 'T',
-                'P', 'R', 'N',
-                'L', 'S', 'T',
-                'A', 'X', 'O',
-                 0,   0,   0,                   /* Dummy for file type      */
-                'C', 'O', 'N',
-                'A', 'X', 'I',
-                'I', 'N', 'P',
-                'N', 'U', 'L',
-                'E', 'O', 'F',
+               {'O', 'U', 'T'},
+               {'P', 'R', 'N'},
+               {'L', 'S', 'T'},
+               {'A', 'X', 'O'},
+               { 0,   0,   0 },                 /* Dummy for file type      */
+               {'C', 'O', 'N'},
+               {'A', 'X', 'I'},
+               {'I', 'N', 'P'},
+               {'N', 'U', 'L'},
+               {'E', 'O', 'F'}
         };
 
 /****************************************************************************/
 /* Structures                                                               */
 /****************************************************************************/
 
-jmp_buf         main_stack;                     /* Used in error recovery */
+//jmp_buf         main_stack;                     /* Used in error recovery */
 
 
 /****************************************************************************/
@@ -780,13 +792,15 @@ struct fcbtab   dxfcb;                          /* Extended FCB (XFCB) for  */
 
 struct flctlb   empty_fcb =                     /* Empty for initialization */
         {
+            {
                 0,                              /* Drive, name,             */
-                ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-                ' ', ' ', ' ',                  /*   type, extent, s1, s2,  */
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
+                {' ', ' ', ' '},                  /*   type, extent, s1, s2,  */
                 0, 0, 0, 0,                     /*   record,  reserved,     */
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                 0,                              /*   current & random record*/
-                ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+            },
+                {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '},
                 1,                              /*   password, passwd mode, */
                 0,                              /*   user number,           */
                 ERR                             /*   file type              */
@@ -1095,7 +1109,7 @@ VOID                                            /* Set multisector count    */
 multsect(cnt)
 UWORD   cnt;
 {
-        static last_count = 1;                  /* Remember last count      */
+        static int last_count = 1;                  /* Remember last count      */
 
         if (! HAS_SETMSC(ver))                  /* Do nothing if call not   */
                 return;                         /*   supported              */
@@ -1173,7 +1187,8 @@ struct flctlb   *fileadr;                       /*   cleans up and returns  */
 
         combuf.comlen = 0;                      /* Trash current cmd line   */
         crlf();
-        longjmp(main_stack, TRUE);              /* Restart from top of main()*/
+        //longjmp(main_stack, TRUE);              /* Restart from top of main()*/
+		exit(-1);
 }
 
 
@@ -2904,11 +2919,14 @@ _main()
         BOOLEAN copydone;                       /* Needed for case          */
                                                 /*  source.type == DISKNAME */
                                                 /* Set up destination addr  */
-        if (setjmp(main_stack) == 0)            /*   for non-local goto     */
-        {                                       /* Following code not reex- */
+        //if (setjmp(main_stack) == 0)            /*   for non-local goto     */
+        //{                                       /* Following code not reex- */
                                                 /*   ecuted after error     */
-            buff = _base->buff;                 /* Set up pointers into     */
-            fcb = &_base->fcb1;                 /*   basepage               */
+            //buff = _base->buff;                 /* Set up pointers into     */
+            buff=0x80;		// CP/M 80 command line / buffer position
+
+            //fcb = &_base->fcb1;                 /*   basepage               */
+            fcb = 0x5C;
                                                 /* Get command line tail    */
             move(buff, (char *) &combuf.comlen, sizeof (combuf.comline) + 1);
 
@@ -2924,7 +2942,7 @@ _main()
             c_user = _gset_ucode(0xff);         /* Get current user         */
             cdisk = _ret_cdisk();               /*   and current disk       */
             eretry = FALSE;                     /* First time around can't  */
-        }                                       /*   be error retry!        */
+        //}                                       /*   be error retry!        */
 
 /****************************************************************************/
 /* Restart here following longjmp at end of error().  Eretry shows whether  */
