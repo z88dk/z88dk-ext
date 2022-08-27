@@ -1,3 +1,7 @@
+
+// zcc +cpm -create-app -lndos -DAMALLOC pip.c
+
+
 /****************************************************************************/
 /*                                                                          */
 /*       P e r i p h e r a l  I n t e r c h a n g e  P r o g r a m          */
@@ -909,7 +913,7 @@ struct fcbtab *fcba;
                 /********************************/
 
 UWORD                                           /* Open a file, using passwd*/
-open(fcba)                                      /*   on MP/M, CP/M 3        */
+pip_open(fcba)                                      /*   on MP/M, CP/M 3        */
 struct flctlb   *fcba;                          /* Returns error code       */
 {
         if (HAS_XFCBS(ver))                     /* If password required,    */
@@ -933,7 +937,7 @@ struct flctlb   *fcba;                          /* Returns error code       */
                 /********************************/
 
 UWORD                                           /* Close a file.  Returns   */
-close(flcb)                                     /*   error code             */
+pip_close(flcb)                                     /*   error code             */
 struct flctlb   *flcb;
 {
         dcnt = _close(flcb);
@@ -1160,13 +1164,13 @@ struct flctlb   *fileadr;                       /*   cleans up and returns  */
         if (sfile)                              /* If source is a file,     */
         {                                       /*   close it               */
                 setuser(source.user);
-                close(&source);
+                pip_close(&source);
         }
 
         if (made)                               /* If destination scratch   */
         {                                       /*   file already created,  */
                 setuser(odest.user);            /*   delete it              */
-                close(&dest);
+                pip_close(&dest);
                 delete(&dest);                  /* Delete dest scratch file */
         }
 
@@ -1230,10 +1234,10 @@ setupdest()                                     /*   file                   */
         if (HAS_XFCBS(ver))                     /* Are we worrying about    */
         {                                       /*   passwords?             */
                 odest.flfcb.ASSIGN_PW |= 0x80;  /* Yes: tell BDOS           */
-                odcnt = open(&odest.flfcb);     /* Try to open dest file    */
+                odcnt = pip_open(&odest.flfcb);     /* Try to open dest file    */
                                                 /*   and save error code    */
                 if (odcnt != 255)               /* If it exists, close it   */
-                        close(&odest);
+                        pip_close(&odest);
                 else                            /* If file exists, but we   */
                         if ((exten & 0x0f) != 0)/*   can't open it, error   */
                                 error(20, exten, TRUE, &odest);
@@ -1273,7 +1277,7 @@ setupsource()                                   /*   file                   */
         if (HAS_XFCBS(ver))                     /* Do we have to worry about*/
                 source.flfcb.ASSIGN_PW |= 0x80; /*   passwords?             */
 
-        open(&source.flfcb);                    /* Open source file         */
+        pip_open(&source.flfcb);                    /* Open source file         */
         if ((! RSYS)                            /* Do we read system files? */
            && (source.flfcb.SYSTEM & 0x80))     /* Is this one?             */
                 dcnt = 255;                     /* Yes: pretend open failed */
@@ -1493,7 +1497,7 @@ fillsource()                                    /*   from the current source*/
                     {if (concat || (! fastcopy))
                         error(18, 0, FALSE, &source);
                 } else                          /* End of non-sparse file   */
-                    close(&source);             /* Flag the fact            */
+                    pip_close(&source);             /* Flag the fact            */
                 endofsrc = TRUE;
                 sbase[nsbuf] = ENDFILE;         /* Plug in end of file mark */
                 return;                         /* That's all, folks!       */
@@ -1991,13 +1995,13 @@ closedest()                                     /*   file, flushing buffer  */
         writedest();                            /* Flush buffer             */
 
         setuser(odest.user);                    /* Set up destination user  */
-        close(&dest);                           /* Close scratch file       */
+        pip_close(&dest);                           /* Close scratch file       */
         if (dcnt == 255)
             error(14, exten, TRUE, &dest);      /* Can't close file!        */
 
         if (! HAS_XFCBS(ver)                    /* If we have not done so   */
-           && ((odcnt = open(&odest)) != 255))  /*   already, find out if   */
-            close(&odest);                      /*   true dest file exists  */
+           && ((odcnt = pip_open(&odest)) != 255))  /*   already, find out if   */
+            pip_close(&odest);                      /*   true dest file exists  */
 
         if (odcnt != 255)                       /* File exists              */
         {
