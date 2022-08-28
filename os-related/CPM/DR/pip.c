@@ -916,8 +916,8 @@ UWORD                                           /* Open a file, using passwd*/
 pip_open(fcba)                                      /*   on MP/M, CP/M 3        */
 struct flctlb   *fcba;                          /* Returns error code       */
 {
-        if (HAS_XFCBS(ver))                     /* If password required,    */
-                _setdma(fcba->pwnam);           /*   show where it is       */
+//        if (HAS_XFCBS(ver))                     /* If password required,    */
+//                _setdma(fcba->pwnam);           /*   show where it is       */
         dcnt = _open(fcba);                     /* Try the open             */
         if ((dcnt != 255)                       /* If it worked, but found  */
            && (fcba->flfcb.USER_0 & 0x80))      /*   a user zero file,      */
@@ -988,8 +988,8 @@ UWORD                                           /* Delete a file, giving    */
 delete(flcb)                                    /*   password if it might   */
 struct flctlb   *flcb;                          /*   be necessary           */
 {                                               /* Returns error code       */
-        if (HAS_XFCBS(ver))
-                _setdma(flcb->pwnam);
+//        if (HAS_XFCBS(ver))
+//                _setdma(flcb->pwnam);
         dcnt = _delete(flcb);
         exten = dcnt >> 8;
         return (dcnt &= 0xff);
@@ -1038,14 +1038,14 @@ UWORD                                           /* Create a new file,       */
 make(fcba)                                      /*   assigning password if  */
 struct flctlb   *fcba;                          /*   necessary              */
 {                                               /* Returns error code       */
-        if (HAS_XFCBS(ver))                     /* Password allowed?        */
-                if (fcba->pwnam[0] == 0)        /* Yes: wanted?             */
-                        fcba->flfcb.ASSIGN_PW &= 0x7f;  /* No               */
-                else                            /* Password is wanted       */
-                {
-                        fcba->flfcb.ASSIGN_PW |= 0x80;
-                        _setdma(fcba->pwnam);   /* Show where it is         */
-                }
+//        if (HAS_XFCBS(ver))                     /* Password allowed?        */
+//                if (fcba->pwnam[0] == 0)        /* Yes: wanted?             */
+//                        fcba->flfcb.ASSIGN_PW &= 0x7f;  /* No               */
+//                else                            /* Password is wanted       */
+//                {
+//                        fcba->flfcb.ASSIGN_PW |= 0x80;
+//                        _setdma(fcba->pwnam);   /* Show where it is         */
+//                }
         dcnt = _create(fcba);
         exten = dcnt >> 8;
         return (dcnt &= 0xff);
@@ -1062,8 +1062,8 @@ UWORD                                           /* Rename file, giving pass-*/
 rename(flcb)                                    /*   word if it might be    */
 struct flctlb   *flcb;                          /*   necessary              */
 {                                               /* Returns error code       */
-        if (HAS_XFCBS(ver))
-                _setdma(flcb->pwnam);           /* Say where password is    */
+//        if (HAS_XFCBS(ver))
+//                _setdma(flcb->pwnam);           /* Say where password is    */
         dcnt = _rename(flcb);
         exten = dcnt >> 8;
         return (dcnt &= 0xff);
@@ -1113,12 +1113,12 @@ VOID                                            /* Set multisector count    */
 multsect(cnt)
 UWORD   cnt;
 {
-        static int last_count = 1;                  /* Remember last count      */
+//        static int last_count = 1;                  /* Remember last count      */
 
-        if (! HAS_SETMSC(ver))                  /* Do nothing if call not   */
+//        if (! HAS_SETMSC(ver))                  /* Do nothing if call not   */
                 return;                         /*   supported              */
-        if (last_count != cnt)                  /* Only call BDOS if new    */
-                _setmsc(last_count = cnt);      /*   count differs from last*/
+//        if (last_count != cnt)                  /* Only call BDOS if new    */
+//                _setmsc(last_count = cnt);      /*   count differs from last*/
 }
 
 
@@ -1231,31 +1231,31 @@ setupdest()                                     /*   file                   */
         move("$$$", dest.flfcb.ftype, L_TYPE);  /*   has original name but  */
                                                 /*   "$$$" type             */
 
-        if (HAS_XFCBS(ver))                     /* Are we worrying about    */
-        {                                       /*   passwords?             */
-                odest.flfcb.ASSIGN_PW |= 0x80;  /* Yes: tell BDOS           */
-                odcnt = pip_open(&odest.flfcb);     /* Try to open dest file    */
-                                                /*   and save error code    */
-                if (odcnt != 255)               /* If it exists, close it   */
-                        pip_close(&odest);
-                else                            /* If file exists, but we   */
-                        if ((exten & 0x0f) != 0)/*   can't open it, error   */
-                                error(20, exten, TRUE, &odest);
-
-                if ((delete(&dest) == 255)      /* Try to delete old temp   */
-                   && (exten != 0))             /*   file.  If it exists but*/
-                                                /*   can't be deleted, error*/
-                        error(22, exten, TRUE, &dest);
-
-                if (make(&dest) == 255)         /* Create new temp file     */
-                        error(19, exten, FALSE, &dest);/* Make file error   */
-        }
-        else                                    /* No passwords             */
-        {
+//        if (HAS_XFCBS(ver))                     /* Are we worrying about    */
+//        {                                       /*   passwords?             */
+//                odest.flfcb.ASSIGN_PW |= 0x80;  /* Yes: tell BDOS           */
+//                odcnt = pip_open(&odest.flfcb);     /* Try to open dest file    */
+//                                                /*   and save error code    */
+//                if (odcnt != 255)               /* If it exists, close it   */
+//                        pip_close(&odest);
+//                else                            /* If file exists, but we   */
+//                        if ((exten & 0x0f) != 0)/*   can't open it, error   */
+//                                error(20, exten, TRUE, &odest);
+//
+//                if ((delete(&dest) == 255)      /* Try to delete old temp   */
+//                   && (exten != 0))             /*   file.  If it exists but*/
+//                                                /*   can't be deleted, error*/
+//                        error(22, exten, TRUE, &dest);
+//
+//                if (make(&dest) == 255)         /* Create new temp file     */
+//                        error(19, exten, FALSE, &dest);/* Make file error   */
+//        }
+//        else                                    /* No passwords             */
+//        {
                 delete(&dest);                  /* Remove old temp file     */
                 if (make(&dest) == 255)         /* Create a new one         */
                         error(17, NONE, FALSE, &dest);/* No directory space */
-        }
+//        }
 
         dest.flfcb.record &= 0x00ffffff;        /* Current record is 0      */
         made = TRUE;                            /* Show temp file now made  */
@@ -1274,8 +1274,8 @@ setupsource()                                   /*   file                   */
         register int    i;
 
         setuser(source.user);                   /* Set up source user       */
-        if (HAS_XFCBS(ver))                     /* Do we have to worry about*/
-                source.flfcb.ASSIGN_PW |= 0x80; /*   passwords?             */
+//        if (HAS_XFCBS(ver))                     /* Do we have to worry about*/
+//                source.flfcb.ASSIGN_PW |= 0x80; /*   passwords?             */
 
         pip_open(&source.flfcb);                    /* Open source file         */
         if ((! RSYS)                            /* Do we read system files? */
@@ -1287,20 +1287,20 @@ setupsource()                                   /*   file                   */
                                                 /*   extended               */
                 error(20, exten, ((exten & 0x0f) != 0), &source);
 
-        if (HAS_XFCBS(ver) && getpw)            /* Did user give dest passwd*/
-        {                                       /* No: get it from source   */
-                dxfcb = source.flfcb;   
-                if (_get_xfcb(&dxfcb) == 255)   /* Get source file's XFCB   */
-                        dest.pwnam[0] = 0;      /* Not found: no password   */
-                else                            /* Has a password           */
-                {                               /* Get "decrypted" copy     */
-                        for (i = 0; i < sizeof dest.pwnam; i++ )
-                                dest.pwnam[i] =
-                                  dxfcb.resvd[sizeof dest.pwnam - i - 1] ^
-                                    dxfcb.s1;
-                        dest.pwmode = dxfcb.extent;/* Copy password mode    */
-                }
-        }
+//        if (HAS_XFCBS(ver) && getpw)            /* Did user give dest passwd*/
+//        {                                       /* No: get it from source   */
+//                dxfcb = source.flfcb;   
+//                if (_get_xfcb(&dxfcb) == 255)   /* Get source file's XFCB   */
+//                        dest.pwnam[0] = 0;      /* Not found: no password   */
+//                else                            /* Has a password           */
+//                {                               /* Get "decrypted" copy     */
+//                        for (i = 0; i < sizeof dest.pwnam; i++ )
+//                                dest.pwnam[i] =
+//                                  dxfcb.resvd[sizeof dest.pwnam - i - 1] ^
+//                                    dxfcb.s1;
+//                        dest.pwmode = dxfcb.extent;/* Copy password mode    */
+//                }
+//        }
 
         f1 = source.flfcb.fname[0] & 0x80;      /* Save source attributes   */
         f2 = source.flfcb.fname[1] & 0x80;
@@ -1349,30 +1349,30 @@ writedest()                                     /*   buffer to destination  */
         else                                    /* Not sparse:              */
                 _set_rand(&dest.flfcb);         /* Set base rec for verify  */
 
-        if (HAS_SETMSC(ver) && fastcopy)        /* Can we write more than   */
-        {                                       /*   on sector at a time?   */
-                bufsize = (IS_MPM(ver)) ?       /* Yes.                     */
-                          M_MAXMBUF : C_MAXMBUF;
-                multsect((IS_MPM(ver)) ? M_MAXMCNT : C_MAXMCNT);
-        }
-        else                                    /* No.  Too bad.            */
-        {
+//        if (HAS_SETMSC(ver) && fastcopy)        /* Can we write more than   */
+//        {                                       /*   on sector at a time?   */
+//                bufsize = (IS_MPM(ver)) ?       /* Yes.                     */
+//                          M_MAXMBUF : C_MAXMBUF;
+//                multsect((IS_MPM(ver)) ? M_MAXMCNT : C_MAXMCNT);
+//        }
+//        else                                    /* No.  Too bad.            */
+//        {
                 bufsize = SECSIZE;
                 multsect(1);
-        }
+//        }
 
                                                 /* Strange code overcomes   */
                                                 /*   unsigned compare bug   */
         while ((0xffff & (long) (chunk = n - tdest)) >= (long) SECSIZE)
                                                 /* Write loop               */
         {
-                if (HAS_SETMSC(ver)             /* Is this the last chunk in*/
-                   && fastcopy                  /*   a copy using multiple  */
-                   && ((0xffff & (long) chunk) < (long) bufsize))
-                {
-                        bufsize = chunk;        /* Reduce multi sector count*/
-                        multsect(bufsize / SECSIZE);/* to correct value     */
-                }
+//                if (HAS_SETMSC(ver)             /* Is this the last chunk in*/
+//                   && fastcopy                  /*   a copy using multiple  */
+//                   && ((0xffff & (long) chunk) < (long) bufsize))
+//                {
+//                        bufsize = chunk;        /* Reduce multi sector count*/
+//                        multsect(bufsize / SECSIZE);/* to correct value     */
+//                }
                 
                 _setdma(&dbase[tdest]);         /* Adjust DMA start address */
 
@@ -1427,18 +1427,18 @@ fillsource()                                    /*   from the current source*/
 {                                               /*   file                   */
         BYTE    extsave;
 
-        if (HAS_SETMSC(ver) && fastcopy)        /* Are we able to read more */
-        {                                       /*   than one sector?       */
-            bufsize = (IS_MPM(ver)) ?           /* Yes: try to get bufferful*/
-                        M_MAXMBUF : C_MAXMBUF;  /*   (size depends whether  */
-            multsect((IS_MPM(ver)) ?            /*    MP/M or CP/M-3)       */
-                        M_MAXMCNT : C_MAXMCNT);                 
-        }
-        else                                    /* No: just get one         */
-        {
+//        if (HAS_SETMSC(ver) && fastcopy)        /* Are we able to read more */
+//        {                                       /*   than one sector?       */
+//            bufsize = (IS_MPM(ver)) ?           /* Yes: try to get bufferful*/
+//                        M_MAXMBUF : C_MAXMBUF;  /*   (size depends whether  */
+//            multsect((IS_MPM(ver)) ?            /*    MP/M or CP/M-3)       */
+//                        M_MAXMCNT : C_MAXMCNT);                 
+//        }
+//        else                                    /* No: just get one         */
+//        {
             bufsize = SECSIZE;
             multsect(1);
-        }
+//        }
 
         setuser(source.user);                   /* Source user number set   */
         nsource = nsbuf;
@@ -1467,9 +1467,9 @@ fillsource()                                    /*   from the current source*/
                     error(0, exten, FALSE, &source);/* Something else: abort*/
 
                                                 /* End of file: clean up    */
-                if (HAS_SETMSC(ver) && fastcopy)/* Add no. sectors copied   */
-                    nsbuf += (IS_MPM(ver)) ?
-                             (exten >> NIBBLE) * SECSIZE : exten;
+//                if (HAS_SETMSC(ver) && fastcopy)/* Add no. sectors copied   */
+//                    nsbuf += (IS_MPM(ver)) ?
+//                             (exten >> NIBBLE) * SECSIZE : exten;
              
                                                 /****************************/
                                                 /*                          */
@@ -1999,9 +1999,9 @@ closedest()                                     /*   file, flushing buffer  */
         if (dcnt == 255)
             error(14, exten, TRUE, &dest);      /* Can't close file!        */
 
-        if (! HAS_XFCBS(ver)                    /* If we have not done so   */
-           && ((odcnt = pip_open(&odest)) != 255))  /*   already, find out if   */
-            pip_close(&odest);                      /*   true dest file exists  */
+//        if (! HAS_XFCBS(ver)                    /* If we have not done so   */
+//           && ((odcnt = pip_open(&odest)) != 255))  /*   already, find out if   */
+//            pip_close(&odest);                      /*   true dest file exists  */
 
         if (odcnt != 255)                       /* File exists              */
         {
@@ -2715,9 +2715,9 @@ struct flctlb *fcba;                            /* Set up any options       */
             }
         }
 
-        if (HAS_XFCBS(ver)                      /* Past the filename.  There*/
-           && (ch == ';'))                      /*   could be a password    */
-        {
+//        if (HAS_XFCBS(ver)                      /* Past the filename.  There*/
+//           && (ch == ';'))                      /*   could be a password    */
+//        {
             getch(ch);
             if ((length = token()) > L_PASS)    /* Error if too long        */
                 goto parse_error;
@@ -2730,7 +2730,7 @@ struct flctlb *fcba;                            /* Set up any options       */
                 if (fcba == &odest)             /* If parsing dest name,    */
                         getpw = FALSE;          /*   show non-default passwd*/
             }                                   /*   it to be used          */
-        }
+//        }
 
                                                 /* Maybe options follow??   */
         if (ch == '[') {                        /* Yes: collect options     */
@@ -2986,9 +2986,9 @@ _main()
 
               case PRNT:                        /* Formatted list device:   */
               case LSTT:                        /* List device: if MP/M,    */
-                if (IS_MPM(ver)                 /*   check device is avail- */
-                   && (_cond_lst() == 0xff))    /*   able and abort if not  */
-                    nonfile_error(8);
+//                if (IS_MPM(ver)                 /*   check device is avail- */
+//                   && (_cond_lst() == 0xff))    /*   able and abort if not  */
+//                    nonfile_error(8);
                 break;
 
               case FILE:                        /* Form may be unique=X:    */
