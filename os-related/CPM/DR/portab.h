@@ -11,6 +11,9 @@
 
 // z88dk specific definitions
 
+// The z88dk command line parser breaks it, so we disable the feature
+#pragma output CRT_ENABLE_COMMANDLINE=0
+#pragma output CRT_OPEN_MAX=0
 
 
 /* #un!define ALCYON 1 */                       /* using Alcyon compiler   */
