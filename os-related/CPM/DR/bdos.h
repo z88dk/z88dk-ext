@@ -32,7 +32,7 @@ extern int __LIB__ bios(int func,int arg,int arg2) __smallc;
 extern int __LIB__ biosh(int func,int arg,int arg2) __smallc;
 
 //extern long     __BDOS();                       /* BDOS entry point         */
-#define __BDOS bdos
+#define __BDOS (unsigned char)bdos
 
 #define XADDR   long                            /* 32-bit address data type */
 
@@ -301,7 +301,7 @@ struct  dpbs                                    /* Disk parameter block     */
         /*      BYTE    filler;                  ***  Pad to align words  ***/
                 UWORD   mxa;                    /* Maximum allocation (blks)*/
                 UWORD   dmx;                    /* Max directory entries    */
-                UWORD   dbl;                    /* Directory alloc. map     */
+                UWORD   dbl;                    /* Directory alloc. map   (MSB,LSB)  */
                 UWORD   cks;                    /* Directory checksum       */
                 UWORD   ofs;                    /* Track offset from track 0*/
         };
