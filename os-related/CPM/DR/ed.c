@@ -213,8 +213,33 @@ char    date[] = "8/82";
 /****************************************************************************/
 
 #include "portab.h"                             /* Portable C declarations  */
-//#include "bdos.h"                               /* BDOS functions           */
+#include "bdos.h"                               /* BDOS functions           */
 //#include "basepage.h"                           /* CP/M basepage layout     */
+
+//-------------------------------------------------------
+
+#include <stdlib.h>
+#undef sbrk
+#define sbrk malloc
+
+#define _main main
+#define _exit exit
+
+typedef struct {
+	int	iy;
+	int	ix;
+	int	sp;
+	int	pc;
+} jmp_buf;
+
+#define setjmp(env)         l_setjmp(&(env))
+#define longjmp(env, val)   l_longjmp(&(env), val)
+
+extern int __LIB__ l_setjmp(jmp_buf *env);
+extern void __LIB__ l_longjmp(jmp_buf *env, int val) __smallc;
+
+//-------------------------------------------------------
+
 
 /*
   Copyright (C) 1981
@@ -223,15 +248,14 @@ char    date[] = "8/82";
   Pacific Grove, CA 93950
 */
 
-//#include "setjmp.h"                             /* Used for error recovery  */
 
 #define MPMPRODUCT      0x01                    /* requires MP/M            */
 #define CPM3            0x30                    /* requires 3.0 CP/M        */
 #define SECTSIZE        0x80                    /* sector size              */
 
 
-extern int      setjmp(), longjmp();            /* Non-local goto for errors*/
-extern char     *brk(), *sbrk();                /* Memory allocation        */
+//extern int      setjmp(), longjmp();            /* Non-local goto for errors*/
+//extern char     *brk(), *sbrk();                /* Memory allocation        */
 
 
 /****************************************************************************/
@@ -295,6 +319,7 @@ struct fcbtab   *fcb1;                          /* 1st basepage FCB         */
 char    *buff;                                  /* Basepage DMA buffer      */  
 
 
+//typedef int jmp_buf[10];
 
 jmp_buf main_env;                               /* Used in error recovery   */
 
@@ -306,9 +331,9 @@ UWORD   hmax;                                   /* max/2 (halfway up memory)*/
 struct fcbtab   rfcb    =                       /* reader file control block*/
         {
                 0,                              /* "disk"                   */
-                ' ', ' ', ' ', ' ',
-                ' ', ' ', ' ', ' ',             /* filename                 */
-                'L', 'I', 'B',                  /* filename extension       */
+                {' ', ' ', ' ', ' ',
+                 ' ', ' ', ' ', ' '},             /* filename                 */
+                {'L', 'I', 'B'},                  /* filename extension       */
                 0,                              /* extent                   */
                 0,                              /* (reserved)               */
                 0                               /* (reserved)               */
@@ -319,14 +344,14 @@ UWORD   rbp;                                    /* index into read buffer    */
 struct fcbtab   xfcb    =                       /* xfer file control block  */
         {
                 0,
-                'X', '$', '$', '$',
-                '$', '$', '$', '$',             /* filename                 */
-                'L', 'I', 'B',                  /* filename extension       */
+                {'X', '$', '$', '$',
+                 '$', '$', '$', '$'},             /* filename                 */
+                {'L', 'I', 'B'},                  /* filename extension       */
                 0,                              /* extent                   */
                 0,                              /* (reserved)               */
                 0,                              /* (reserved)               */
                 0,                              /* record count             */
-                0, 0, 0                         /* (more reserved stuff)    */
+                {0, 0, 0}                         /* (more reserved stuff)    */
         };
 
 BYTE    xfcbext = 0;                            /* save extent for appends  */
@@ -371,9 +396,9 @@ char    dtype   [3];                            /* destination file type    */
 struct fcbtab   libfcb  =                       /* default lib name         */
         {
                 0,
-                'X', '$', '$', '$',
-                '$', '$', '$', '$',             /* filename                 */
-                'L', 'I', 'B'                   /* filename extension       */
+                {'X', '$', '$', '$',
+                 '$', '$', '$', '$'},             /* filename                 */
+                 {'L', 'I', 'B'}                   /* filename extension       */
         };
 
 char    tempfl  []      = "$$$";                /* temporary file type      */
@@ -727,7 +752,7 @@ time()                                          /*   25 milliseconds.  Tune */
                 /*                              */
                 /********************************/
 VOID
-abort(a)                                        /* Print an error message   */
+ed_abort(a)                                        /* Print an error message   */
 char    *a;                                     /*   then abort ED          */
 {
         perror(a);
@@ -744,7 +769,7 @@ VOID
 ferr()                                          /* Abort when directory full*/
 {
         _close(&dfcb);                          /* Try to close file so it  */
-        abort(dirfull);                         /*   can be recovered later */
+        ed_abort(dirfull);                         /*   can be recovered later */
 }
 
 
@@ -1568,6 +1593,64 @@ readfile()                                      /* Read a character from a  */
 
                 /********************************/
                 /*                              */
+                /*      S E T L I M I T S       */
+                /*                              */
+                /********************************/
+VOID
+setlimits()                                     /* Set memory limits over   */
+{                                               /*   which command operates */
+        REG int j, k, limit, m;            /*   using distance and     */
+        BOOLEAN middle, looping;                /*   direction              */  
+
+        relline = 1;                            /* Relative line count      */
+        if (direction == BACKWARD)              /* Working down buffer?     */  
+        {
+                distance++;                     /* Account for current line */
+                j = front;
+                limit = 0;
+                k = 0xffff;
+        }
+        else
+        {
+                j = back;
+                limit = maxm;
+                k = 1;
+        }
+        looping = TRUE;                         /* The algorithm scans the  */
+        while (looping)                         /*   buffer until it has    */
+        {                                       /*   found required number  */
+                while ((middle = (j != limit))  /*   of line feeds or until */
+                      && (base[m = j + k] != LF))/*  buffer limits reached  */
+                        j = m;                  /* If operation covers      */
+                looping = (--distance != 0);    /*   lines outside buffer,  */
+                if (! middle)                   /*   distance is non-zero   */
+                {                               /*   on exit                */
+                        looping = FALSE;
+                        j -= k;
+                }
+                else
+                {
+                        relline--;
+                        if (looping)
+                                j = m;
+                }
+        }
+
+        if (direction == BACKWARD)              /* Operation starts at      */
+        {                                       /*   base[j] and stops at   */
+                first = j;                      /*   base[front - 1]        */
+                lastc = front - 1;
+        }
+        else                                    /* FORWARD: operation       */
+        {                                       /*   at base[back  -1] and  */
+                first = back + 1;               /*   staps at base[j + 1]   */
+                lastc = j + 1;
+        }
+}
+
+
+                /********************************/
+                /*                              */
                 /*     W R I T E _ X F E R      */
                 /*                              */
                 /********************************/
@@ -1638,13 +1721,13 @@ setup()                                         /* Start up edit session    */
                 }
                 if (((error_code & 0xff) == 0xff)/* Abort unless open       */
                    && ((error_code >> 8) != 0)) /*   successful or file not */
-                        abort(notavail);        /*   found                  */  
+                        ed_abort(notavail);        /*   found                  */  
         }
         dcnt = error_code & 0xff;
         if (onefile)                            /* If output same as input  */  
         {
                 if (fcb1->ftype[0] & 0x80)      /* Check for read only      */  
-                        abort("File is read/only$");
+                        ed_abort("File is read/only$");
                 if (fcb1->ftype[1] & 0x80)      /*   and system attribute   */
                 {
                         if (fcb1->fname[7] & 0x80)
@@ -1657,7 +1740,7 @@ setup()                                         /* Start up edit session    */
         if (dcnt == 255)                        /* A new file is needed     */  
         {
                 if (! onefile)                  /* Two files given, but     */
-                        abort(not_found);       /*   can't open source      */
+                        ed_abort(not_found);       /*   can't open source      */
                 newfile = TRUE;                 /* Onefile: must be new     */
                 print("new file$");
                 crlf();
@@ -1784,64 +1867,6 @@ distnzero()                                     /* If non-zero distance     */
         return (FALSE);                         /* distance == 0            */  
 }
 
-
-
-                /********************************/
-                /*                              */
-                /*      S E T L I M I T S       */
-                /*                              */
-                /********************************/
-VOID
-setlimits()                                     /* Set memory limits over   */
-{                                               /*   which command operates */
-        REG int j, k, limit, m;            /*   using distance and     */
-        BOOLEAN middle, looping;                /*   direction              */  
-
-        relline = 1;                            /* Relative line count      */
-        if (direction == BACKWARD)              /* Working down buffer?     */  
-        {
-                distance++;                     /* Account for current line */
-                j = front;
-                limit = 0;
-                k = 0xffff;
-        }
-        else
-        {
-                j = back;
-                limit = maxm;
-                k = 1;
-        }
-        looping = TRUE;                         /* The algorithm scans the  */
-        while (looping)                         /*   buffer until it has    */
-        {                                       /*   found required number  */
-                while ((middle = (j != limit))  /*   of line feeds or until */
-                      && (base[m = j + k] != LF))/*  buffer limits reached  */
-                        j = m;                  /* If operation covers      */
-                looping = (--distance != 0);    /*   lines outside buffer,  */
-                if (! middle)                   /*   distance is non-zero   */
-                {                               /*   on exit                */
-                        looping = FALSE;
-                        j -= k;
-                }
-                else
-                {
-                        relline--;
-                        if (looping)
-                                j = m;
-                }
-        }
-
-        if (direction == BACKWARD)              /* Operation starts at      */
-        {                                       /*   base[j] and stops at   */
-                first = j;                      /*   base[front - 1]        */
-                lastc = front - 1;
-        }
-        else                                    /* FORWARD: operation       */
-        {                                       /*   at base[back  -1] and  */
-                first = back + 1;               /*   staps at base[j + 1]   */
-                lastc = j + 1;
-        }
-}
 
 
                 /********************************/
@@ -3104,7 +3129,9 @@ repeated()                                      /* Actions the "repeated"   */
 VOID
 allocate_memory()                               /* Carve up free memory     */
 {
-        max = (UWORD) _base->freelen - MARGIN;  /* How much space can we get*/
+        //max = (UWORD) _base->freelen - MARGIN;  /* How much space can we get*/
+		max=20000;
+		
         if ((int) (base = sbrk(max)) == -1)     /* Grab the lot!            */
         {
             perror("Can't allocate memory$");   /* "This should never       */
@@ -3174,7 +3201,7 @@ set_up_files()                                  /* Determine source and     */
         if (((! onefile)                        /* Input and output not same*/
            || (SFCB->drive != dfcb.drive))      /* On different disks?      */
            && (_open(&dfcb) != 255))            /* Try to open output file  */
-                abort("output file exists, erase it$");
+                ed_abort("output file exists, erase it$");
 }
 
 
@@ -3201,8 +3228,13 @@ _main()
                                                 /* BDOS 3 has passwds, xfcbs*/
 
         allocate_memory();
-        fcb1 = &_base->fcb1;                    /* Initialize pointers to   */
-        buff = _base->buff;                     /*   basepage structures    */
+
+        //fcb1 = &_base->fcb1;                    /* Initialize pointers to   */
+        fcb1 = 0x5C;
+
+        //buff = _base->buff;                     /*   basepage structures    */
+        buff = 0x80;		// CP/M 80 command line / buffer position
+
         set_up_files();
 
 
