@@ -13,7 +13,10 @@
 
 // The z88dk command line parser breaks it, so we disable the feature
 #pragma output CRT_ENABLE_COMMANDLINE=0
+// Same for fcntl, the CP/M commands use BDOS
 #pragma output CRT_OPEN_MAX=0
+// Removing the MS DOS protection would save about 50 bytes, but it is nice to have
+//#pragma output noprotectmsdos
 
 
 /* #un!define ALCYON 1 */                       /* using Alcyon compiler   */
