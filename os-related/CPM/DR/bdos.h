@@ -108,8 +108,8 @@ extern int __LIB__ biosh(int func,int arg,int arg2) __smallc;
 //#define SET_SUP         62                      /* Set supervisor state     */
 //#define SET_LABEL       100                     /* Set directory label      */
 //#define GET_LABEL       101                     /* Get directory label      */
-//#define GET_XFCB        102                     /* Get extended FCB         */
-//#define SET_XFCB        103                     /* Set extended FCB         */
+#define GET_XFCB        102                     /* Get extended FCB         */
+#define SET_XFCB        103                     /* Set extended FCB         */
 //#define COND_LST        161                     /* Conditionally attach LST:*/
 
 /****************************************************************************/
