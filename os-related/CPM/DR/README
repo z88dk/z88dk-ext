@@ -2,4 +2,7 @@ This is an abstract of the CP/M commands written in C for the Olivetti M20.
 It probably was a joint effort of Digital Research and Zilog to overcome the lack of a PL/M compiler for the Zilog Z8000 and Motorola 68000 CPU families.
 The commands were written with the portability in mind, thus we are trying to backport them to cp/m 80.
 
+AT THE MOMENT THE PROGRAMS IN THIS DIRECTORY ARE NOT IN WORKING ORDER
+=====================================================================
+
 Note that the CP/M 68K manual describes an alternative BIOS implementation written in C for the Motorola CPU.
