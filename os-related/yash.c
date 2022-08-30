@@ -131,7 +131,7 @@
 
 // PRAGMA DEFINES
 
-#pragma printf = "%c %s %d %02u %lu %02X %08lX" // enables %c, %s, %d, %u, %lu, %X %lX only
+#pragma printf = "%c %s %d %02u %lu %04X"       // enables %c, %s, %d, %u, %lu, %X only
 #pragma output CLIB_DISABLE_FGETS_CURSOR=1      // disable classic lib stdio cursor
 
 // DEFINES
@@ -154,9 +154,7 @@ static void * buffer;           /* create a scratch buffer on heap later */
 static FATFS * fs;              /* Pointer to the filesystem object (on heap) */
                                 /* FatFs work area needed for each volume */
 
-static FILINFO Finfo;           /* File Information */
 static FIL File[MAX_FILES];     /* File object needed for each open file */
-
 
 /*
   Function Declarations for built-in shell commands:
@@ -196,7 +194,7 @@ int8_t ya_date(char ** args);   // print the local time in US: Sun Mar 23 01:03:
 
 // helper functions
 static void put_rc (FRESULT rc);    // print error codes to defined error IO
-static void put_dump (const uint8_t * buff, uint32_t ofs, uint8_t cnt);
+static void put_dump (const uint8_t * buff, uint16_t ofs, uint8_t cnt);
 
 // RC2014 CP/M-IDE & YAZ180 CP/M stores four LBA bases from cpm_dsk0_base.
 // XXX Adjust this base value to suit the current build.
@@ -323,7 +321,7 @@ int8_t ya_dmount(char ** args)  // mount a drive on CP/M
 int8_t ya_md(char ** args)      /* dump RAM contents from nominated origin. */
 {
     static uint8_t * origin = 0;
-    uint32_t ofs;
+    uint16_t ofs;
     uint8_t * ptr;
 
     if (args[1] == NULL) {
@@ -421,10 +419,12 @@ int8_t ya_umount(char ** args)  // unmount a FAT file system
  */
 int8_t ya_ls(char ** args)      // print directory contents
 {
-    DIR dir;                    /* Get work area for the directory */
+    DIR dir;                    /* Stack Directory Object */
     FRESULT res;
     uint32_t p1;
     uint16_t s1, s2;
+
+    static FILINFO Finfo;       /* Static File Information */
 
     res = f_mount(fs, (const TCHAR*)"0:", 0);
     if (res != FR_OK) { put_rc(res); return 1; }
@@ -682,7 +682,7 @@ int8_t ya_dd(char ** args)      // disk dump
     FRESULT res;
     static BYTE drive;
     static uint32_t sect;
-    uint32_t ofs;
+    uint16_t ofs;
     uint8_t * ptr;
 
     if (args[1] != NULL && args[2] != NULL) {
@@ -805,11 +805,11 @@ void put_rc (FRESULT rc)
 
 
 static
-void put_dump (const uint8_t * buff, uint32_t ofs, uint8_t cnt)
+void put_dump (const uint8_t * buff, uint16_t ofs, uint8_t cnt)
 {
     uint8_t i;
 
-    fprintf(stdout,"%08lX:", ofs);
+    fprintf(stdout,"%04X:", ofs);
 
     for(i = 0; i < cnt; ++i) {
         fprintf(stdout," %02X", buff[i]);
