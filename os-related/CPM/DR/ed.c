@@ -402,7 +402,7 @@ char    backup  []      = "BAK";                /* backup file type         */
 int     column          = 0;                    /* console column position  */
 int     scolumn         = 8;                    /* start column in "i" mode */
 
-int     dcnt;                                   /* CP/M call return code    */
+unsigned char     dcnt;                                   /* CP/M call return code    */
 
 
 
