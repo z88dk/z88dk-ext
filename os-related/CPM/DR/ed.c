@@ -1,3 +1,8 @@
+
+
+// zcc +cpm -create-app -DAMALLOC -O3 -subtype=zxplus3 ed.c
+
+
 /****************************************************************************/
 /*                                                                          */
 /*       E D  :   T h e   C P / M   C o n t e x t    E d i t o r            */
@@ -219,24 +224,14 @@ char    date[] = "8/82";
 //-------------------------------------------------------
 
 #include <stdlib.h>
+#include <string.h>
+#include <setjmp.h>
+
 #undef sbrk
 #define sbrk malloc
 
 #define _main main
 #define _exit exit
-
-typedef struct {
-	int	iy;
-	int	ix;
-	int	sp;
-	int	pc;
-} jmp_buf;
-
-#define setjmp(env)         l_setjmp(&(env))
-#define longjmp(env, val)   l_longjmp(&(env), val)
-
-extern int __LIB__ l_setjmp(jmp_buf *env);
-extern void __LIB__ l_longjmp(jmp_buf *env, int val) __smallc;
 
 //-------------------------------------------------------
 
@@ -619,7 +614,7 @@ char    *a;                                     /*   print a string         */
                 /*                              */
                 /********************************/
 VOID
-perror(a)                                       /* Print an error message   */
+ed_perror(a)                                       /* Print an error message   */
 char    *a;
 {
         print("\tError - $");
@@ -634,8 +629,8 @@ char    *a;
                 /*                              */
                 /********************************/
 int
-open(fcb)                                       /* Open a file - used for   */
-struct fcbtab   *fcb;                           /*   library files          */
+ed_open(struct fcbtab *fcb)                     /* Open a file - used for   */
+                                                /*   library files          */
 {                                               /* Restart ED from the top  */
         if (_open(fcb) == 0xff)                 /*   after printing error   */
         {                                       /*   message if operation   */
@@ -673,18 +668,20 @@ break_key()                                     /* Return TRUE if character */
                                                 /*   character read is lost */
 
 
-                /********************************/
-                /*                              */
-                /*          M O V E             */
-                /*                              */
-                /********************************/
-VOID
-move(count, source, dest)                       /* Move count bytes from    */
-REG char   *source, *dest;                 /*   source to dest.  Useful*/
-REG UWORD  count;                          /*   where types not suited */
-{                                               /*   for struct assignment  */
-        for (; count--; *dest++ = *source++);
-}
+#define move(c,s,d) memcpy(d,s,c)
+
+//                /********************************/
+//                /*                              */
+//                /*          M O V E             */
+//                /*                              */
+//                /********************************/
+//VOID
+//move(count, source, dest)                       /* Move count bytes from    */
+//REG char   *source, *dest;                 /*   source to dest.  Useful*/
+//REG UWORD  count;                          /*   where types not suited */
+//{                                               /*   for struct assignment  */
+//        for (; count--; *dest++ = *source++);
+//}
 
 
                 /********************************/
@@ -693,12 +690,11 @@ REG UWORD  count;                          /*   where types not suited */
                 /*                              */
                 /********************************/
 VOID
-write_xfcb(fcb)                                 /* Write an extended FCB    */
-struct fcbtab   *fcb;
+write_xfcb(struct fcbtab *fcb)                  /* Write an extended FCB    */
 {
         move(8, pwd, &pwd[8]);
         if (_set_xfcb(fcb) == 0xff)
-                perror(pwd_err);
+                ed_perror(pwd_err);
 }
 
 
@@ -755,7 +751,7 @@ VOID
 ed_abort(a)                                        /* Print an error message   */
 char    *a;                                     /*   then abort ED          */
 {
-        perror(a);
+        ed_perror(a);
         reboot();
 }
 
@@ -793,8 +789,8 @@ ferr()                                          /* Abort when directory full*/
                 /*                              */
                 /********************************/
 VOID
-delete_file(fcb)                                /* Delete the file describ- */
-struct fcbtab   *fcb;                           /*   -ed by the arument     */
+delete_file(struct fcbtab *fcb)                 /* Delete the file describ- */
+                                                /*   -ed by the arument     */
 {
         setpwd();
         _delete(fcb);
@@ -807,8 +803,8 @@ struct fcbtab   *fcb;                           /*   -ed by the arument     */
                 /*                              */
                 /********************************/
 VOID
-rename_file(fcb)                                /* Rename the file describ- */
-struct fcbtab   *fcb;                           /*   by the argument        */
+rename_file(struct fcbtab *fcb)                 /* Rename the file describ- */
+                                                /*   by the argument        */
 {
         delete_file((struct fcbtab *) fcb->resvd);/* *** Delete any existing*/
         setpwd();                               /*   file of same name ***  */
@@ -822,8 +818,8 @@ struct fcbtab   *fcb;                           /*   by the argument        */
                 /*                              */
                 /********************************/
 VOID
-make_file(fcb)                                  /* Create the file describ- */
-struct fcbtab   *fcb;                           /*   by the argument        */
+make_file(struct fcbtab *fcb)                   /* Create the file describ- */
+                                                /*   by the argument        */
 {
         delete_file(fcb);                       /* *** Delete any existing  */
         setpwd();                               /*  file of same name ***   */  
@@ -831,18 +827,20 @@ struct fcbtab   *fcb;                           /*   by the argument        */
 }
 
 
-                /********************************/
-                /*                              */
-                /*           F I L L            */
-                /*                              */
-                /********************************/
-VOID
-fill(s, f, c)                                   /* Fill string starting at  */
-REG char   *s, f;                          /*   s for c bytes with     */
-REG int    c;                              /*   character s            */
-{
-        for (; c--; *s++ = f);
-}
+
+#define fill(s,f,c) memset(s,f,c)
+//                /********************************/
+//                /*                              */
+//                /*           F I L L            */
+//                /*                              */
+//                /********************************/
+//VOID
+//fill(s, f, c)                                   /* Fill string starting at  */
+//REG char   *s, f;                          /*   s for c bytes with     */
+//REG int    c;                              /*   character s            */
+//{
+//        for (; c--; *s++ = f);
+//}
 
 
 /****************************************************************************/
@@ -1072,7 +1070,7 @@ VOID
 append_xfer()                                   /* Restore xfer file        */  
 {                                               /*   to record last written */
         xfcb.extent = xfcbext;                  /*   by putxfer; read that  */
-        open(&xfcb);                            /*   record into xfer buff; */
+        ed_open(&xfcb);                         /*   record into xfer buff; */
         xfcb.record = xfcbrec;                  /*   leave current record   */
         setxdma();                              /*   pointer on that record */
         if (_s_read(&xfcb) == 0)
@@ -1411,7 +1409,7 @@ delim()                                         /* TRUE if chr is delimiter */
                 if (chr == del[delimiter])
                 {
                         if (delimiter > 11)     /* * or ?                   */
-                                perror("cannot edit wildcard filename$");
+                                ed_perror("cannot edit wildcard filename$");
                         return (TRUE);
                 }
         }
@@ -1503,7 +1501,7 @@ struct fcbtab   *fcbadr;                        /*   set up in fcb if valid */
                                                 /* Not CR, ENDFILE, space   */
                                                 /*   or comma: error        */
 err:
-        perror(invalid);                        /* Complain about invalid   */
+        ed_perror(invalid);                        /* Complain about invalid   */
         return (flag = FALSE);                  /*   filename               */
 }
 
@@ -1814,7 +1812,7 @@ setup()                                         /* Start up edit session    */
 /*      accomplished by set_ptrs().                                         */
 /*                                                                          */
 /*      Many of ED's operations act over a given number of lines rather     */
-/*      than of characters.  This is accomplished by having setimits()      */
+/*      than of characters.  This is accomplished by having setlimits()     */
 /*      convert the line count to a character count before the primitive    */
 /*      operation takes place.  Mover() and set_ptrs() keep track of        */
 /*      current line number by counting line-feeds as they are encountered. */
@@ -2572,7 +2570,7 @@ read_lib()                                      /* Read library file: R cmd */
                 rfcb.record = 0;                /* Read from beginning      */
                 rfcb.extent = 0;
                 rbp = SECTSIZE;                 /* 1st readfile forces read */
-                open(&rfcb);
+                ed_open(&rfcb);
                 reading = TRUE;
         }
         while ((chr = readfile()) != ENDFILE)   /* Read and insert data     */
@@ -3055,7 +3053,7 @@ repeated()                                      /* Actions the "repeated"   */
                         xferon = FALSE;         /* Transfer file inactive   */
                         _delete(&rfcb);         /* Delete it                */
                         if (dcnt == 0xff)       /* Grouse if it's not there */
-                                perror(not_found);
+                                ed_perror(not_found);
                 }
                 else                            /* Not 0X: write the file   */
                 {
@@ -3134,7 +3132,7 @@ allocate_memory()                               /* Carve up free memory     */
 		
         if ((int) (base = sbrk(max)) == -1)     /* Grab the lot!            */
         {
-            perror("Can't allocate memory$");   /* "This should never       */
+            ed_perror("Can't allocate memory$");   /* "This should never       */
             _exit(1);                           /*   happen" (famous last   */
         }                                       /*   words!)                */
 
@@ -3146,7 +3144,7 @@ allocate_memory()                               /* Carve up free memory     */
         bufflength = (nbuf + 1) * SECTSIZE * 2; /*  sectors, and each taking*/
         if ((bufflength + 1024) > max)          /*  1/8 of free memory      */
         {
-            perror("Insufficient memory$");     /* No room left for edit    */
+            ed_perror("Insufficient memory$");     /* No room left for edit    */
             _exit(1);                           /*   buffer                 */
         }
         max -= (bufflength + 1);                /* Adjust max to index byte */
@@ -3303,7 +3301,7 @@ _main()
             }
             if (err_msg != NULL)                /*   and why                */
             {
-                perror(err_msg);
+                ed_perror(err_msg);
                 err_msg = NULL;
             }
             crlf();
