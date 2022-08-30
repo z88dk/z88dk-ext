@@ -205,7 +205,7 @@ static void dsk0_helper(void) __naked
     __asm
 ;       defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
         defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
-;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
+        INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX uncomment only for cpm/sccz80/classic/z80
     __endasm;
 }
@@ -279,7 +279,7 @@ uint8_t ya_num_builtins() {
    @param args List of args.  args[0] is "dmount". args[1] drive letter. [2] drive file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_dmount(char ** args)  // mount a drive on CP/M
+int8_t ya_dmount(char ** args)  /* mount a drive on CP/M */
 {
     FRESULT res;
     uint8_t i = 0;
@@ -342,11 +342,11 @@ int8_t ya_md(char ** args)      /* dump RAM contents from nominated origin. */
 
 
 /**
-   @brief Builtin command: help.
+   @brief Builtin command:
    @param args List of args.  args[0] is "help".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_help(char ** args)    // print some help
+int8_t ya_help(char ** args)    /* print some help. */
 {
     uint8_t i;
     (void *)args;
@@ -362,11 +362,11 @@ int8_t ya_help(char ** args)    // print some help
 
 
 /**
-   @brief Builtin command: exit.
+   @brief Builtin command:
    @param args List of args.  args[0] is "exit".
    @return Always returns 0, to terminate execution.
  */
-int8_t ya_exit(char ** args)    // exit to CP/M
+int8_t ya_exit(char ** args)    /* exit to CP/M */
 {
     (void *)args;
 
@@ -385,7 +385,7 @@ int8_t ya_exit(char ** args)    // exit to CP/M
    @param args List of args.  args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mount(char ** args)   // mount a FAT file system
+int8_t ya_mount(char ** args)   /* mount a FAT file system */
 {
     if (args[1] == NULL) {
         put_rc(f_mount(fs, (const TCHAR*)"0:", 0));
@@ -401,7 +401,7 @@ int8_t ya_mount(char ** args)   // mount a FAT file system
    @param args List of args.  args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_umount(char ** args)  // unmount a FAT file system
+int8_t ya_umount(char ** args)  /* unmount a FAT file system */
 {
     if (args[1] == NULL) {
         put_rc(f_mount(0, (const TCHAR*)"0:", 0));
@@ -417,7 +417,7 @@ int8_t ya_umount(char ** args)  // unmount a FAT file system
    @param args List of args.  args[0] is "ls".  args[1] is the path.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_ls(char ** args)      // print directory contents
+int8_t ya_ls(char ** args)      /* print directory contents */
 {
     DIR dir;                    /* Stack Directory Object */
     FRESULT res;
@@ -476,7 +476,7 @@ int8_t ya_ls(char ** args)      // print directory contents
    @param args List of args.  args[0] is "rm".  args[1] is the directory or file.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_rm(char ** args)      // delete a directory or file
+int8_t ya_rm(char ** args)      /* delete a directory or file */
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"rm\"\n");
@@ -492,7 +492,7 @@ int8_t ya_rm(char ** args)      // delete a directory or file
    @param args List of args.  args[0] is "cp".  args[1] is the src, args[2] is the dst
    @return Always returns 1, to continue executing.
  */
-int8_t ya_cp(char ** args)      // copy a file
+int8_t ya_cp(char ** args)      /* copy a file */
 {
     FRESULT res;
     uint32_t p1;
@@ -549,7 +549,7 @@ int8_t ya_cp(char ** args)      // copy a file
    @param args List of args.  args[0] is "mv".  args[1] is the src, args[2] is the dst
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mv(char ** args)      // move (rename) a file
+int8_t ya_mv(char ** args)      /* move (rename) a file */
 {
     if (args[1] == NULL || args[2] == NULL) {
         fprintf(stdout, "yash: expected 2 arguments to \"mv\"\n");
@@ -607,7 +607,7 @@ int8_t ya_pwd(char ** args)     /* show the current working directory */
    @param args List of args.  args[0] is "mkdir". args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_mkdir(char ** args)   // create a new directory
+int8_t ya_mkdir(char ** args)   /* create a new directory */
 {
     if (args[1] == NULL) {
         fprintf(stdout, "yash: expected 1 argument to \"mkdir\"\n");
@@ -623,7 +623,7 @@ int8_t ya_mkdir(char ** args)   // create a new directory
    @param args List of args.  args[0] is "chmod".  args[1] is the directory.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_chmod(char ** args)   // change file or directory attributes
+int8_t ya_chmod(char ** args)   /* change file or directory attributes */
 {
 #if !FF_USE_CHMOD
     (void *)args;
@@ -648,7 +648,7 @@ int8_t ya_chmod(char ** args)   // change file or directory attributes
    @param args List of args.  args[0] is "ds". args[1] is the drive number.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_ds(char ** args)      // disk status
+int8_t ya_ds(char ** args)      /* disk status */
 {
     FRESULT res;
     int32_t p1;
@@ -677,7 +677,7 @@ int8_t ya_ds(char ** args)      // disk status
    @param args List of args.  args[0] is "dd". args[1] is the drive number. args[2] is the sector in decimal.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_dd(char ** args)      // disk dump
+int8_t ya_dd(char ** args)      /* disk dump */
 {
     FRESULT res;
     static BYTE drive;
@@ -710,7 +710,7 @@ int8_t ya_dd(char ** args)      // disk dump
    @param args List of args.  args[0] is "clock".  args[1] is the UNIX time.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_clock(char ** args)   // set the time (using UNIX epoch)
+int8_t ya_clock(char ** args)   /* set the time (using UNIX epoch) */
 {
     if (args[1] != NULL) {
         set_system_time(atol(args[1]) - UNIX_OFFSET);
@@ -724,7 +724,7 @@ int8_t ya_clock(char ** args)   // set the time (using UNIX epoch)
    @param args List of args.  args[0] is "tz".  args[1] is TZ offset in hours.
    @return Always returns 1, to continue executing.
  */
-int8_t ya_tz(char ** args)      // set timezone (no daylight savings, so adjust manually)
+int8_t ya_tz(char ** args)      /* set timezone (no daylight savings, so adjust manually) */
 {
     if (args[1] != NULL) {
         set_zone(atol(args[1]) * ONE_HOUR);
@@ -738,7 +738,7 @@ int8_t ya_tz(char ** args)      // set timezone (no daylight savings, so adjust 
    @param args List of args.  args[0] is "diso".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_diso(char ** args)    // print the local time in ISO std: 2013-03-23 01:03:52
+int8_t ya_diso(char ** args)    /* print the local time in ISO std: 2013-03-23 01:03:52 */
 {
     time_t theTime;
     struct tm CurrTimeDate;     // set up an array for the RTC info.
@@ -760,7 +760,7 @@ int8_t ya_diso(char ** args)    // print the local time in ISO std: 2013-03-23 0
    @param args List of args.  args[0] is "date".
    @return Always returns 1, to continue executing.
  */
-int8_t ya_date(char ** args)    // print the local time: Sun Mar 23 01:03:52 2013
+int8_t ya_date(char ** args)    /* print the local time: Sun Mar 23 01:03:52 2013 */
 {
     time_t theTime;
     struct tm CurrTimeDate;     // set up an array for the RTC info.
