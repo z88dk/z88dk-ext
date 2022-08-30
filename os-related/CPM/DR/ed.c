@@ -226,6 +226,7 @@ char    date[] = "8/82";
 #include <stdlib.h>
 #include <string.h>
 #include <setjmp.h>
+#include <ctype.h>
 
 #undef sbrk
 #define sbrk malloc
@@ -313,8 +314,6 @@ char    date[] = "8/82";
 struct fcbtab   *fcb1;                          /* 1st basepage FCB         */
 char    *buff;                                  /* Basepage DMA buffer      */  
 
-
-//typedef int jmp_buf[10];
 
 jmp_buf main_env;                               /* Used in error recovery   */
 
@@ -477,20 +476,20 @@ char    notavail[]      = "file not available$";
                 /*                              */
                 /********************************/
 
-                /********************************/
-                /*                              */
-                /*        P R I N T C H         */
-                /*                              */
-                /********************************/
-VOID
-printch(ch)                                     /* Single char console o/p  */
-char ch;
-{
-        if (printsuppress)
-                return;
-        _conout(ch);
-}
-
+//                /********************************/
+//                /*                              */
+//                /*        P R I N T C H         */
+//                /*                              */
+//                /********************************/
+//VOID
+//printch(ch)                                     /* Single char console o/p  */
+//char ch;
+//{
+//        if (printsuppress)
+//                return;
+//        _conout(ch);
+//}
+#define printch(ch) if (!printsuppress) _conout(ch)
 
                 /********************************/
                 /*                              */
@@ -1172,19 +1171,21 @@ finis()                                         /* Finish edit, close files,*/
                                                 /* Return TRUE if character */
                                                 /*   is lowercase           */
                                                 /* NOTE: this is a macro    */
-#define lowercase(ch)   ((LCA <= ch) && (ch <= LCZ))
+//#define lowercase(ch)   ((LCA <= ch) && (ch <= LCZ))
+#define lowercase(ch) (tolower(ch))
 
+#define ucase(ch) (toupper(ch))
 
                 /********************************/
                 /*                              */
                 /*          U C A S E           */
                 /*                              */
                 /********************************/
-int
-ucase(ch)                                       /* Translate character to   */
-{                                               /*   upper case if it is a  */
-        return (lowercase(ch) ? ch & 0x5f : ch);/*   lower case letter      */
-}
+//int
+//ucase(ch)                                       /* Translate character to   */
+//{                                               /*   upper case if it is a  */
+//        return (lowercase(ch) ? ch & 0x5f : ch);/*   lower case letter      */
+//}
 
 
 
