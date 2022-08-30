@@ -1937,7 +1937,12 @@ BOOLEAN moveflag;                               /*   character at base[back]*/
                                                 /* Force a memory move      */  
                                                 /* NOTE: this is a macro    */
 
-#define mover() mem_move(TRUE)
+//#define mover() mem_move(TRUE)
+VOID
+mover()
+{
+	mem_move(TRUE);
+}
 
 
 
@@ -1951,7 +1956,12 @@ BOOLEAN moveflag;                               /*   character at base[back]*/
                                                 /*   characters (used by    */                                                  /*   delete command)        */
                                                 /* NOTE: this is a macro    */
 
-#define setptrs() mem_move(FALSE)
+//#define setptrs() mem_move(FALSE)
+VOID
+setptrs()
+{
+	mem_move(FALSE);
+}
 
 
 
@@ -1964,7 +1974,8 @@ BOOLEAN moveflag;                               /*   character at base[back]*/
                                                 /* Set memory limits and    */                                                  /*   force a move           */
                                                 /* NOTE: this is a macro    */
 
-#define movelines()     {setlimits(); mover();}
+//#define movelines()     {setlimits(); mover();}
+VOID movelines()     {setlimits(); mover();}
 
 
 
