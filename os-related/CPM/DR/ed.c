@@ -779,7 +779,8 @@ ferr()                                          /* Abort when directory full*/
                                                 /*   CP/M 3 supports this)  */
                                                 /* NOTE: this is a macro    */
 
-#define setpwd()        if (has_bdos3) _setdma(pwd);
+//#define setpwd()        if (has_bdos3) _setdma(pwd);
+VOID setpwd()        { if (has_bdos3) _setdma(pwd); }
 
 
                 /********************************/
@@ -1159,7 +1160,8 @@ finis()                                         /* Finish edit, close files,*/
                                                 /* Print character if not   */
                                                 /*   part of macro expansion*/
                                                 /* NOTE: this is a macro    */
-#define prtnmac(ch)     if (! mp) printc(ch);
+//#define prtnmac(ch)     if (! mp) printc(ch);
+VOID prtnmac(int ch)     { if (! mp) printc(ch); }
 
 
                 /********************************/
@@ -1299,7 +1301,8 @@ UWORD   v;                                      /*   "12345:  " if inserting*/
                                                 /* Print current line number*/
                                                 /*   (baseline)             */
                                                 /* NOTE: this is a macro    */
-#define printbase()     printline(baseline)
+//#define printbase()     printline(baseline)
+VOID printbase()     { printline(baseline); }
 
 
                 /********************************/
@@ -1311,7 +1314,8 @@ UWORD   v;                                      /*   "12345:  " if inserting*/
                                                 /* Print current line number*/
                                                 /*   (baseline) if not      */                                                  /*   expanding macro        */
                                                 /* NOTE: this is a macro    */
-#define printnmbase()   if (! mp) printline(baseline)
+//#define printnmbase()   if (! mp) printline(baseline)
+VOID printnmbase()   { if (! mp) printline(baseline); }
 
 
                 /********************************/
@@ -1879,7 +1883,8 @@ distnzero()                                     /* If non-zero distance     */
                                                 /*   new line, baseline     */
                                                 /* NOTE: this is a macro    */
 
-#define decfront() if (base[--front] == LF) baseline--
+//#define decfront() if (base[--front] == LF) baseline--
+VOID decfront()    { if (base[--front] == LF) baseline--; }
 
 
 
@@ -2131,7 +2136,8 @@ writeout()                                      /* Write number of lines    */
                                                 /*   memory buffer          */
                                                 /* NOTE: this is a macro    */
 
-#define clearmem()      {distance = 0xffff; writeout();}
+//#define clearmem()      {distance = 0xffff; writeout();}
+VOID clearmem()      {distance = 0xffff; writeout();}
 
 
 
@@ -3140,7 +3146,7 @@ VOID
 allocate_memory()                               /* Carve up free memory     */
 {
         //max = (UWORD) _base->freelen - MARGIN;  /* How much space can we get*/
-		max=20000;
+		max=10000;
 		
         if ((int) (base = sbrk(max)) == -1)     /* Grab the lot!            */
         {
