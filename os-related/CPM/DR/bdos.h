@@ -42,7 +42,8 @@ extern int __LIB__ getk();
 //{
 //	int j;
 //
-//// BDOS workaround, Fails on NCR DMV, works in other cases
+//// BDOS workaround, Fails on NCR DMV, works in other cases,
+//// i.e. the console level CP/M emulators
 //
 ////		while (!_constat())  j=_conio(0xff);
 ////		while (!j) j=_conio(0xff);
@@ -50,9 +51,9 @@ extern int __LIB__ getk();
 ////		return(j);
 //
 //	// BIOS level way, Tested on NCR DMV, might fail on other targets
+//	_conio(0xff);			// Extra workaround, i.e. fixes the Spectrum +3
 //	while (!(j=getk())) {}
 //	return(j);
-//
 //}
 
 
