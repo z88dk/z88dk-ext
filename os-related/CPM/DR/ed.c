@@ -669,7 +669,9 @@ int b_conio()
 //		if (j == 0xff) j=_conio(0xff);
 //		return(j);
 
+
 	// BIOS level way, Tested on NCR DMV, might fail on other targets
+	_conio(0xff);			// Extra workaround, i.e. fixes the Spectrum +3
 	while (!(j=getk())) {}
 	return(j);
 
