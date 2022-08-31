@@ -32,17 +32,28 @@ extern int __LIB__ bios(int func,int arg,int arg2) __smallc;
 extern int __LIB__ biosh(int func,int arg,int arg2) __smallc;
 
 
-////  Older CP/M versions can't easily mix direct and indirect console commands
-////  This workaround keeps the buffers clean
+//  Older CP/M versions can't easily mix direct and indirect console commands
+//  This workaround keeps the buffers clean, replace _conio(0xff) with
+//  one of the 2 following routines
+
+extern int __LIB__ getk();
+
 //int b_conio()
 //{
 //	int j;
-//		while (!_constat())  j=_conio(0xff);
-//		if (!j) j=_conio(0xff);
-//		if (j == 0xff) j=_conio(0xff);
-//		return(j);
+//
+//// BDOS workaround, Fails on NCR DMV, works in other cases
+//
+////		while (!_constat())  j=_conio(0xff);
+////		while (!j) j=_conio(0xff);
+////		if (j == 0xff) j=_conio(0xff);
+////		return(j);
+//
+//	// BIOS level way, Tested on NCR DMV, might fail on other targets
+//	while (!(j=getk())) {}
+//	return(j);
+//
 //}
-
 
 
 //extern long     __BDOS();                       /* BDOS entry point         */
