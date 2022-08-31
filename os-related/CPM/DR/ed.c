@@ -221,7 +221,9 @@ char    date[] = "8/82";
 #include "bdos.h"                               /* BDOS functions           */
 //#include "basepage.h"                           /* CP/M basepage layout     */
 
+
 //-------------------------------------------------------
+// z88dk port
 
 #include <stdlib.h>
 #include <string.h>
@@ -653,6 +655,18 @@ readcom()                                       /* Read console input line  */
 }
 
 
+//  Older CP/M versions can't easily mix direct and indirect console commands
+//  This workaround keeps the buffers clean
+int b_conio()
+{
+	int j;
+		while (!_constat())  j=_conio(0xff);
+		if (!j) j=_conio(0xff);
+		if (j == 0xff) j=_conio(0xff);
+		return(j);
+}
+
+
                 /********************************/
                 /*                              */
                 /*      B R E A K _ K E Y       */
@@ -662,7 +676,7 @@ BOOLEAN
 break_key()                                     /* Return TRUE if character */
 {                                               /*   entered at console is  */
         return ((_constat() != 0)               /*   CTL_Y.  If not CTL_Y   */
-           && (_conio(0xff) == CTL_Y));         /*   or no char entered,    */
+           && (b_conio() == CTL_Y));            /*   or no char entered,    */
 }                                               /*   return FALSE.  Any     */
                                                 /*   character read is lost */
 
@@ -676,8 +690,8 @@ break_key()                                     /* Return TRUE if character */
 //                /********************************/
 //VOID
 //move(count, source, dest)                       /* Move count bytes from    */
-//REG char   *source, *dest;                 /*   source to dest.  Useful*/
-//REG UWORD  count;                          /*   where types not suited */
+//REG char   *source, *dest;                      /*   source to dest.  Useful*/
+//REG UWORD  count;                               /*   where types not suited */
 //{                                               /*   for struct assignment  */
 //        for (; count--; *dest++ = *source++);
 //}
@@ -719,7 +733,7 @@ reboot()                                        /* CP/M warm start following*/
 VOID                                            /* Provide a delay of about */
 time()                                          /*   25 milliseconds.  Tune */
 {                                               /*   for processor, compiler*/
-        REG UWORD  downer;                 /*   and clock rate with    */
+        REG UWORD  downer;                      /*   and clock rate with    */
                                                 /*   defined value for TIME */
         downer = TIME;
         while (downer--);
@@ -836,8 +850,8 @@ make_file(struct fcbtab *fcb)                   /* Create the file describ- */
 //                /********************************/
 //VOID
 //fill(s, f, c)                                   /* Fill string starting at  */
-//REG char   *s, f;                          /*   s for c bytes with     */
-//REG int    c;                              /*   character s            */
+//REG char   *s, f;                               /*   s for c bytes with     */
+//REG int    c;                                   /*   character s            */
 //{
 //        for (; c--; *s++ = f);
 //}
@@ -886,7 +900,7 @@ char    *a;                                     /*   pointed at by a        */
 VOID
 fillsource()                                    /* Fill the source buffer   */
 {                                               /*   from file described by */
-        REG int j;                         /*   fcb1 (source file)     */
+        REG int j;                              /*   fcb1 (source file)     */
 
         nsource = 0;                            /* Point to start of buffer */
         for (j = 0; j <= nbuf; j++)             /* Fill buffer until no more*/
@@ -951,7 +965,7 @@ erase_bak()                                     /* Try to free disk space   */
 VOID
 writedest()                                     /* Write output buffer      */
 {                                               /* Write only whole sectors:*/
-        REG int    n, save_ndest;          /*   blocking is done       */
+        REG int    n, save_ndest;               /*   blocking is done       */
                                                 /*   elsewhere              */
 
         if ((n = ndest / SECTSIZE) == 0) return;/* How many sectors to write*/
@@ -1036,7 +1050,7 @@ char    c;                                      /*   transfer buffer.  If   */
 VOID
 close_xfer()                                    /* Flush transfer buffer to */
 {                                               /*   disk (whether buff full*/
-        REG int    j;                      /*   or not) and close file */
+        REG int    j;                           /*   or not) and close file */
                                                 /* Fill empty part with EOF */
         for (j = xbp; j++ <= SECTSIZE; putxfer(ENDFILE));
         _close(&xfcb);
@@ -1052,7 +1066,7 @@ close_xfer()                                    /* Flush transfer buffer to */
 BOOLEAN 
 compare_xfer()                                  /* Return TRUE if xfcb and  */
 {                                               /*   rfcb are accessing the */
-        REG int j;                         /*   same file              */
+        REG int j;                              /*   same file              */
                                                 /* Compare drive, name,     */
         for (j = 12; j--;)                      /*   and type               */
                 if (((char *) &xfcb)[j] != ((char *) &rfcb)[j])
@@ -1211,7 +1225,7 @@ retry:
             for (j = 0; j < PASSLEN;)           /* Read PASSLEN characters  */
             {                                   /*   without echoing        */  
                                                 /* What did user enter?     */
-                switch (c = ucase((int) _conio(0xff)))
+                switch (c = ucase((int) b_conio()))
                 {
                   case CR:                      /* All done                 */
                     goto way_out;
@@ -1355,7 +1369,7 @@ readc()                                         /* Read next input character*/
         }
 
         if (inserting)                          /* Inserting? Just read     */
-                return (utran((int) _conio(0xff)));     /* NOTE: no echo    */
+                return (utran((int) b_conio()));     /* NOTE: no echo    */
 
         if (readbuff)                           /* Take from command buffer */
         {                                       /* Get new line if empty    */
@@ -1432,7 +1446,7 @@ BOOLEAN
 parse_fcb(fcbadr)                               /* Parse input file name;   */
 struct fcbtab   *fcbadr;                        /*   set up in fcb if valid */
 {                                               /*   return FALSE if invalid*/
-        REG int    j;                      /* There must be an easier  */
+        REG int    j;                           /* There must be an easier  */
         BOOLEAN         pflag, colon_found;     /*   way to do this...      */
 
         pflag = FALSE;                          /* No non-delimiters found  */
@@ -1534,7 +1548,7 @@ err:
 VOID
 setdest()                                       /* Set up the destination   */
 {                                               /*   file                   */
-        REG int    j, k;                   /* Onefile == TRUE on entry */
+        REG int    j, k;                        /* Onefile == TRUE on entry */
 
         k = SFCB->drive;                        /* Get source drive         */
         if (! tail)                             /* No command line params:  */
@@ -1602,7 +1616,7 @@ readfile()                                      /* Read a character from a  */
 VOID
 setlimits()                                     /* Set memory limits over   */
 {                                               /*   which command operates */
-        REG int j, k, limit, m;            /*   using distance and     */
+        REG int j, k, limit, m;                 /*   using distance and     */
         BOOLEAN middle, looping;                /*   direction              */  
 
         relline = 1;                            /* Relative line count      */
@@ -1897,8 +1911,8 @@ VOID
 mem_move(moveflag)                              /* If moveflag is TRUE, move*/
 BOOLEAN moveflag;                               /*   character at base[back]*/
 {                                               /*   to base[front]; adjust */
-        REG UWORD  tfront, tback;          /*   pointers and baseline  */
-        REG char   *tbase;                 /* Use registers for speed  */
+        REG UWORD  tfront, tback;               /*   pointers and baseline  */
+        REG char   *tbase;                      /* Use registers for speed  */
 
         tfront = front;                         /* Get current values       */
         tback = back;
@@ -2234,7 +2248,7 @@ BOOLEAN
 find(p1, p2)                                    /* On entry, p1 indexes the */
 UWORD   p1, p2;                                 /*   start of a string in   */
 {                                               /*   the scratch buffer, p2 */
-        REG UWORD  j, k;                   /*   indexes the end.       */
+        REG UWORD  j, k;                        /*   indexes the end.       */
         BOOLEAN         match;                  /* Return TRUE if a matching*/
                                                 /*   string is found between*/
         j = back ;                              /*   base[back + 1] and     */
@@ -2743,7 +2757,7 @@ snglrcom()                                      /* Return TRUE if user      */
                 crlf();
                 printch(chr);
                 _print("-(Y/N)? $");
-                printc(j = ucase((int) _conio(0xff)));
+                printc(j = ucase((int) b_conio()));
                 crlf();
                 switch (j)
                 {
@@ -3146,13 +3160,17 @@ VOID
 allocate_memory()                               /* Carve up free memory     */
 {
         //max = (UWORD) _base->freelen - MARGIN;  /* How much space can we get*/
-		max=10000;
+		extern int bdos_entry @6;
+
+		base = 15000;	// the program size shouldn't be > 14K
+		max = bdos_entry - base - MARGIN*3;
+
 		
-        if ((int) (base = sbrk(max)) == -1)     /* Grab the lot!            */
-        {
-            ed_perror("Can't allocate memory$");   /* "This should never       */
-            _exit(1);                           /*   happen" (famous last   */
-        }                                       /*   words!)                */
+        //if ((int) (base = sbrk(max)) == -1)     /* Grab the lot!            */
+        //{
+        //    ed_perror("Can't allocate memory$");   /* "This should never       */
+        //    _exit(1);                           /*   happen" (famous last   */
+        //}                                       /*   words!)                */
 
 #ifdef DEBUG
         fill(base, 0xa5, max);                  /* Make buff changes visible*/
