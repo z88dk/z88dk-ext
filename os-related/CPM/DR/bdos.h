@@ -31,6 +31,20 @@ extern int __LIB__ bdos_callee(int func,int arg) __smallc __z88dk_callee;
 extern int __LIB__ bios(int func,int arg,int arg2) __smallc;
 extern int __LIB__ biosh(int func,int arg,int arg2) __smallc;
 
+
+////  Older CP/M versions can't easily mix direct and indirect console commands
+////  This workaround keeps the buffers clean
+//int b_conio()
+//{
+//	int j;
+//		while (!_constat())  j=_conio(0xff);
+//		if (!j) j=_conio(0xff);
+//		if (j == 0xff) j=_conio(0xff);
+//		return(j);
+//}
+
+
+
 //extern long     __BDOS();                       /* BDOS entry point         */
 #define __BDOS (unsigned char)bdos
 
