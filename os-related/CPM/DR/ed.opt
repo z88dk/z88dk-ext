@@ -1,0 +1,9 @@
+	call	_%1
+	ret
+=
+	jp	_%1
+
+	call	bdos_callee
+	ld	h,0
+=
+	call	bdos_callee
