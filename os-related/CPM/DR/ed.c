@@ -1,6 +1,11 @@
 
+// CP/M v3 example (will run also previous versions)
+// zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -subtype=zxplus3 ed.c
 
-// zcc +cpm -create-app -DAMALLOC -O3 -subtype=zxplus3 ed.c
+// CP/M 2.2 build example (slightly smaller if you remove the BDOS3 definition below)
+// zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -subtype=dmv ed.c
+
+#define BDOS3 1
 
 
 /****************************************************************************/
@@ -377,13 +382,17 @@ BOOLEAN onefile         = TRUE;                 /* TRUE if o/p file=i/p file*/
 BOOLEAN xferon          = FALSE;                /* TRUE if xfer active      */
 BOOLEAN printsuppress   = FALSE;                /* TRUE if print suppressed */
 BOOLEAN sys             = FALSE;                /* TRUE if system file      */
+#ifdef BDOS3
 BOOLEAN protection      = FALSE;                /* Password protection mode */
+#endif
 BOOLEAN inserting;                              /* TRUE if inserting chars. */
 BOOLEAN readbuff;                               /* TRUE if end of read buff.*/
 BOOLEAN translate       = FALSE;                /* TRUE if xlation to u/c   */
 BOOLEAN upper           = FALSE;                /* TRUE if global xlate u/c */
 BOOLEAN lineset         = TRUE;                 /* TRUE if line #'s printed */
+#ifdef BDOS3
 BOOLEAN has_bdos3       = FALSE;                /* TRUE if bdos vers. >= 3.0*/
+#endif
 BOOLEAN tail            = TRUE;                 /* TRUE if reading cmd tail */
 BOOLEAN dot_found       = FALSE;                /* TRUE if . found in parse */
 
@@ -662,7 +671,8 @@ int b_conio()
 {
 	int j;
 
-// BDOS workaround, Fails on NCR DMV, works in other cases
+// BDOS workaround, Fails on NCR DMV, works in other cases,
+// i.e. the console level CP/M emulators
 
 //		while (!_constat())  j=_conio(0xff);
 //		while (!j) j=_conio(0xff);
@@ -804,9 +814,10 @@ ferr()                                          /* Abort when directory full*/
                                                 /*   CP/M 3 supports this)  */
                                                 /* NOTE: this is a macro    */
 
+#ifdef BDOS3
 //#define setpwd()        if (has_bdos3) _setdma(pwd);
 VOID setpwd()        { if (has_bdos3) _setdma(pwd); }
-
+#endif
 
                 /********************************/
                 /*                              */
@@ -817,7 +828,9 @@ VOID
 delete_file(struct fcbtab *fcb)                 /* Delete the file describ- */
                                                 /*   -ed by the arument     */
 {
+#ifdef BDOS3
         setpwd();
+#endif
         _delete(fcb);
 }
 
@@ -832,7 +845,9 @@ rename_file(struct fcbtab *fcb)                 /* Rename the file describ- */
                                                 /*   by the argument        */
 {
         delete_file((struct fcbtab *) fcb->resvd);/* *** Delete any existing*/
+#ifdef BDOS3
         setpwd();                               /*   file of same name ***  */
+#endif
         _rename(fcb);                           /* Now do rename            */
 }
 
@@ -847,7 +862,9 @@ make_file(struct fcbtab *fcb)                   /* Create the file describ- */
                                                 /*   by the argument        */
 {
         delete_file(fcb);                       /* *** Delete any existing  */
+#ifdef BDOS3
         setpwd();                               /*  file of same name ***   */  
+#endif
         dcnt = _create(fcb);                    /* Now create file          */
 }
 
@@ -1148,7 +1165,9 @@ finis()                                         /* Finish edit, close files,*/
         if (sys)                                /* If output is to be system*/
         {                                       /*   file, set bit to say so*/
                 dfcb.ftype[1] |= 0x80;
+#ifdef BDOS3
                 setpwd();
+#endif
                 _set_att(&dfcb);
         }
         if (onefile)                            /* If source and backup are */
@@ -1729,12 +1748,15 @@ setup()                                         /* Start up edit session    */
 
         SFCB->extent =  SFCB->s2 = 0;
         SFCB->record = 0;                       /* Open the source file    */   
+#ifdef BDOS3
         if (has_bdos3)
         {
                 _ret_errors(0xfe);              /* Set error mode           */
                 setpwd();
         }
+#endif
         error_code = _open(SFCB);               /* Get source file name     */
+#ifdef BDOS3
         if (has_bdos3)                          /* Has extended BDOS errors */
         {
                 _ret_errors(0);                 /* Reset error mode         */
@@ -1751,6 +1773,7 @@ setup()                                         /* Start up edit session    */
                    && ((error_code >> 8) != 0)) /*   successful or file not */
                         ed_abort(notavail);        /*   found                  */  
         }
+#endif
         dcnt = error_code & 0xff;
         if (onefile)                            /* If output same as input  */  
         {
@@ -1779,12 +1802,14 @@ setup()                                         /* Start up edit session    */
         make_file(&dfcb);
         if (dcnt == 255) ferr();                /* Couldn't do it: error    */
 
+#ifdef BDOS3
         if (protection != 0)                    /* Create password if       */  
         {                                       /*   necessary              */
                 dfcb.extent = protection | 1;   /* Set password             */  
                 setpwd();
                 write_xfcb(&dfcb);
         }
+#endif
         dfcb.record = 0;                        /* Next record is zero      */
         dfcb.extent = 0;                        /*   in file extent zero    */
 
@@ -3224,6 +3249,7 @@ set_up_files()                                  /* Determine source and     */
         if (! parse_fcb(SFCB))                  /* Reboot if not valid name */
             reboot();
 
+#ifdef BDOS3
         if (has_bdos3)                          /* For version 3 BDOS,      */
         {                                       /*   provisionally give dest*/
             copydest();                         /*   same name and password */
@@ -3234,6 +3260,7 @@ set_up_files()                                  /* Determine source and     */
                 if ((lpp = _gset_scb(pb)) == 0)
                     lpp = 23;                   /* Failure: use default     */
         }
+#endif
         setdest();                              /* Parse destination file   */
         tail = FALSE;                           /* Finished with cmd line   */
 
@@ -3269,9 +3296,10 @@ _main()
         int reason;                             /* Internal error code      */
 
         ver = _version();                       /* Where are we?  What      */
+#ifdef BDOS3
         has_bdos3 = ((ver & 0x00ff) >= CPM3);   /*   facilites are there?   */
                                                 /* BDOS 3 has passwds, xfcbs*/
-
+ #endif
         allocate_memory();
 
         //fcb1 = &_base->fcb1;                    /* Initialize pointers to   */
