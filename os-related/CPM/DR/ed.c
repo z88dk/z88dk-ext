@@ -1,9 +1,9 @@
 
 // CP/M v3 example (will run also previous versions)
-// zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -subtype=zxplus3 ed.c
+// zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -custom-copt-rules ed.opt -subtype=zxplus3 ed.c
 
 // CP/M 2.2 build example (slightly smaller if you remove the BDOS3 definition below)
-// zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -subtype=dmv ed.c
+// zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -custom-copt-rules ed.opt -subtype=dmv ed.c
 
 #define BDOS3 1
 
