@@ -15,8 +15,10 @@
 #pragma output CRT_ENABLE_COMMANDLINE=0
 // Same for fcntl, the CP/M commands use BDOS
 #pragma output CRT_OPEN_MAX=0
+// Skip BSS data initialization.. risky optimization.
+//#pragma output CRT_INITIALIZE_BSS=0
 // Removing the MS DOS protection would save about 50 bytes, but it is nice to have
-//#pragma output noprotectmsdos
+#pragma output noprotectmsdos
 
 
 /* #un!define ALCYON 1 */                       /* using Alcyon compiler   */
