@@ -169,8 +169,7 @@ int8_t ya_help(char ** args);   // help
 int8_t ya_exit(char ** args);   // exit to CP/M
 
 // fat related functions
-int8_t ya_mount(char ** args);  // mount a FAT file system
-int8_t ya_umount(char ** args); // unmount a FAT file system
+int8_t ya_frag(char ** args);   // check file for fragmentation
 int8_t ya_ls(char ** args);     // directory listing
 int8_t ya_rm(char ** args);     // delete a file
 int8_t ya_cp(char ** args);     // copy a file
@@ -179,6 +178,8 @@ int8_t ya_cd(char ** args);     // change the current working directory
 int8_t ya_pwd(char ** args);    // show the current working directory
 int8_t ya_mkdir(char ** args);  // create a new directory
 int8_t ya_chmod(char ** args);  // change file or directory attributes
+int8_t ya_mount(char ** args);  // mount a FAT file system
+int8_t ya_umount(char ** args); // unmount a FAT file system
 
 // disk related functions
 int8_t ya_ds(char ** args);     // disk status
@@ -203,9 +204,9 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-;       defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
-        defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
-        INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
+        defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
+;       defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
+;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX uncomment only for cpm/sccz80/classic/z80
     __endasm;
 }
@@ -235,8 +236,7 @@ struct Builtin builtins[] = {
     { "dmount", &ya_dmount, "drive: [path]file - mount a CP/M drive"},
 
 // fat related functions
-    { "mount", &ya_mount, "[drive:] - mount a FAT file system"},
-    { "umount", &ya_umount, "[drive:] - unmount a FAT file system"},
+    { "frag", &ya_frag, "[file] - check for file fragmentation"},
     { "ls", &ya_ls, "[path] - directory listing"},
     { "rm", &ya_rm, "[file] - delete a file"},
     { "cp", &ya_cp, "[src][dest] - copy a file"},
@@ -245,6 +245,8 @@ struct Builtin builtins[] = {
     { "pwd", &ya_pwd, "- show the current working directory"},
     { "mkdir", &ya_mkdir, "[path] - create a new directory"},
     { "chmod", &ya_chmod, "[path][attr][mask] - change file or directory attributes"},
+    { "mount", &ya_mount, "[drive:] - mount a FAT file system"},
+    { "umount", &ya_umount, "[drive:] - unmount a FAT file system"},
 
 // disk related functions
     { "ds", &ya_ds, "[drive:] - disk status"},
@@ -285,7 +287,7 @@ int8_t ya_dmount(char ** args)  /* mount a drive on CP/M */
     uint8_t i = 0;
 
     if (args[1] == NULL || args[2] == NULL) {
-        fprintf(stdout, "Expected 2 arguments to \"dmount\"\n");
+        fprintf(stdout, "yash: expected 2 arguments to \"dmount\"\n");
 #if __RC2014 || __YAZ180
     } else {
         res = f_mount(fs, (const TCHAR*)"0:", 0);
@@ -379,6 +381,50 @@ int8_t ya_exit(char ** args)    /* exit to CP/M */
   fat related functions
  */
 
+
+/**
+   @brief Builtin command:
+   @param args List of args.  args[0] is "frag".  args[1] is the name of the file.
+   @return Always returns 1, to continue executing.
+ */
+int8_t ya_frag(char ** args)    /* check file for fragmentation */
+{
+    FRESULT res;
+    DWORD clst, clsz, step;
+    FSIZE_t fsz;
+
+    if (args[1] == NULL) {
+        fprintf(stdout, "yash: expected 1 argument to \"frag\"\n");
+    } else {
+
+        fprintf(stdout,"Checking \"%s\"", args[1]);
+        res = f_open(&File[0], (const TCHAR *)args[1], FA_OPEN_EXISTING | FA_READ);
+        if (res != FR_OK) { put_rc(res); return 1; }
+
+        fsz = f_size(&File[0]);                                    /* File size */
+        clsz = (DWORD)(&File[0])->obj.fs->csize * FF_MAX_SS;       /* Cluster size */
+        if (fsz > 0) {                                          /* Check file size non-zero */
+            clst = (&File[0])->obj.sclust - 1;                     /* An initial cluster leading the first cluster for first test */
+            while (fsz) {                                       /* Check clusters are contiguous */
+                step = (fsz >= clsz) ? clsz : (DWORD)fsz;
+                res = f_lseek(&File[0], f_tell(&File[0]) + step);     /* Advances file pointer a cluster */
+                if (res != FR_OK) { put_rc(res); return 1; }
+                if (clst + 1 != (&File[0])->clust) break;          /* Is not the cluster next to previous one? */
+                clst = (&File[0])->clust;
+                fsz = fsz - step;                                   /* Get current cluster for next test */
+            }
+            fprintf(stdout," at LBA %lu", (&File[0])->obj.fs->database + ((&File[0])->obj.fs->csize * ((&File[0])->obj.sclust - 2)));
+            if (fsz == 0) {                                     /* All checked contiguous without fail? */
+                fprintf(stdout," is OK\n");
+            } else {
+                fprintf(stdout," is fragmented\n");
+            }
+        }
+
+        f_close(&File[0]);
+    }
+    return 1;
+}
 
 /**
    @brief Builtin command:
