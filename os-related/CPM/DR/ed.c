@@ -5,7 +5,7 @@
 // CP/M 2.2 build example (slightly smaller if you remove the BDOS3 definition below)
 // zcc +cpm -create-app -DAMALLOC -O3  -pragma-define:CRT_INITIALIZE_BSS=0 -custom-copt-rules ed.opt -subtype=dmv ed.c
 
-#define BDOS3 1
+//#define BDOS3 1
 
 
 /****************************************************************************/
@@ -333,8 +333,8 @@ struct fcbtab   rfcb    =                       /* reader file control block*/
         {
                 0,                              /* "disk"                   */
                 {' ', ' ', ' ', ' ',
-                 ' ', ' ', ' ', ' '},             /* filename                 */
-                {'L', 'I', 'B'},                  /* filename extension       */
+                 ' ', ' ', ' ', ' '},           /* filename                 */
+                {'L', 'I', 'B'},                /* filename extension       */
                 0,                              /* extent                   */
                 0,                              /* (reserved)               */
                 0                               /* (reserved)               */
@@ -402,8 +402,8 @@ struct fcbtab   libfcb  =                       /* default lib name         */
         {
                 0,
                 {'X', '$', '$', '$',
-                 '$', '$', '$', '$'},             /* filename                 */
-                 {'L', 'I', 'B'}                   /* filename extension       */
+                 '$', '$', '$', '$'},           /* filename                 */
+                 {'L', 'I', 'B'}                /* filename extension       */
         };
 
 char    tempfl  []      = "$$$";                /* temporary file type      */
@@ -624,7 +624,7 @@ char    *a;                                     /*   print a string         */
                 /*                              */
                 /********************************/
 VOID
-ed_perror(a)                                       /* Print an error message   */
+ed_perror(a)                                    /* Print an error message   */
 char    *a;
 {
         print("\tError - $");
@@ -669,21 +669,21 @@ readcom()                                       /* Read console input line  */
 //  one of the 2 following routines
 int b_conio()
 {
-	int j;
+    int j;
 
 // BDOS workaround, Fails on NCR DMV, works in other cases,
 // i.e. the console level CP/M emulators
 
-//		while (!_constat())  j=_conio(0xff);
-//		while (!j) j=_conio(0xff);
-//		if (j == 0xff) j=_conio(0xff);
-//		return(j);
+//        while (!_constat())  j=_conio(0xff);
+//        while (!j) j=_conio(0xff);
+//        if (j == 0xff) j=_conio(0xff);
+//        return(j);
 
 
-	// BIOS level way, Tested on NCR DMV, might fail on other targets
-	_conio(0xff);			// Extra workaround, i.e. fixes the Spectrum +3
-	while (!(j=getk())) {}
-	return(j);
+    // BIOS level way, Tested on NCR DMV, might fail on other targets
+    _conio(0xff);            // Extra workaround, i.e. fixes the Spectrum +3
+    while (!(j=getk())) {}
+    return(j);
 
 }
 
@@ -723,6 +723,7 @@ break_key()                                     /* Return TRUE if character */
                 /*      W R I T E _ X F C B     */
                 /*                              */
                 /********************************/
+#ifdef BDOS3
 VOID
 write_xfcb(struct fcbtab *fcb)                  /* Write an extended FCB    */
 {
@@ -730,7 +731,7 @@ write_xfcb(struct fcbtab *fcb)                  /* Write an extended FCB    */
         if (_set_xfcb(fcb) == 0xff)
                 ed_perror(pwd_err);
 }
-
+#endif
 
                 /********************************/
                 /*                              */
@@ -782,7 +783,7 @@ time()                                          /*   25 milliseconds.  Tune */
                 /*                              */
                 /********************************/
 VOID
-ed_abort(a)                                        /* Print an error message   */
+ed_abort(a)                                     /* Print an error message   */
 char    *a;                                     /*   then abort ED          */
 {
         ed_perror(a);
@@ -799,7 +800,7 @@ VOID
 ferr()                                          /* Abort when directory full*/
 {
         _close(&dfcb);                          /* Try to close file so it  */
-        ed_abort(dirfull);                         /*   can be recovered later */
+        ed_abort(dirfull);                      /*   can be recovered later */
 }
 
 
@@ -1241,6 +1242,7 @@ VOID prtnmac(int ch)     { if (! mp) printc(ch); }
                 /*                              */
                 /********************************/
 
+#ifdef BDOS3
 getpasswd()                                     /* Get password from user  */
 {
         char    c;
@@ -1276,7 +1278,7 @@ retry:
 way_out:
         c = (char) break_key();                 /* Clear raw I/O mode       */
 }
-
+#endif
 
                 /********************************/
                 /*                              */
@@ -1550,7 +1552,7 @@ struct fcbtab   *fcbadr;                        /*   set up in fcb if valid */
                                                 /* Not CR, ENDFILE, space   */
                                                 /*   or comma: error        */
 err:
-        ed_perror(invalid);                        /* Complain about invalid   */
+        ed_perror(invalid);                     /* Complain about invalid   */
         return (flag = FALSE);                  /*   filename               */
 }
 
@@ -1655,7 +1657,8 @@ setlimits()                                     /* Set memory limits over   */
                 distance++;                     /* Account for current line */
                 j = front;
                 limit = 0;
-                k = 0xffff;
+                //k = 0xffff;
+                k = -1;
         }
         else
         {
@@ -1751,6 +1754,7 @@ setup()                                         /* Start up edit session    */
 #ifdef BDOS3
         if (has_bdos3)
         {
+                // Error code is returned in H, error message is printed.
                 _ret_errors(0xfe);              /* Set error mode           */
                 setpwd();
         }
@@ -1759,6 +1763,7 @@ setup()                                         /* Start up edit session    */
 #ifdef BDOS3
         if (has_bdos3)                          /* Has extended BDOS errors */
         {
+                // Back to compatibility mode; program is terminated and an error message printed.
                 _ret_errors(0);                 /* Reset error mode         */
                 if (error_code == 0x7ff)        /* Password required?       */
                 {
@@ -1771,7 +1776,7 @@ setup()                                         /* Start up edit session    */
                 }
                 if (((error_code & 0xff) == 0xff)/* Abort unless open       */
                    && ((error_code >> 8) != 0)) /*   successful or file not */
-                        ed_abort(notavail);        /*   found                  */  
+                        ed_abort(notavail);     /*   found                  */  
         }
 #endif
         dcnt = error_code & 0xff;
@@ -1791,7 +1796,7 @@ setup()                                         /* Start up edit session    */
         if (dcnt == 255)                        /* A new file is needed     */  
         {
                 if (! onefile)                  /* Two files given, but     */
-                        ed_abort(not_found);       /*   can't open source      */
+                        ed_abort(not_found);    /*   can't open source      */
                 newfile = TRUE;                 /* Onefile: must be new     */
                 print("new file$");
                 crlf();
@@ -1996,7 +2001,7 @@ BOOLEAN moveflag;                               /*   character at base[back]*/
 VOID
 mover()
 {
-	mem_move(TRUE);
+    mem_move(TRUE);
 }
 
 
@@ -2008,14 +2013,15 @@ mover()
                 /********************************/
 
                                                 /* Reset pointers, deleting */
-                                                /*   characters (used by    */                                                  /*   delete command)        */
+                                                /*   characters (used by    */
+												/*   delete command)        */
                                                 /* NOTE: this is a macro    */
 
 //#define setptrs() mem_move(FALSE)
 VOID
 setptrs()
 {
-	mem_move(FALSE);
+    mem_move(FALSE);
 }
 
 
@@ -2026,7 +2032,8 @@ setptrs()
                 /*                              */
                 /********************************/
 
-                                                /* Set memory limits and    */                                                  /*   force a move           */
+                                                /* Set memory limits and    */
+												/*   force a move           */
                                                 /* NOTE: this is a macro    */
 
 //#define movelines()     {setlimits(); mover();}
@@ -2510,7 +2517,7 @@ inscrlf()                                       /* Insert CR LF characters  */
 VOID
 insert_chars()                                  /* Insert characters into   */
 {                                               /*   buffer (I command)     */
-        int     tcolumn, qcolumn;               /* temps during backspace    */
+        int     tcolumn, qcolumn;               /* temps during backspace   */
 
         if (inserting = (combuf.cbp == combuf.comlen)
                         && (mp == 0))
@@ -3196,15 +3203,15 @@ VOID
 allocate_memory()                               /* Carve up free memory     */
 {
         //max = (UWORD) _base->freelen - MARGIN;  /* How much space can we get*/
-		extern int bdos_entry @6;
+        extern int bdos_entry @6;
 
-		base = 15000;	// the program size shouldn't be > 14K
-		max = bdos_entry - base - MARGIN*3;
+        base = 14000;    // the program size shouldn't be > 14K
+        max = bdos_entry - base - MARGIN*2;
 
-		
+        
         //if ((int) (base = sbrk(max)) == -1)     /* Grab the lot!            */
         //{
-        //    ed_perror("Can't allocate memory$");   /* "This should never       */
+        //    ed_perror("Can't allocate memory$");/* "This should never       */
         //    _exit(1);                           /*   happen" (famous last   */
         //}                                       /*   words!)                */
 
@@ -3216,7 +3223,7 @@ allocate_memory()                               /* Carve up free memory     */
         bufflength = (nbuf + 1) * SECTSIZE * 2; /*  sectors, and each taking*/
         if ((bufflength + 1024) > max)          /*  1/8 of free memory      */
         {
-            ed_perror("Insufficient memory$");     /* No room left for edit    */
+            ed_perror("Insufficient memory$");  /* No room left for edit    */
             _exit(1);                           /*   buffer                 */
         }
         max -= (bufflength + 1);                /* Adjust max to index byte */
@@ -3299,14 +3306,14 @@ _main()
 #ifdef BDOS3
         has_bdos3 = ((ver & 0x00ff) >= CPM3);   /*   facilites are there?   */
                                                 /* BDOS 3 has passwds, xfcbs*/
- #endif
+#endif
         allocate_memory();
 
         //fcb1 = &_base->fcb1;                    /* Initialize pointers to   */
         fcb1 = 0x5C;
 
         //buff = _base->buff;                     /*   basepage structures    */
-        buff = 0x80;		// CP/M 80 command line / buffer position
+        buff = 0x80;        // CP/M 80 command line / buffer position
 
         set_up_files();
 
@@ -3504,7 +3511,8 @@ _main()
             /*  F       Find n'th occurrence of match string                */
             /*  J       Juxtapose (combined replace & delete)               */
             /*  M       Apply Macro                                         */
-            /*  N       Same as F, but scan whole file, not just buffer     */              /*  S       Perform n Substitutions                             */
+            /*  N       Same as F, but scan whole file, not just buffer     */
+			/*  S       Perform n Substitutions                             */
             /*  W       Write lines to the output file                      */  
             /*  X       Transfer (Xfer) lines to temp file                  */
             /*  Z       Sleep (ZZZZ)                                        */
