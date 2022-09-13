@@ -25,9 +25,9 @@
 
 //#include <cpm.h>  // To avoid collisions with struct definitions we declare the functions here
 /* The CPM bdos call */
-extern int __LIB__ bdos(int func,int arg) __smallc;
-extern int __LIB__ bdos_callee(int func,int arg) __smallc __z88dk_callee;
-#define bdos(a,b)   bdos_callee(a,b)
+extern int __LIB__ bdosh(int func,int arg) __smallc;
+extern int __LIB__ bdosh_callee(int func,int arg) __smallc __z88dk_callee;
+#define bdosh(a,b)   bdosh_callee(a,b)
 extern int __LIB__ bios(int func,int arg,int arg2) __smallc;
 extern int __LIB__ biosh(int func,int arg,int arg2) __smallc;
 
@@ -58,7 +58,7 @@ extern int __LIB__ getk();
 
 
 //extern long     __BDOS();                       /* BDOS entry point         */
-#define __BDOS (unsigned char)bdos
+#define __BDOS bdosh
 
 #define XADDR   long                            /* 32-bit address data type */
 
