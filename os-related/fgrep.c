@@ -150,8 +150,8 @@ ENDREF
 
 /*** Definitions ***/
 
-#define TRUE		  -1
-#define FALSE		   0
+#define TRUE		   1
+#define FALSE		   -1
 #define MAX_LINE	 257  /* Maximum number of characters */
 			      /* per line plus NULL delimiter */
 #define CP_M		      /* Comment out for compilation */
@@ -167,7 +167,7 @@ ENDREF
 
 /*** Typedefs ***/
 
-typedef int BOOL;	/* Boolean flag */
+typedef signed char BOOL;	/* Boolean flag */
 
 
 
@@ -246,7 +246,7 @@ BOOL vflag = FALSE,	/* Command-line option flags */
  *	     parent process.
  */
 
-void error(int n, char *str)
+void error(char n, char *str)
 {
   fprintf(stderr,"\007\n*** ERROR - ");
   switch(n)
@@ -279,16 +279,17 @@ void error(int n, char *str)
  *		case.
  */
 
-char *stoupper(char *str)
-{
-  register char *temp;
+#define stoupper strupr
 
-  temp = str;
-  while(*temp)
-    *temp++ = toupper(*temp);
-  return str;
-}
-
+//char *stoupper(char *str)
+//{
+//  register char *temp;
+//
+//  temp = str;
+//  while(*temp)
+//    *temp++ = toupper(*temp);
+//  return str;
+//}
 
 
 /*** Functions and Procedures ***/
