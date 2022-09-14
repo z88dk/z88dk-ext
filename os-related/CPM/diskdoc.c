@@ -148,8 +148,8 @@ sysok()
 // This tool is mostly based on BIOS calls,
 // we take the risk of removing the CP/M version check
 
-//	if ((bdos(CPM_VERS,0) & 0xF0) != 0x20)
-//		return(0);
+	if ((bdos(CPM_VERS,0) & 0xF0) != 0x20)
+		return(0);
 
     p=(char *)1;
     return (*p==3);    /* check if xsub or despool is active */
@@ -1145,7 +1145,10 @@ void main()
 {   char cmd;
     dfldrv='a'; dfltrk=0; dflsec=0;
     home=DHOME;
-    if (sysok()==0) exit(0);
+    if (sysok()==0) {
+		nl(); puts("Unsupported CP/M configuration");
+		exit(0);
+	}
     nl(); puts("welcome to the world of diskdoc "); 
     nl(); puts(VERSION); nl(); puts(WHOMADEIT);
     nl(); nl(); puts("kindly enter your request");
