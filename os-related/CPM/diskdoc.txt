@@ -1,0 +1,160 @@
+VER 008    MARG+1,66
+
+
+Small-C DISKDOC:
+A REPAIR AND MAINTENANCE UTILITY
+
+By Egil Kvaleberg, N-4060 Kleppe, Norway.
+
+Appeared in the Dr. Dobb's Journal #66, April 1982.
+
+
+
+       Diskdoc is a utility that, like its name implies, is
+intended for repair and maintainance of diskettes and other
+random access mass storage media. Tasks accomplished include:
+ i     Taking backups (also in a single drive system).
+ ii    Verifying data integrity.
+ iii   Restoring previously deleted files (by manual patching).
+ iv    Repairing faulty sectors.
+ v     Debugging disk driver routines and controller hardware.
+ vi    Debugging file systems.
+
+       Diskdoc has been in frequent use for about two years now
+(including a one year assembly language childhood), and has
+proved a useful companion when exploring the oh-so-vulnerable
+world of diskettes. 
+       The version listed runs under CP/M, but adapting
+to other operating systems will probably not be found too
+difficult a task to accomplish. As explained in the listing, te
+program is written to be compiled by the Ron Cain Small-C
+compiler. Small-C is smaller than standard C, and conoisseurs of
+the C language will find some of the constructions used quite
+primitive. If you prepare the program for a richer dialect of C,
+you might consider rewriting parts of the program. Except for
+efficiency, perhaps, there is little reason to take the bother
+since Small-C is a true subset of C.
+
+
+
+TALKING TO DISKDOC
+
+       Diskdoc always tries to give self explanatory prompts. The
+default value can usually be displayed by typing <cr> once. If
+you should enter an inappropriate character, diskdoc simply
+refuses to echo it. Entries may be corrected by using the
+backspace key. A final <cr> will, as usual, end the input line.
+
+
+
+THE COMMAND LEVEL
+
+       Starting up, diskdoc will enter the command level,
+requesting a single letter command:
+
+ a     Adapt to terminal type. You will asked to enter the
+       character that will move the cursor home. An escape
+       sequence is acceptable. This is all that is required to
+       adapt diskdoc to virtually any video terminal. It is
+       assumed that the width of the screen is 80 characters.
+
+ b     Backup entire diskette, on a sector-by-sector basis. You
+       will be asked to enter the source and destination drive
+       names (a-h). It is crucial to double-check the direction
+       of data flow. The same drive might be assigned as both
+       source and destination, in which case diskdoc will request
+       a diskette change whenever necessary during the copy
+       process. If an error is detected in the source diskette,
+       diskdoc will ask whether the sector read operation should
+       be retried, the error ignored, or the backup aborted. It
+       is recommended to retry a few times before declaring a
+       sector unrecoverable, thereby filtering out intermittently
+       occuring errors. If desired, backup can be aborted by
+       typing any character.
+
+ c     Compare the contents of two diskettes. Every discrepancy
+       will be reported. Abort by typing any character.
+
+ e     Exit. You will be prompted to insert a system diskette
+       before leaving.
+
+ p     Patch. Look at and optionally patch selected sectors. For
+       patch subcommands, see below.
+
+ s     Scan diskette by reading every sector. The test will
+       quickly locate any sector that doesn't give a proper CRC.
+       The test might be interrupted by typing any character.
+
+ t     Test diskette. A test pattern will be written, and the
+       entire diskette will then be read back and compared. The
+       write operation may be omitted. The command provides
+       useful verification of disk controller hardware and
+       software operation.
+
+ z     Zero diskette. The specified number of tracks will be
+       erased by filling the EBCDIC character 'V' (0E5H).
+
+
+
+PATCH COMMANDS
+     
+ <sp>  Move the cursor to the next byte.
+
+ <bs>  Move the cursor to the previous byte.
+
+ <cr>  Move the cursor down, i.e. 16 bytes forward.
+
+ <hex> To patch, enter the new hex byte directly. After having
+       entered the first digit, a <bs> will "undo" it. After
+       having entered the second, the cursor will move to the
+       next byte.
+
+ '     To enter an ascii character, type a single quote followed
+       by the desired character.
+
+ l     Read the logically following sector. This command is
+       useful where a mapping between physical and logical
+       sectors exists, such as in standard CP/M single density
+       diskettes.
+
+ n     Read the next sequential sector. The next track is
+       accessed if the end of the current one is reached.
+
+ q     Quit patch mode.
+
+ r     Re-read. Read the current sector once again.
+
+ s     Shift the rest of the sector one bit-position to the
+       right. This command is useful when attempting to repair
+       sectors where the controller has lost a few bits here and
+       there.
+
+ t     Select a new track and/or sector.
+
+ w     Write back the current sector. Remember to use this
+       command after having made any changes, since no automatic
+       write is performed.
+
+
+
+REGARDING THE CP/M VERSION
+
+       The CP/M version, as listed, will adapt to the physical
+characteristics of the drive (track and sector counts). This is
+accomplished by reading the disk parameter block returned by the
+BIOS drive select call. CP/M version 2.0 or better is required.
+For drives using sector blocking/deblocking schemes, the sectors
+that diskdoc works with will not correspond directly to the
+physical sectors.
+
+
+
+ADAPTING TO OTHER OPERATING SYSTEMS AND/OR COMPILERS
+
+       All implementation depandant functions are containded in
+the file "ddocsys.c". These functions are all very low-level, and
+thus very non-standard. You will have to write these functions
+yourself, since no C runtime libraries will support them. If
+automatic size adaptation and/or logical to physical sector
+mapping aren't required, the functions seldrv() and lnext(),
+respectively, can be considerably simplifed.
