@@ -1,3 +1,6 @@
+
+// zcc +cpm -create-app -DAMALLOC -subtype=dmv diskdoc.c
+
 /*  TAB s5,4
  *
  *  diskdoc
@@ -141,11 +144,12 @@ sysok()
 //    p=1;
 //    return (*p==3);    /* check if xsub or despool is active */
 
-//	if (bdos(CPM_VERS,0) != 0x20)
-//		return(0);
 
-	if ((bdos(CPM_VERS,0) & 0xF0) != 0x20)
-		return(0);
+// This tool is mostly based on BIOS calls,
+// we take the risk of removing the CP/M version check
+
+//	if ((bdos(CPM_VERS,0) & 0xF0) != 0x20)
+//		return(0);
 
     p=(char *)1;
     return (*p==3);    /* check if xsub or despool is active */
