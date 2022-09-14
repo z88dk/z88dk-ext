@@ -2,6 +2,9 @@
 // Only SDCC creates a valid program !!
 //  zcc +cpm -create-app -DAMALLOC -compiler=sdcc FGREP.c
 
+// With optimizations:
+//  zcc +cpm -create-app -DAMALLOC -compiler=sdcc -SO3 --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 FGREP.c
+
 
 /* 
 HEADER: 	CUG
