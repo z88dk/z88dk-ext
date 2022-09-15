@@ -1,5 +1,5 @@
 
-// zcc +cpm -create-app -DAMALLOC -subtype=dmv diskdoc.c
+// zcc +cpm -create-app -DAMALLOC -O3 [..-subtype=dmv] diskdoc.c
 
 /*  TAB s5,4
  *
@@ -230,6 +230,10 @@ void conout(char ch)
  *  to find out what this version does, 
  *  refer to the cp/m 2.0 alteration guide
  */
+ 
+ // This already includes a fix published on the Dr. Dobb's Journal, May 1982
+ // "On some double-density formats (mainly the Intellec MDS II), Diskdoc believed
+ //  that the first sector was number zero, instead of number one"
 
 char seldrv(char drv,int *pt,int *ps,int *pf)	    /* where to put track, sector and firstsector */
 {   int *dph,*spt,*dsm,*off,halfsecs,trks;
@@ -265,7 +269,7 @@ nextt(int *t)
  *  increment sector, 0 if no more
  */
 
-int nexts(int *s)
+char nexts(int *s)
 {   if ((++*s)>(sectors-1+firstsector)) {
 	*s=firstsector;
 	return (0);
@@ -926,7 +930,7 @@ patchcmd(int pos)
  *  return 0 if something fishy
  */
 
-baksel(char drv,char otherdrv,char *name)
+char baksel(char drv,char otherdrv,char *name)
 {   int dummy;
     if (drv==otherdrv) {
 	nl(); puts("insert "); puts(name); puts(" diskette");
@@ -1086,10 +1090,10 @@ void test()
 	trk=0; sec=firstsector-1;
 	while (next(&trk,&sec)) {
 	    secbuf[0]=trk; secbuf[1]=qskew(sec);
-	    if (tstbrk()) return (0);
+	    if (tstbrk()) return;
 	    if (twrite(trk,qskew(sec),secbuf)==0) {
 		nl(); puts("error writing "); putsec(trk,qskew(sec)); nl();
-		return (0);
+		return;
 	    }
 	}
     }
