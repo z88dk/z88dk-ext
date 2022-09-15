@@ -43,6 +43,54 @@ COMPILERS:	BDS C;
 */
 /************************************************************************/
 
+
+/*
+
+			A REVIEW OF BC
+
+     BC evaluates mathematical expressions entered at the
+console, and prints the numerical values.  Expressions may
+contain integers, arithmetic and logical operators, and
+parentheses.  All results are integers ranging from 0 to 65535,
+and are printed in decimal, hexadecimal, octal, and binary
+formats.
+
+     BC offers to print instructions when it first starts.  If
+you accept the offer, BC quickly prints more than can be dis-
+played on most CRT terminals, so you need to be ready to use
+the control-s key.  BC then prompts for the first expression.
+While you are entering expressions, the usual CP/M line editing
+functions work, so you can easily correct entry errors, or
+start over.  When a carriage return is entered, BC evaluates
+the expression, prints the result, and prompts for another
+expression.  Expression evaluation seems instantaneous,
+and appeared to be accurate in the few cases tested.
+
+     Operator precedence is strictly left-to-right, which
+produces unexpected results unless extra parentheses are used
+to force BC to use the operators in the normal order.
+The exclusive-OR logical operator (~) does not work; it
+produces an error message.  Also, while the instructions
+state that hexadecimal, octal, and binary numbers may be
+entered, there are no instructions for entering such numbers,
+and I was unable to hit upon the method.  All numbers I
+entered were interpreted as decimal numbers.
+
+     BC tolerates operator errors without falling apart, but is
+not always helpful in identifying errors.  It tells you if you
+have unbalanced parentheses, but doesn't always tell you if
+you use an operator that it doesn't recognize.
+
+     The documentation file, BC.DOC provides clear and correct
+instructions for compiling, and lists the files needed.
+
+
+John M. Smith
+CUG Librarian for the Utilities IV diskette
+
+*/
+
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -652,8 +700,7 @@ unsigned int anlyz( char *s )
 {
 	int nesting, *depth ;
 	char *p ;
-	int n, left, right ;
-	unsigned int result ;
+	int left, right ;
 
 	depth = &nesting ;
 	*depth = 0 ;
@@ -715,7 +762,6 @@ puts("");
 
 
 void main(){
-char string[100];
 unsigned int res ;
 char line[255] ;
 puts(" + + +  bc  binary calculator  2.0  + + + \n");
