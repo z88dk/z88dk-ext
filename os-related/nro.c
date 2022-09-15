@@ -31,7 +31,7 @@
 #define OK 0		/* General purpose "no error" return value */
 #define EOS 0
 
-#define CPMEOF 0x1a	/* CP/M End-of-text-file marker (sometimes!)  */
+//#define CPMEOF 0x1a	/* CP/M End-of-text-file marker (sometimes!)  */
 
 #define FALSE 0
 #define TRUE 1
@@ -1494,8 +1494,8 @@ void main(int argc,char *argv[])
 		exit(-1);
 	}
 	if (pout != stdout) {
-		fputc(CPMEOF,pout);
-		fflush(pout);
+		//fputc(CPMEOF,pout);
+		//fflush(pout);
 		fclose(pout);
 	}
 }
