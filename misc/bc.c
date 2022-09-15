@@ -1,6 +1,7 @@
 
-// zcc +cpm -create-app bc.c
-
+// zcc +cpm -create-app -O3 bc.c
+// zcc +cpm -create-app -compiler=sdcc -SO3 --max-allocs-per-node400000  bc.c
+// gcc bc.c
 
 /*
                           BC
@@ -49,6 +50,7 @@ COMPILERS:	BDS C;
 
 #define TRUE 1
 #define FALSE 0
+#define BOOL int
 
 #define ASCII '\''
 #define SNOT '?'
@@ -122,8 +124,7 @@ COMPILERS:	BDS C;
 	Return true if c is an end_of_expression delmiter, else false
 */
 
-eoe( c )
-char c ;
+BOOL eoe( char c )
 {
 	switch (c) {
 		case NEWLINE   :
@@ -142,11 +143,9 @@ char c ;
 	Return TRUE if c is a space character (to be ignored), else FALSE
 */
 
-spc( c )
-char c ;
+BOOL spc( char c )
 {
 	switch (c) {
-		case SPACE    :
 		case COLON    :
 		case TAB      :
 		case SPACE    : return( TRUE );
@@ -161,8 +160,7 @@ char c ;
 	Return TRUE if c is a legal operator, else FALSE
 */
 
-op( c )
-char c ;
+BOOL op( char c )
 {
 	switch (c) {
 		case PLUS      :
@@ -190,8 +188,7 @@ char c ;
 	finds the next non-space character, then return pointer value.
 */
 
-char *skipsp( s )
-char *s ;
+char *skipsp( char *s )
 {
 	while(spc( *s ) && !eoe(*s))s++ ;
 	return( s );
@@ -205,8 +202,7 @@ char *s ;
 	position after the current token (numeric constant, symbol etc.)
 */
 
-char *skiptok( s )
-char *s ;
+char *skiptok( char *s )
 {
 	s = skipsp( s );
 	while(!spc( *s ) && !op( *s ) && !eoe( *s ) && *s != LPAREN)s++ ;
@@ -221,8 +217,7 @@ char *s ;
 	and returns pointer value.
 */
 
-char *skipop( s )
-char *s ;
+char *skipop( char *s )
 {
 	s = skipsp( s );
 	if(op( *s ))s++ ;
@@ -239,8 +234,7 @@ char *s ;
 	is made to Skipexpr.
 */
 
-char *skipexpr( s )
-char *s ;
+char *skipexpr( char *s )
 {
 	if(*s == LPAREN)s++ ;
 	while(!eoe( *s )){
@@ -258,8 +252,7 @@ char *s ;
 	Copy next token from line S to buffer TO
 */
 
-token( s, to )
-char *s, *to ;
+void token( char *s, char *to )
 {
 	char *p, c ;
 
@@ -274,8 +267,7 @@ char *s, *to ;
 
 
 
-pack( s )
-char *s ;
+void pack( char *s )
 {
 	char c, *p ;
 
@@ -298,8 +290,7 @@ char *s ;
 	Return TRUE if next token is a unary operator, else FALSE.
 */
 
-char isunary( s )
-char *s ;
+BOOL isunary( char *s )
 {
 	char opr[80] ;
 
@@ -317,19 +308,15 @@ char *s ;
 
 
 
-unsigned lookup( s )
-char *s ;
+unsigned int lookup( char *s )
 {
 	return( 0 );
 }
 
 
 
-
-scp( to, from )
-
-char *to, *from ;
-
+/*
+scp( char *to, char *from )
 {
 
 char c ;
@@ -341,12 +328,10 @@ while(c != EOL)
 }
 
 }
+*/
 
 
-reverse( s )
-
-char s[];
-
+void reverse( char s[] )
 { 
 
 int c, i, j ;
@@ -357,10 +342,7 @@ for(i = 0, j = strlen( s ) - 1 ; i < j ; i++, j-- )
 }
 
 
-b2asc( c )
-
-char c ;
-
+char b2asc( char c )
 {
 
 c += '0' ;
@@ -370,10 +352,7 @@ return( c );
 }
 
 
-asc2b( c )
-
-char c ;
-
+int asc2b( char c )
 {
 
 c = toupper( c );
@@ -384,9 +363,10 @@ return( c );
 }
 
 
+line(){return(1);}
 
-aerror( type )
-char type ;
+
+void aerror( char type )
 {
 	switch (type) {
 	    case 0 : printf("%4u: Expecting operand/expression, returned zero.\n",
@@ -403,13 +383,10 @@ char type ;
 
 
 
-cbin(str)
-
-char str[];
-
+unsigned int cbin(char str[])
 {
 
-char k, base, *p ;
+char base, *p ;
 int i, n, sign ;
 
 p = str ;
@@ -452,8 +429,7 @@ return( n * sign );
 	constant or a symbol in the symbol table.
 */
 
-unsigned gettok( s )
-char *s ;
+unsigned int gettok( char *s )
 {
 	char operand[80] ;
 
@@ -468,12 +444,8 @@ char *s ;
 
 
 
-
-ctoa( n, s, base )
-
-int n ;
-char s[], base ;
-
+/*
+ctoa( int n, char s[], int base )
 {
 
 int i, sign ;
@@ -493,17 +465,14 @@ reverse( s );
 
 }
 
+*/
 
 
 
-
-binout( word, bits )
-
-int word, bits ;
-
+void binout( int word, int bits )
 {
  
-unsigned x,y,z;
+unsigned int z;
 
 z = 0x8000 ; /* set highest bit */
 while(bits-- != 0)z = z >> 1 ;
@@ -525,7 +494,7 @@ nocur()
 {
 
 char *p ;
-unsigned z ;
+unsigned int z ;
 
 p = 0xfc02 ;
 z = *p++ ;
@@ -536,11 +505,9 @@ p = z ; *p = ' ' ;
 }
 */
 
-line(){return(1);}
 
 
-lcase( s )
-char *s ;
+lcase( char *s )
 {
 	while(*s != '\0'){
 		if(*s == '\''){*s = *s ; s++ ; *s = *s ;s++;}
@@ -557,8 +524,7 @@ char *s ;
 	this is used in the switch statement in CALC.
 */
 
-char gettop( s )
-char *s ;
+char gettop( char *s )
 {
 	char operator[80] ;
 
@@ -586,9 +552,7 @@ char *s ;
 	value.
 */
 
-unsigned calc( val1, op, val2 )
-unsigned val1, val2 ;
-char op ;
+unsigned int calc( unsigned int val1, char op, unsigned int val2 )
 {
 	switch (op) {
 	    case PLUS      : return( val1 + val2 );
@@ -628,14 +592,11 @@ Unary operators: +, -, ~, not
       simple left --> right evaluation. 
 */
 
-unsigned anlyz2( s, depth )
-char *s ;
-int *depth ;
+unsigned int anlyz2( char *s, int *depth )
 {
-	char error, op, *skipsp(), *skipexpr() ;
-	char *skiptok(), *skipop(), gettop() ;
-	char unary, isunary() ;
-	unsigned rval, lval, gettok() ;
+	char error, op;
+	char unary;
+	unsigned int rval, lval;
 
 	error = FALSE ;
 	*depth++ ;
@@ -687,13 +648,12 @@ int *depth ;
 
 
 
-unsigned anlyz( s )
-char *s ;
+unsigned int anlyz( char *s )
 {
 	int nesting, *depth ;
 	char *p ;
 	int n, left, right ;
-	unsigned result ;
+	unsigned int result ;
 
 	depth = &nesting ;
 	*depth = 0 ;
@@ -715,7 +675,7 @@ char *s ;
 
 
 
-tellhim(){
+void tellhim(){
 puts("");
 puts("");
 puts(" This program acts as a general binary");
@@ -754,9 +714,9 @@ puts("");
 }
 
 
-main(){
+void main(){
 char string[100];
-unsigned res ;
+unsigned int res ;
 char line[255] ;
 puts(" + + +  bc  binary calculator  2.0  + + + \n");
 puts("         (c) 1981  Occam Mjukisar \n");
