@@ -1,0 +1,19 @@
+.de TH
+.in 5
+.rm 75
+.he |$0 ($1)|$2|$0 ($1)|
+.fo ||-#-||
+.in 10
+.rm 70
+.en
+.de PP
+.sp 1
+.ti +5
+.en
+.de SH
+.sp 1
+.ti -5
+.bo
+$0
+.br
+.en
