@@ -2,6 +2,9 @@
 // zcc +cpm -create-app -O3 nro.c
 // zcc +cpm -create-app -compiler=sdcc -SO3 --max-allocs-per-node400000 nro.c
 
+// To create the documentation, use NRO itself:
+//   nro -mnroman.nro nro.nro =nro.txt
+
 // The z88dk adapted version can also be built with GCC.
 // z88dk provides also the standard file redirection, choose between =file or >file, they should be similar
 // the fcntl libraries in z88dk provide also an optional support for devices (e.g. >lst:)
