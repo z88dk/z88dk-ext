@@ -35,10 +35,11 @@ COMPILERS:	BDS C;
 #define SECSIZ 128
 
  int nskip, recnum, nread;
- int infd, outfd;
+ FILE *infd;
+ FILE *outfd;
 
 
-main(int argc, char *argv[])
+void main(int argc, char *argv[])
 {
 
  char buf[SECSIZ];
