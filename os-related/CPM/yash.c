@@ -76,7 +76,7 @@
 //#include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 //#include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 //#include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
-//#pragma output CRT_ORG_BSS = 0x9000 // move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed)
+//#pragma output CRT_ORG_BSS = 0x9000 /* move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed) */
 
 #elif __SCZ180
 // zcc +scz180 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
@@ -85,7 +85,7 @@
 //#include <lib/scz180/ffconf.h>     /* Declarations of FatFs configuration */
 //#include <lib/scz180/ff.h>         /* Declarations of FatFs API */
 //#include <lib/scz180/diskio_sd.h>  /* Declarations of SD diskio functions */
-//#pragma output CRT_ORG_BSS = 0xA800 // move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
+//#pragma output CRT_ORG_BSS = 0xA800 /* move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
 
 // zcc +scz180 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
 // This is for the SCZ180 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
@@ -97,7 +97,7 @@
 #include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
-#pragma output CRT_ORG_BSS = 0xA800 // move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
+#pragma output CRT_ORG_BSS = 0xA800 /* move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed) */
 
 #elif __HBIOS
 // zcc +hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/time -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
@@ -109,15 +109,15 @@
 #include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
 #include <lib/hbios/ff.h>           /* Declarations of FatFs API */
 #include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
-#pragma output CRT_ORG_BSS = 0xA800 // move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed)
+#pragma output CRT_ORG_BSS = 0xA800 /* move bss origin to address 0xA800 (check to confirm there is no overlap between data and bss sections, and set as needed) */
 
 #elif __CPM
 // a hacked solution for __RC2014 8085 CPU running CP/M from classic library
-//  zcc +cpm -clib=8085 -O2 --opt-code-speed -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+//  zcc +cpm -clib=8085 -O2 --opt-code-speed=all -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
 #include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085.h>
 
 // a hacked solution for __RC2014 Z80 CPU running CP/M from classic library
-//  zcc +cpm -clib=default -O2 --opt-code-speed -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+//  zcc +cpm -clib=default -O2 --opt-code-speed=all -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
 //#include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014.h>
 
 #include <_DEVELOPMENT/sccz80/arch/rc2014.h>            /* Declarations of RC2014 specifics */
@@ -144,6 +144,9 @@
 
 #define TOK_DELIM " \t\r\n\a"
 
+#define DRIVE_SIZE 8388608      // size in bytes of default CP/M drive file
+#define EXTENTS 2048            // number of directory extents in default CP/M drive
+
 // GLOBALS
 
 extern uint32_t cpm_dsk0_base[4];
@@ -156,12 +159,16 @@ static FATFS * fs;              /* Pointer to the filesystem object (on heap) */
 
 static FIL File[MAX_FILES];     /* File object needed for each open file */
 
+static uint8_t directoryBlock[32] = {0xE5,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20, \
+                                            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
 /*
   Function Declarations for built-in shell commands:
  */
 
 // CP/M related functions
 int8_t ya_dmount(char ** args); // mount a CP/M drive
+int8_t ya_mkdrv(char ** args);  // create a FATFS CP/M drive file
 
 // system related functions
 int8_t ya_md(char ** args);     // memory dump
@@ -234,6 +241,7 @@ struct Builtin {
 struct Builtin builtins[] = {
   // CP/M related functions
     { "dmount", &ya_dmount, "drive: [path]file - mount a CP/M drive"},
+    { "mkdrv", &ya_mkdrv, "[file][extents][bytes] - create a FATFS CP/M drive file, dir directory extents, of bytes size"},
 
 // fat related functions
     { "frag", &ya_frag, "[file] - check for file fragmentation"},
@@ -245,11 +253,11 @@ struct Builtin builtins[] = {
     { "pwd", &ya_pwd, "- show the current working directory"},
     { "mkdir", &ya_mkdir, "[path] - create a new directory"},
     { "chmod", &ya_chmod, "[path][attr][mask] - change file or directory attributes"},
-    { "mount", &ya_mount, "[drive:] - mount a FAT file system"},
-    { "umount", &ya_umount, "[drive:] - unmount a FAT file system"},
+    { "mount", &ya_mount, "[drive] - mount a FAT file system"},
+    { "umount", &ya_umount, "[drive] - unmount a FAT file system"},
 
 // disk related functions
-    { "ds", &ya_ds, "[drive:] - disk status"},
+    { "ds", &ya_ds, "[drive] - disk status"},
     { "dd", &ya_dd, "[drive][sector] - disk dump, drive in decimal, sector in decimal"},
 
 // time related functions
@@ -305,6 +313,58 @@ int8_t ya_dmount(char ** args)  /* mount a drive on CP/M */
 
         f_close(&File[0]);
 #endif
+    }
+    return 1;
+}
+
+
+/**
+   @brief Builtin command:
+   @param args List of args.  args[0] is "mkdrv". args[1] is the nominated drive name.
+                              args[2] is the number of directory entries, args[3] is file size in bytes.
+   @return Always returns 1, to continue executing.
+ */
+int8_t ya_mkdrv(char ** args)  /* create a file for CP/M drive */
+{
+    FRESULT res;
+    int16_t dirEntries;
+    int16_t dirBytesWritten;
+    uint32_t fileSize;
+    uint32_t lbaBase;
+
+    if (args[1] == NULL ) {
+        fprintf(stdout, "yash: expected 1 argument to \"mkdrv\"\n");
+    } else {
+        fprintf(stdout,"Creating \"%s\"", args[1]);
+        res = f_open(&File[0], (const TCHAR*)args[1], FA_CREATE_ALWAYS | FA_WRITE);
+        if (res != FR_OK) { put_rc(res); return 1; }
+
+        if (fileSize = atol(args[3]) == 0) fileSize = DRIVE_SIZE;
+        res = f_expand(&File[0], fileSize, 1);
+        if (res != FR_OK) {
+            fprintf(stdout, "\nInsufficient space");
+            put_rc(res);
+            f_close(&File[0]);
+            f_unlink((const TCHAR*)args[1]);
+            return 1;
+        }
+
+        if (dirEntries = atoi(args[2]) == 0) dirEntries = EXTENTS;
+        for (uint16_t i = 0; i < dirEntries; i++) {
+            // There are 4 Directory Entries (Extents) per CPM sector
+            res = f_write ( &File[0], (const uint8_t *)directoryBlock, 32, &dirBytesWritten );
+            if (res != FR_OK || dirBytesWritten != 32) {
+                fprintf(stdout, "\nCP/M Directory Extents incomplete");
+                put_rc(res);
+                f_close(&File[0]);
+                return 1;
+            }
+        }
+
+        lbaBase = (&File[0])->obj.fs->database + ((&File[0])->obj.fs->csize * ((&File[0])->obj.sclust - 2));
+        f_close(&File[0]);
+
+        fprintf(stdout," at base sector LBA %lu", lbaBase);
     }
     return 1;
 }
@@ -401,20 +461,20 @@ int8_t ya_frag(char ** args)    /* check file for fragmentation */
         res = f_open(&File[0], (const TCHAR *)args[1], FA_OPEN_EXISTING | FA_READ);
         if (res != FR_OK) { put_rc(res); return 1; }
 
-        fsz = f_size(&File[0]);                                    /* File size */
-        clsz = (DWORD)(&File[0])->obj.fs->csize * FF_MAX_SS;       /* Cluster size */
-        if (fsz > 0) {                                          /* Check file size non-zero */
-            clst = (&File[0])->obj.sclust - 1;                     /* An initial cluster leading the first cluster for first test */
-            while (fsz) {                                       /* Check clusters are contiguous */
+        fsz = f_size(&File[0]);                                     /* File size */
+        clsz = (DWORD)(&File[0])->obj.fs->csize * FF_MAX_SS;        /* Cluster size */
+        if (fsz > 0) {                                              /* Check file size non-zero */
+            clst = (&File[0])->obj.sclust - 1;                      /* An initial cluster leading the first cluster for first test */
+            while (fsz) {                                           /* Check clusters are contiguous */
                 step = (fsz >= clsz) ? clsz : (DWORD)fsz;
-                res = f_lseek(&File[0], f_tell(&File[0]) + step);     /* Advances file pointer a cluster */
+                res = f_lseek(&File[0], f_tell(&File[0]) + step);   /* Advances file pointer a cluster */
                 if (res != FR_OK) { put_rc(res); return 1; }
-                if (clst + 1 != (&File[0])->clust) break;          /* Is not the cluster next to previous one? */
+                if (clst + 1 != (&File[0])->clust) break;           /* Is not the cluster next to previous one? */
                 clst = (&File[0])->clust;
-                fsz = fsz - step;                                   /* Get current cluster for next test */
+                fsz -= step;                                        /* Get current cluster for next test */
             }
             fprintf(stdout," at LBA %lu", (&File[0])->obj.fs->database + ((&File[0])->obj.fs->csize * ((&File[0])->obj.sclust - 2)));
-            if (fsz == 0) {                                     /* All checked contiguous without fail? */
+            if (fsz == 0) {                                         /* All checked contiguous without fail? */
                 fprintf(stdout," is OK\n");
             } else {
                 fprintf(stdout," is fragmented\n");
@@ -966,7 +1026,7 @@ int main(int argc, char ** argv)
 
 #if !__RC2014 && !__CPM
     set_zone((int32_t)10 * ONE_HOUR);               /* Australian Eastern Standard Time */
-    set_system_time(1606780800 - UNIX_OFFSET);      /* Initial time: 00.00 December 1, 2020 UTC */
+    set_system_time(1661990400 - UNIX_OFFSET);      /* Initial time: 00.00 September 1, 2022 UTC */
 #endif
 
     fs = (FATFS *)malloc(sizeof(FATFS));                /* Get work area for the volume */
