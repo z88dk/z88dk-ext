@@ -211,8 +211,7 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-        defc _cpm_dsk0_base = 0xF700    ; XXX uncomment for RC2014 SIO Build
-;       defc _cpm_dsk0_base = 0xF800    ; XXX uncomment for RC2014 ACIA & ACIA 8085 Build
+        defc _cpm_dsk0_base = 0xF800    ; For RC2014 Builds
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX uncomment only for cpm/sccz80/classic/z80
     __endasm;
