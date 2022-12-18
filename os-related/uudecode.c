@@ -35,22 +35,21 @@ int main(int argc, char *argv[])
             if ((freopen(argv[1], READ_BINARY, stdin)) == NULL)
             {
                   //perror(argv[1]);
-				  printf("Error opening file: %s\n",argv[1]);
+                  printf("Error opening file: %s\n",argv[1]);
                   exit(1);
             }
       }
-	  
 
       scanf("begin %o ", &n);
       gets(buf);                              /* filename */
-	  printf ("Creating file: %s\n",buf);
-	  
+      printf ("Creating file: %s\n",buf);
+      
       if (!freopen(buf, "wb", stdout))         /* oops.. */
       {
-			printf("Error creating output file.. %s\n",buf);
+            printf("Error creating output file.. %s\n",buf);
             exit(1);
       }
-	  
+
       while ((n=getchar())!=EOF&&((n=DEC(n))!=0))
       {
             while (n>0)

@@ -69,7 +69,7 @@ main(int argc, char *argv[])
             if ((in = fopen(argv[1], READ_BINARY)) == NULL)
             {
                   //perror(argv[1]);
-				  printf("Error opening file: %s\n",argv[1]);
+                  printf("Error opening file: %s\n",argv[1]);
                   exit(1);
             }
             argv++; argc--;
