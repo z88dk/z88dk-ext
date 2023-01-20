@@ -10,10 +10,9 @@
 	to build using math32:  zcc +<target> <stdio options> --math32 -create-app hat.c
 	
 	Examples:
-	  zcc +zx -lm -lndos -create-app hat.c    (or -lmzx to use the maths code in ROM)
+	  zcc +zx -lm -lndos -create-app hat.c   (or -lmzx to use the maths code in ROM)
 	  zcc +aquarius -lm -create-app hat.c
 	  zcc +zx81 -create-app -lm hat.c
-	
 	
 	
 	stefano
@@ -31,13 +30,12 @@ void main()
 	int P,Q,ZI,XI,XL;
 	
 	float XR,YR,ZR,XT,ZT,ZS,YY;
-	//int P,Q;
 	float XP,YP;
 	float ZP,XF,YF,X1,Y1;
 
 	clg();
 
-	XR=pi()*1.5;
+	XR=M_PI*1.7;
 
 	YR=1.0;
 	XP=getmaxx()/2;
@@ -54,7 +52,7 @@ void main()
 	for (ZI=-Q; ZI<Q; ZI++) {
 			ZT=ZI*2.25;
 			ZS=ZT*ZT;
-			XL=(sqrt(XP*XP-ZS)+0.5)*0.9;
+			XL=(sqrt(XP*XP-ZS)+0.5)*0.85;
 			for (XI=-XL; XI<XL; XI++) {
 				XT=sqrt(XI*XI+ZS)*XF;
 				YY=(sin(XT)+0.4*sin(XT*3.0))*YF;
