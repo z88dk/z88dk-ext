@@ -45,6 +45,9 @@
 // zcc +cpm -clib=ansi -DUSE_SOUND -create-app -lmicrobee  -DVT_COLORS -lndos -lm dallas.c
 // zcc +cpm -clib=ansi -subtype=microbee -DUSE_SOUND -create-app -DVT_COLORS -lndos -lm dallas.c
 
+// Sanyo MBC-200/MBC-1200 CP/M
+// zcc +cpm -subtype=mbc200 -DUSE_SOUND  -DGRAPHICS -create-app -lndos -lm dallas.c
+
 
 
 
@@ -137,6 +140,12 @@
 #endif
 #endif
 
+#ifdef __SANYO__
+#include <arch/mbc200.h>
+	#undef gotoxy
+	#define gotoxy(x,y) mbc_setcursorpos_callee(y,x)
+#endif
+
 #include <math.h>
 #include <ctype.h>
 
@@ -156,6 +165,10 @@
 #endif
 #endif
 
+
+	#ifdef __SANYO__
+	#define CUSTOM_CHR
+	#endif
 
 	#ifdef __SHARPMZ__
 	#define CUSTOM_CHR
@@ -265,7 +278,11 @@ void clear_screen() {
 
 
 #ifdef Z80
-	#define clear_screen(); putch(12);
+	#ifdef __SANYO__
+		#define clear_screen(); putch(26);
+	#else
+		#define clear_screen(); putch(12);
+	#endif
 #endif
 
 
@@ -278,6 +295,10 @@ char brd[] = "ABCDEFGHIJKLMN";
 char trees[] = "\200  \200\200 \200 ";
 #else
 	#ifdef CUSTOM_CHR
+
+		#ifdef __SANYO__
+			char trees[] = "\347  \347\347 \347 ";
+		#endif
 
 		#ifdef __SHARPMZ__
 			char trees[] = "\226  \226\226 \226 ";
@@ -406,7 +427,7 @@ void dj(float VV){
 		textcolor(0);
 #endif
 	sprintf(total,"  %1.1f",VV);
-#ifdef __ZX81__
+#if defined(__ZX81__) | defined(__SANYO__)
 /*
 	ld  hl,$1821       ; (33,24) = top left screen posn
 	ld  de,(COLUMN)
@@ -667,6 +688,17 @@ void draw_board(){
 	 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
 #else
 	#ifdef CUSTOM_CHR
+		#ifdef __SANYO__
+			gotoxy(0,1);
+			cputs(" \234\350\350\350\350\350\350\350\350\350\350\350\350\350\350\237");
+			gotoxy(1,16);
+			cputs("\236\350\350\350\350\350\350\350\350\350\350\350\350\350\350\235");
+			#ifdef GRAPHICS
+				draw(12,18,12,160);
+				draw(132,18,132,160);
+			#endif
+		#endif
+
 		#ifdef __SHARPMZ__
 			gotoxy(0,1);
 			//cputs(" \254\204\204\204\204\204\204\204\204\204\204\204\204\255");
@@ -1089,6 +1121,7 @@ void opponent_wins() {
 
 
 int is_expensive() {
+	//  original logic to trigger a higher cost: "if (Y<=6)"
 	if (Y<=10) return (0);
 	if (X>7) return (0);
 	return (1);
@@ -1312,6 +1345,9 @@ void auction() {
 					putch('\201');
 				#else
 					#ifdef CUSTOM_CHR
+						#ifdef __SANYO__
+							putch('\225');
+						#endif
 						#ifdef __SHARPMZ__
 							putch('\230');
 							//putch('\227');
@@ -1542,6 +1578,9 @@ int drill() {
 		#else
 			#ifdef CUSTOM_CHR
 
+				#ifdef __SANYO__
+					putch('\226');
+				#endif
 				#ifdef __SHARPMZ__
 					//putch('\221');
 					putch('\227');
@@ -1668,6 +1707,9 @@ int rig() {
 		putch('\202');
 	#else
 		#ifdef CUSTOM_CHR
+			#ifdef __SANYO__
+				putch('\373');
+			#endif
 			#ifdef __SHARPMZ__
 				putch('\250');
 			#endif
@@ -1844,7 +1886,9 @@ void facilities_lost() {
 		putch('\203');
 	#else
 		#ifdef CUSTOM_CHR
-
+			#ifdef __SANYO__
+				putch('\226');
+			#endif
 			#ifdef __SHARPMZ__
 				//putch('\221');
 				putch('\227');
@@ -1928,7 +1972,8 @@ int facilities() {
 		}
 		
 		PP=20.0;
-		// // Bug in the original game.. shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
+		// // Bug in the original game ?  shouldn't it be the woods (X=COLUMNS) impacting on the cost ?
+		//    Perhaps it considers a higher cost because it may be on water
 		//if (Y<=6) PP=30.0;
 		if (is_expensive()) PP=30.0;
 
@@ -1970,6 +2015,9 @@ int facilities() {
 		#else
 			#ifdef CUSTOM_CHR
 
+				#ifdef __SANYO__
+					putch('\206');
+				#endif
 				#ifdef __SHARPMZ__
 					putch('\232');
 				#endif
@@ -2318,7 +2366,11 @@ int pipeline() {
 		}
 
 		#if defined(GRAPHICS) && !defined(LOREZ)
+			#ifdef __SANYO__
+				draw(120,24,8*X+6,10*Y+6);
+			#else
 				draw(120,24,8*X+6,8*Y+6);
+			#endif
 		#else
 
  		if ((17-X)>Y) {
@@ -2389,7 +2441,12 @@ int main() {
  textbackground(1); textcolor(14);
 #endif
 
-putch(1);putch(32);
+#ifdef __SANYO__
+ putch(27); putch('A');  // 40 lines text mode
+#endif
+
+
+putch(1); putch(32);
 clear_screen();
 
 #ifdef GRAPHICS
@@ -2403,6 +2460,7 @@ outp(0xd021,14);
 // Enable the ROM character set
 outp(0xd018,0x84);
 #endif
+
 
 gotoxy(10,2);
 
@@ -2617,7 +2675,7 @@ outp(0xd018,0x8c);
 	MT=0.0; PIP=MT; PL=MT; PR=MT;
 
 	clear_screen();
-#ifdef __ZX81__
+#if defined(__ZX81__) | defined(__SANYO__)
 	gotoxy(1,1);
 #else
 	gotoxy(1,0);
@@ -2760,6 +2818,14 @@ outp(0xd018,0x8c);
 	#else
 
 			#ifdef CUSTOM_CHR
+				#ifdef __SANYO__
+						gotoxy(2,4);
+						cputs("\347\n");
+						cputs("  \225\n");
+						cputs("  \373\n");
+						cputs("  \226\n");
+						cputs("  \206\n");
+				#endif
 				#ifdef __SHARPMZ__
 						gotoxy(2,4);
 					#ifdef VT_COLORS
