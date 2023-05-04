@@ -143,7 +143,7 @@
 #ifdef __SANYO__
 #include <arch/mbc200.h>
 	#undef gotoxy
-	#define gotoxy(x,y) mbc_setcursorpos_callee(y,x)
+	#define gotoxy(x,y) mbc_setcursorpos_callee(x,y)
 #endif
 
 #include <math.h>
@@ -2443,6 +2443,8 @@ int main() {
 
 #ifdef __SANYO__
  putch(27); putch('A');  // 40 lines text mode
+ //set_crtc_reg(6,0x40);   // Vert. displayed rows, alter the display resolution
+   //set_crtc_reg(1,0x28);   // Horiz. displayed characters per line
 #endif
 
 
