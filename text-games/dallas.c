@@ -146,6 +146,7 @@
 	#define gotoxy(x,y) mbc_setcursorpos_callee(x,y)
 #endif
 
+
 #include <math.h>
 #include <ctype.h>
 
@@ -165,6 +166,10 @@
 #endif
 #endif
 
+
+	#ifdef __X820__
+	#define CUSTOM_CHR
+	#endif
 
 	#ifdef __SANYO__
 	#define CUSTOM_CHR
@@ -296,10 +301,12 @@ char trees[] = "\200  \200\200 \200 ";
 #else
 	#ifdef CUSTOM_CHR
 
+		#ifdef __X820__
+			char trees[] = "\003  \003\003 \003 ";
+		#endif
 		#ifdef __SANYO__
 			char trees[] = "\347  \347\347 \347 ";
 		#endif
-
 		#ifdef __SHARPMZ__
 			char trees[] = "\226  \226\226 \226 ";
 		#endif
@@ -442,7 +449,11 @@ void dj(float VV){
 		gotoxy(32-strlen(total),wherey());
 	#endif
 #else
-	gotoxy(32-strlen(total),wherey()-1);
+	#if defined(__X820__)
+		gotoxy(32-strlen(total),wherey());
+	#else
+		gotoxy(32-strlen(total),wherey()-1);
+	#endif
 #endif
 	cputs(total);
 #ifdef VT_COLORS
@@ -688,6 +699,14 @@ void draw_board(){
 	 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
 #else
 	#ifdef CUSTOM_CHR
+
+		#ifdef __X820__
+			gotoxy(0,1);
+			cputs(" \023\023\023\023\023\023\023\023\023\023\023\023\023\023\023\023");
+			gotoxy(1,16);
+			cputs("\023\023\023\023\023\023\023\023\023\023\023\023\023\023\023\023");
+		#endif
+
 		#ifdef __SANYO__
 			gotoxy(0,1);
 			cputs(" \234\350\350\350\350\350\350\350\350\350\350\350\350\350\350\237");
@@ -1345,6 +1364,9 @@ void auction() {
 					putch('\201');
 				#else
 					#ifdef CUSTOM_CHR
+						#ifdef __X820__
+							putch('#');
+						#endif
 						#ifdef __SANYO__
 							putch('\225');
 						#endif
@@ -1578,6 +1600,9 @@ int drill() {
 		#else
 			#ifdef CUSTOM_CHR
 
+				#ifdef __X820__
+					putch('\037');
+				#endif
 				#ifdef __SANYO__
 					putch('\226');
 				#endif
@@ -1707,6 +1732,9 @@ int rig() {
 		putch('\202');
 	#else
 		#ifdef CUSTOM_CHR
+			#ifdef __X820__
+				putch('\032');
+			#endif
 			#ifdef __SANYO__
 				putch('\373');
 			#endif
@@ -1886,6 +1914,9 @@ void facilities_lost() {
 		putch('\203');
 	#else
 		#ifdef CUSTOM_CHR
+			#ifdef __X820__
+				putch('\037');
+			#endif
 			#ifdef __SANYO__
 				putch('\226');
 			#endif
@@ -2015,6 +2046,9 @@ int facilities() {
 		#else
 			#ifdef CUSTOM_CHR
 
+				#ifdef __X820__
+					putch('\002');
+				#endif
 				#ifdef __SANYO__
 					putch('\206');
 				#endif
@@ -2455,6 +2489,7 @@ clear_screen();
 clg();
 #endif
 
+
 #ifdef __C128__
 // Set PAPER and BORDER color
 outp(0xd020,14);
@@ -2677,7 +2712,7 @@ outp(0xd018,0x8c);
 	MT=0.0; PIP=MT; PL=MT; PR=MT;
 
 	clear_screen();
-#if defined(__ZX81__) | defined(__SANYO__)
+#if defined(__ZX81__) | defined(__SANYO__) | defined(__X820__)
 	gotoxy(1,1);
 #else
 	gotoxy(1,0);
@@ -2820,6 +2855,14 @@ outp(0xd018,0x8c);
 	#else
 
 			#ifdef CUSTOM_CHR
+				#ifdef __X820__
+						gotoxy(2,4);
+						cputs("\003\n");
+						cputs("  #\n");
+						cputs("  \032\n");
+						cputs("  \037\n");
+						cputs("  \002\n");
+				#endif
 				#ifdef __SANYO__
 						gotoxy(2,4);
 						cputs("\347\n");
