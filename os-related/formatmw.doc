@@ -10,13 +10,34 @@ Usage:
 where  drive-type  is  a required name that describes  the  drive 
 being formatted.  Possible drive-types and arguments follow:
 
+-------------------------------------------------
 
  DRIVE-TYPE			COMPANY			     1K SECTORS  
 
 "cmi", "m16", "cm5619"		Computer Memories Inc.		16,524
+"cm5616", "cm5640"
 
 "seagate", "m5", "st506"	Seagate Technology.		 5,508
 "st412", "m10"							11,016
+
+"ampex", "df516",		Ampex
+"pyxis7", "pyxis13", 
+"pyxis20", "pyxis27",	
+
+"miniscribe", "ms1006",		Miniscribe
+"ms1012", "ms2006", "ms2012",
+"ms4010", "ms4020"
+
+"olivetti",			Olivetti
+"hd561/1", "hd561/2", 
+
+"quantum", "q2040",		Quantum
+
+"tandon",			Tandon
+"tm602", "tm603",	
+
+-------------------------------------------------
+
 
 
 Optional arguments:
