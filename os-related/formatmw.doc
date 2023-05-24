@@ -1,0 +1,78 @@
+                        FORMATMW Program
+
+The FORMATMW program formats, verifies and tests hard disk drives 
+that are connected to a Morrow Designs Hard Disk DMA controller.
+
+Usage:
+
+	formatmw drive-type [arguments]
+
+where  drive-type  is  a required name that describes  the  drive 
+being formatted.  Possible drive-types and arguments follow:
+
+
+ DRIVE-TYPE			COMPANY			     1K SECTORS  
+
+"cmi", "m16", "cm5619"		Computer Memories Inc.		16,524
+
+"seagate", "m5", "st506"	Seagate Technology.		 5,508
+"st412", "m10"							11,016
+
+
+Optional arguments:
+
+
+drive #		   Specify   a   physical  drive  (0-3)   to   be 
+                   formatted.  Default is drive 0.
+
+head  # 	   Specify a physical head to be  formatted.   By 
+                   default,  all  the  heads  are  formatted  and 
+                   tested.   If  you  want to check out one  head 
+                   only,  include  this  argument.   Consult  the 
+                   manufacturer's  manual for the allowable  head 
+                   numbers.
+
+nosoft		   When  this flag is specified then soft  errors 
+                   that occure during formatting or testing  will 
+                   be  reported but not added to the bad spot map 
+                   being  built.   This flag is  used  primarilly 
+                   during  drive evaluation and allows CP/M  test 
+                   programs  to  get a shot at marginal  sectors.  
+                   This flag may also be used when the the drives 
+                   bad spot map overflows.  Eg.  Entries will not 
+                   be "wasted" on soft errors.
+
+size #		   Specify  the  sector size.   Legal values  are 
+                   128,  256, 512, 1024, and 2048 bytes.  Default 
+                   is  1024 bytes.   Note:  Users of  the  Morrow 
+                   Designs multi-user operating system, Micronix, 
+                   are  required  to format their disks with  512 
+                   byte sectors.
+
+skew #             Specify   the  skewing  factor  to  be   used.  
+                   Default is 3.  A skew factor of 6 is suggested 
+                   for Micronix.
+
+test		   Invoke  a  disk test  routine.   This  routine 
+                   writes  various patterns on the disk and  then 
+                   verifies them.
+
+track #		   Specify  a particular cylinder to be formatted 
+                   and  tested.  Consult with the  manufacturer's 
+                   specifications for legal cylinder values.
+
+Any combination of optional arguments can be combined for various 
+affects.  
+
+Common command usage includes:
+
+
+    A>formatmw m5
+
+formats drive 0 for a CP/M environment.
+
+
+    A>formatmw m16 drive 2 size 512 skew 6
+
+formats drive 2 for a UNIX environment.
+
