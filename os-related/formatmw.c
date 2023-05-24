@@ -6,6 +6,9 @@
 
    One text line in comments was corrupt, thus even if I limited
    my changes as much as possible, I can't guarantee it is 100% ok.
+   
+   The size of FORMATMW.COM was 26752 bytes,
+   compiled in 1982 with: "V2.1: copyright (c) 1979 by Whitesmiths, Ltd."
 */
 
 
