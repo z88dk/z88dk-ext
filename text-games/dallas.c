@@ -48,6 +48,9 @@
 // Sanyo MBC-200/MBC-1200 CP/M
 // zcc +cpm -subtype=mbc200 -DUSE_SOUND  -DGRAPHICS -create-app -lndos -lm dallas.c
 
+// Visual 1050 CP/M
+// zcc +cpm -subtype=v1050 --generic-console -DUSE_UDGS -lndos -create-app -lm -DGRAPHICS dallas.c
+
 
 
 
@@ -434,7 +437,7 @@ void dj(float VV){
 		textcolor(0);
 #endif
 	sprintf(total,"  %1.1f",VV);
-#if defined(__ZX81__) | defined(__SANYO__)
+#if defined(__ZX81__) | defined(__SANYO__) | defined(__V1050__)
 /*
 	ld  hl,$1821       ; (33,24) = top left screen posn
 	ld  de,(COLUMN)
@@ -2400,10 +2403,14 @@ int pipeline() {
 		}
 
 		#if defined(GRAPHICS) && !defined(LOREZ)
+			#ifdef __V1050__
+				draw(120,24,8*X+6,12*Y+6);
+			#else
 			#ifdef __SANYO__
 				draw(120,24,8*X+6,10*Y+6);
 			#else
 				draw(120,24,8*X+6,8*Y+6);
+			#endif
 			#endif
 		#else
 
@@ -2712,10 +2719,14 @@ outp(0xd018,0x8c);
 	MT=0.0; PIP=MT; PL=MT; PR=MT;
 
 	clear_screen();
+#if defined(__V1050__)
+	gotoxy(1,2);
+#else
 #if defined(__ZX81__) | defined(__SANYO__) | defined(__X820__)
 	gotoxy(1,1);
 #else
 	gotoxy(1,0);
+#endif
 #endif
 
 #ifdef VT_COLORS
@@ -2830,7 +2841,12 @@ outp(0xd018,0x8c);
 
 	#ifdef USE_UDGS
 
+		#ifdef __V1050__
+			gotoxy(2,5);
+		#else
 			gotoxy(2,4);
+		#endif
+
 		#ifdef VT_COLORS
 			textcolor(10);
 		#endif
