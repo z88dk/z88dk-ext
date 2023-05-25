@@ -696,10 +696,24 @@ void draw_board(){
 
 
 #ifdef USE_UDGS
-	 gotoxy(1,1);
-	 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
-	 gotoxy(1,16);
-	 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
+
+	#ifdef __V1050__
+		 // Vertical rows
+		 draw(10,16,10,194);
+		 draw(13,16,13,194);
+		 draw(130,16,130,194);
+		 draw(133,16,133,194);
+
+		 draw(10,16,132,16);
+		 draw(10,18,132,18);
+		 draw(10,192,132,192);
+		 draw(10,194,132,194);
+	#else
+		 gotoxy(1,1);
+		 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
+		 gotoxy(1,16);
+		 cputs(" \205\205\205\205\205\205\205\205\205\205\205\205\205\205");
+	#endif
 #else
 	#ifdef CUSTOM_CHR
 
@@ -2487,7 +2501,6 @@ int main() {
  //set_crtc_reg(6,0x40);   // Vert. displayed rows, alter the display resolution
    //set_crtc_reg(1,0x28);   // Horiz. displayed characters per line
 #endif
-
 
 putch(1); putch(32);
 clear_screen();
