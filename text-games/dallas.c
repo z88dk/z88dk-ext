@@ -2418,7 +2418,7 @@ int pipeline() {
 
 		#if defined(GRAPHICS) && !defined(LOREZ)
 			#ifdef __V1050__
-				draw(120,24,8*X+6,12*Y+6);
+				draw(120,30,8*X+6,12*Y+6);
 			#else
 			#ifdef __SANYO__
 				draw(120,24,8*X+6,10*Y+6);
