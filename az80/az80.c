@@ -1,10 +1,8 @@
 /*
-	Adapted for z88dk.  To build:
+	Adjusted to be build by z88dk.  To build:
 	zcc +cpm -O3 -create-app -DAMALLOC -oaz80 az80.c
 
 
-
-/*
 	HEADER:		CUG276;
 	TITLE:		Z-80 Cross-Assembler (Portable);
 	FILENAME:	AZ80EVAL.C;
