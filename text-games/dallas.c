@@ -17,8 +17,10 @@
 // ZX81 (32K)  (  POKE 16389,166  :  NEW  :  LOAD ""  )
 // zcc +zx81 -DALT_DELAY -DUSE_UDGS -DGRAPHICS -subtype=wrx -clib=wrxansi -pragma-define:ansicolumns=32 -create-app -lm -O3 dallas.c
 #pragma output hrgpage = 42752
-// zcc +zx81 -lgfx81 -DALT_DELAY -DGRAPHICS -DLOREZ -lndos -create-app -lm -O3 dallas.c
+// zcc +zx81 -lgfx81 -DALT_DELAY -DGRAPHICS -DLOREZ -create-app -lm -O3 dallas.c
 
+// LAMBDA 8300 (32K)
+// zcc +lambda -DALT_DELAY -DGRAPHICS -DLOREZ -create-app -lm -O3 -D__ZX81__ dallas.c
 
 // Jupiter ACE
 // zcc +ace -DUSE_UDGS -DGRAPHICS -DLOREZ -DUSE_SOUND -lgfxace -lndos -create-app -lm dallas.c
@@ -2519,6 +2521,8 @@ outp(0xd018,0x84);
 #endif
 
 
+#ifndef NOINTRO
+
 gotoxy(10,2);
 
 #ifndef __C128__
@@ -2655,6 +2659,10 @@ outp(0xd018,0x8c);
 #endif
 		cputs("\nSI VOUS ECHOUEZ, VOUS SEREZ OBLIGE DE DEMISSIONER");
 #endif
+
+
+#endif   // NOINTRO
+
 
 #ifdef VT_COLORS
 	textcolor(0);
@@ -3340,4 +3348,3 @@ KY:
 		#endif
 	}
 }
-
