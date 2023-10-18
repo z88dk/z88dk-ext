@@ -7,6 +7,9 @@
 ;   based on an original work by "David P. Goodenough"
 ;
 
+;   NOTE:  unless you are looking for a minimalistic tool you will probably prefer the impressive UNZIP156
+;          released in 2023:  https://github.com/agn453/UNZIP-CPM-Z80/
+
 ;
 ; To build:
 ;
