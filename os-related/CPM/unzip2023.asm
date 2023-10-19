@@ -3,8 +3,6 @@
 ;	Dissolves MS-DOS ZIP files.
 ;
 ; This is a z88dk-z80asm conversion of UNZIP156
-; https://github.com/agn453/UNZIP-CPM-Z80/tree/master/unzip
-;
 ; It can be used to create a byte-identical COM file
 ; or to get a ripped-off version for 48K TPA systems
 ; the opt flags will add "SMALLMEM" to the welcome message
@@ -759,7 +757,8 @@ wild2:	ld	hl,mtchfcb
 	ret
 ;
 getchla:
-	call	getcode
+	ld	a,(codesize)
+	call	readbits
 	ld	(code),hl
 	ld	a,(zipeof)
 	and	1
@@ -770,15 +769,18 @@ savstk:	ld	hl,(stackp)
 	ld	(stackp),hl
 	ld	(hl),a
 	ret
+
 ;
-getcode:
-	ld	a,(codesize)
+rd16bits:
+	ld	a,16
+;
 readbits:
 	ld	b,a
 	ld	c,80h		; bits rotate into C and A
 	xor	a		; (rra is 4 cycles vs 8 for others)
 	ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
-getbit:	dec	h
+getbit:
+	dec	h
 	jp	p,getbt2	; skip if new byte not needed yet
 	push	af
 	push	bc
@@ -787,15 +789,18 @@ getbit:	dec	h
 	ld	h,7		; 8 bits left, pre-dec'd
 	pop	bc
 	pop	af
-getbt2:	rr	l
+getbt2:
+	rr	l
 	rr	c
 	rra
 	jr	c,bitret
 	djnz	getbit
-finbit: srl	c
+finbit:
+	srl	c
 	rra
 	jp	nc,finbit	; jp likely faster in this case
-bitret:	ld	(bitbuf),hl	; update bitbuf/bleft
+bitret:
+	ld	(bitbuf),hl	; update bitbuf/bleft
 	ld	h,c		; return bits in HL and A
 	ld	l,a
 	ret
@@ -1695,9 +1700,11 @@ sl5:	ld	a,(ix)
 	ld	(noswps),a
 	jr	sl6
 ;
-sl4:	add	ix,de
+sl4:
+	add	ix,de
 	add	iy,de
-sl6:	dec	hl
+sl6:
+	dec	hl
 	ld	a,h
 	or	l
 	jr	nz,sl2
@@ -1745,10 +1752,14 @@ gt4:	add	hl,hl
 gt3:	ex	de,hl
 gt2:	ld	(iy + _code),l
 	ld	(iy + _code + 1),h
-	push	de
-	ld	de,-4
-	add	iy,de
-	pop	de
+;	push	de
+;	ld	de,-4
+;	add	iy,de
+;	pop	de
+	dec iy
+	dec iy
+	dec iy
+	dec iy
 	jr	gt1
 ;
 ldtrees:
@@ -1819,7 +1830,8 @@ readtree:
 	ld	e,d
 	ld	h,d
 	ld	l,d
-rt1:	push	hl
+rt1:
+	push	hl
 	push	de
 	push	bc
 	rd1bit
@@ -1827,22 +1839,30 @@ rt1:	push	hl
 	push	af
 	or	a
 	jr	z,rt2
-rt3:	add	hl,hl
+rt3:
+	add	hl,hl
 	dec	a
 	jr	nz,rt3
-rt2:	pop	bc
+rt2:
+	pop	bc
 	pop	de
 	add	hl,de
 	ex	de,hl
 	inc	b
 	pop	hl
-rt4:	ld	a,(iy + _bitlength)
+rt4:
+	ld	a,(iy + _bitlength)
 	cp	b
 	jr	nc,rt5
-	push	de
-	ld	de,4
-	add	iy,de
-	pop	de
+;	push	de
+;	ld	de,4
+;	add	iy,de
+;	pop	de
+	inc iy
+	inc iy
+	inc iy
+	inc iy
+
 	inc	hl
 	ld	a,(ix + _entries)
 	sub	l
@@ -1850,10 +1870,12 @@ rt4:	ld	a,(iy + _bitlength)
 	ld	a,(ix + _entries + 1)
 	sub	h
 	jr	nz,rt4
-rt6:	dec	a
+rt6:
+	dec	a
 	ret
 ;
-rt5:	ld	a,(iy + _bitlength)
+rt5:
+	ld	a,(iy + _bitlength)
 	cp	b
 	jr	nz,rt1
 	ld	a,(iy + _code)
@@ -1865,10 +1887,16 @@ rt5:	ld	a,(iy + _bitlength)
 	ld	a,(iy + _value)
 	ret
 ;
-rt7:	push	de
-	ld	de,4
-	add	iy,de
-	pop	de
+rt7:
+;	push	de
+;	ld	de,4
+;	add	iy,de
+;	pop	de
+	inc iy
+	inc iy
+	inc iy
+	inc iy
+
 	inc	hl
 	ld	a,(ix + _entries)
 	sub	l
@@ -1896,12 +1924,15 @@ ui1:	ld	a,(zipeof)
 	call	readtree
 	jr	ui4
 ;
-ui3:	ld	a,8
+ui3:
+	ld	a,8
 	call	rdbybits
-ui4:	call	outb
+ui4:
+	call	outb
 	jr	ui1
 ;
-ui2:	ld	a,(dictb)
+ui2:
+	ld	a,(dictb)
 	call	readbits
 	push	hl
 	ld	ix,dist_tre
@@ -1909,7 +1940,8 @@ ui2:	ld	a,(dictb)
 	ld	l,a		;;v1.5-1 unimplode fix
 	ld	h,0		;;v1.5-1
 	ld	bc,(dictb - 1)
-ui5:	add	hl,hl
+ui5:
+	add	hl,hl
 	djnz	ui5
 	pop	bc
 	add	hl,bc
@@ -1925,7 +1957,8 @@ ui5:	add	hl,hl
 	call	rdbybits
 	pop	de
 	add	hl,de
-ui6:	ld	de,(mml)
+ui6:
+	ld	de,(mml)
 	ld	d,0
 	add	hl,de
 	ld	b,h
@@ -1937,14 +1970,16 @@ ui6:	ld	de,(mml)
 ;
 nextsymbol:
 	ld	(treep),hl
-nsloop:	push	hl
+nsloop:
+	push	hl
 	rd1bit
 	pop	hl
 	or	a
 	jr	z,nsleft
 	inc	hl
 	inc	hl
-nsleft:	ld	e,(hl)
+nsleft:
+	ld	e,(hl)
 	inc	hl
 	ld	d,(hl)
 
@@ -1978,7 +2013,8 @@ buildcode:
 
 	ld	bc,(nrsym)
 	ld	de,(lenp)
-bclp1:	ld	a,(de)
+bclp1:
+	ld	a,(de)
 	add	a,a
 	jr	z,bcnol
 	ld	hl,blcnt
@@ -1986,13 +2022,15 @@ bclp1:	ld	a,(de)
 	ld	l,a
 	jr	nc,bcnc1
 	inc	h
-bcnc1:	ld	a,(hl)
+bcnc1:
+	ld	a,(hl)
 	inc	a
 	ld	(hl),a
 	jr	nz,bcnol
 	inc	hl
 	inc	(hl)
-bcnol:	inc	de
+bcnol:
+	inc	de
 	dec	bc
 	ld	a,b
 	or	c
@@ -2002,7 +2040,8 @@ bcnol:	inc	de
 	push	hl
 
 	ld	bc,1
-bclp2:	ld	a,c
+bclp2:
+	ld	a,c
 	sub	maxcl + 1
 	jr	nc,bccn2
 
@@ -2029,7 +2068,8 @@ bclp2:	ld	a,c
 
 	inc	c
 	jr	bclp2
-bccn2:	pop	hl
+bccn2:
+	pop	hl
 
 	ld	hl,(nrsym)
 	add	hl,hl
@@ -2048,7 +2088,8 @@ bccn2:	pop	hl
 	ld	(nnode),hl
 
 	ld	bc,0
-bclp3:	ld	hl,(lenp)
+bclp3:
+	ld	hl,(lenp)
 	add	hl,bc
 	ld	a,(hl)
 	or	a
@@ -2063,7 +2104,8 @@ bclp3:	ld	hl,(lenp)
 	ld	l,a
 	jr	nc,bc4
 	inc	h
-bc4:	ld	e,(hl)
+bc4:
+	ld	e,(hl)
 	inc	hl
 	ld	d,(hl)
 	ld	(bcode),de
@@ -2074,15 +2116,18 @@ bc4:	ld	e,(hl)
 	pop	af
 
 	ld	hl,1
-bclp4:	dec	a
+bclp4:
+	dec	a
 	or	a
 	jr	z,bccn4
 	add	hl,hl
 	jr	bclp4
-bccn4:	ld	(bmask),hl
+bccn4:
+	ld	(bmask),hl
 
 	ld	hl,(nodes)
-bclp5:	ld	de,(bcode)
+bclp5:
+	ld	de,(bcode)
 	ld	bc,(bmask)
 	ld	a,d
 	and	b
@@ -2094,7 +2139,8 @@ bclp5:	ld	de,(bcode)
 	jr	z,bcleft
 	inc	hl
 	inc	hl
-bcleft:	srl	b
+bcleft:
+	srl	b
 	rr	c
 	ld	(bmask),bc
 	ld	a,b
@@ -2115,14 +2161,16 @@ bcleft:	srl	b
 	ld	(nnode),de
 	dec	de
 
-bc6:	ld	hl,(nodes)
+bc6:
+	ld	hl,(nodes)
 	add	hl,de
 	add	hl,de
 	add	hl,de
 	add	hl,de
 	jr	bclp5
 
-bccn5:	pop	bc
+bccn5:
+	pop	bc
 
 	ld	(hl),c
 	inc	hl
@@ -2130,7 +2178,8 @@ bccn5:	pop	bc
 	or	10h
 	ld	(hl),a
 
-bccn3:	inc	bc
+bccn3:
+	inc	bc
 	ld	hl,(nrsym)
 	or	a
 	sbc	hl,bc
@@ -2157,7 +2206,8 @@ huffman:
 
 	ld	b,0
 	ld	de,clord
-hmlp1:	ld	a,b
+hmlp1:
+	ld	a,b
 	cp	c
 	jr	nc,hmcn1
 	push	bc
@@ -2176,9 +2226,11 @@ hmlp1:	ld	a,b
 	inc	b
 	jr	hmlp1
 
-hmcn1:	xor	a
+hmcn1:
+	xor	a
 	ld	c,a
-hmlp2:	ld	a,b
+hmlp2:
+	ld	a,b
 	cp	nrcl
 	jr	nc,hmcn2
 	ld	a,(de)
@@ -2187,12 +2239,14 @@ hmlp2:	ld	a,b
 	ld	l,a
 	jr	nc,hmnc2
 	inc	h
-hmnc2:	ld	(hl),c
+hmnc2:
+	ld	(hl),c
 	inc	de
 	inc	b
 	jr	hmlp2
 
-hmcn2:	ld	hl,lenld
+hmcn2:
+	ld	hl,lenld
 	ld	de,cltr
 	ld	bc,nrcl
 	call	buildcode
@@ -2205,7 +2259,8 @@ hmcn2:	ld	hl,lenld
 	adc	a,0
 	ld	b,a
 	ld	hl,lenld
-hmlp3:	push	bc
+hmlp3:
+	push	bc
 	push	hl
 	ld	hl,cltr
 	call	nextsymbol
@@ -2222,14 +2277,16 @@ hmlp3:	push	bc
 	dec	hl
 	ld	e,(hl)
 	inc	hl
-hmlp4:	ld	(hl),e
+hmlp4:
+	ld	(hl),e
 	inc	hl
 	dec	bc
 	dec	d
 	jr	nz,hmlp4
 	jr	hmcn3
 
-hmn16:	cp	011h
+hmn16:
+	cp	011h
 	jr	nz,hmn17
 	ld	a,3
 	call	rdbybits
@@ -2238,14 +2295,16 @@ hmn16:	cp	011h
 	add	a,3
 	ld	d,a
 	xor	a
-hmlp5:	ld	(hl),a
+hmlp5:
+	ld	(hl),a
 	inc	hl
 	dec	bc
 	dec	d
 	jr	nz,hmlp5
 	jr	hmcn3
 
-hmn17:	cp	012h
+hmn17:
+	cp	012h
 	jr	nz,hmn18
 	ld	a,7
 	call	rdbybits
@@ -2254,20 +2313,23 @@ hmn17:	cp	012h
 	add	a,11
 	ld	d,a
 	xor	a
-hmlp6:	ld	(hl),a
+hmlp6:
+	ld	(hl),a
 	inc	hl
 	dec	bc
 	dec	d
 	jr	nz,hmlp6
 	jr	hmcn3
 
-hmn18:	pop	hl
+hmn18:
+	pop	hl
 	pop	bc
 	ld	(hl),a
 	inc	hl
 	dec	bc
 
-hmcn3:	ld	a,b
+hmcn3:
+	ld	a,b
 	or	c
 	jr	nz,hmlp3
 
@@ -2292,14 +2354,19 @@ hmcn3:	ld	a,b
 	ld	(inbufp),hl
 	ld	a,(rdpts)
 	ld	(readpt),a
-	ld	a,(blfts)
-	ld	(bleft),a
-	ld	a,(bitbs)
-	ld	(bitbuf),a
+
+	ld hl,(bitbs)	; H=bleft=blfts, L=bitbuf=bitbs
+	ld (bitbuf),hl
+
+	;ld	a,(blfts)
+	;ld	(bleft),a
+	;ld	a,(bitbs)
+	;ld	(bitbuf),a
 	ld	hl,counting
 	inc	(hl)
 
-hmnext:	ld	hl,littr
+hmnext:
+	ld	hl,littr
 	call	nextsymbol
 	ld	a,d
 	dec	a
@@ -2316,7 +2383,8 @@ hmnext:	ld	hl,littr
 	call	outb
 	jr	hmnext
 
-hmsym:	dec	e
+hmsym:
+	dec	e
 	ld	d,0
 	ld	hl,lenex
 	add	hl,de
@@ -2327,7 +2395,8 @@ hmsym:	dec	e
 	push	de
 	call	readbits
 	pop	de
-hmnlen:	push	hl
+hmnlen:
+	push	hl
 	ld	hl,lenbas
 	add	hl,de
 	add	hl,de
@@ -2350,7 +2419,8 @@ hmnlen:	push	hl
 	push	de
 	call	readbits
 	pop	de
-hmndst:	push	hl
+hmndst:
+	push	hl
 	ld	hl,dstbas
 	add	hl,de
 	add	hl,de
@@ -2369,7 +2439,8 @@ undeflate:
 	ld	a,7fh
 	ld	(omask),a
 
-udloop:	ld	a,(zipeof)
+udloop:
+	ld	a,(zipeof)
 	and	1
 	ret	nz
 
@@ -2383,17 +2454,16 @@ udloop:	ld	a,(zipeof)
 
 	xor	a
 	ld	(bleft),a
-	ld	a,16
-	call	readbits
+	call	rd16bits
 	push	hl
-	ld	a,16
-	call	readbits
+	call	rd16bits
 	pop	bc
 	scf
 	adc	hl,bc
 	jr	nz,udblm
 
-udt0lp:	ld	a,b
+udt0lp:
+	ld	a,b
 	or	c
 	jr	z,udnext
 	ld	a,(zipeof)
@@ -2406,16 +2476,21 @@ udt0lp:	ld	a,b
 	dec	bc
 	jr	udt0lp
 
-udnt0:	dec	a
+udnt0:
+	dec	a
 	jr	nz,udnt1
 	ld	hl,(inbufp)
 	ld	(inbps),hl
 	ld	a,(readpt)
 	ld	(rdpts),a
-	ld	a,(bleft)
-	ld	(blfts),a
-	ld	a,(bitbuf)
-	ld	(bitbs),a
+
+	ld hl,(bitbuf)	; H=bleft=blfts, L=bitbuf=bitbs
+	ld (bitbs),hl
+
+;	ld	a,(bleft)
+;	ld	(blfts),a
+;	ld	a,(bitbuf)
+;	ld	(bitbs),a
 	ld	hl,counting
 	dec	(hl)
 	ld	hl,static_pre
@@ -2426,29 +2501,35 @@ udnt0:	dec	a
 	call	huffman
 	jr	udnext
 
-udnt1:	dec	a
+udnt1:
+	dec	a
 	jr	nz,udubt
 	ld	hl,0
 	ld	(inbps),hl
 	call	huffman
 
-udnext:	pop	af
+udnext:
+	pop	af
 	or	a
 	jp	z,udloop
 	ret
 
-udpret:	pop	af
+udpret:
+	pop	af
 	ret
-udbskp:	ld	a,(zipeof)
+udbskp:
+	ld	a,(zipeof)
 	and	1
 	jr	nz,udpret
 	call	getbyte
 	jr	udbskp
-udblm:	call	ilprt
+udblm:
+	call	ilprt
 	defm	"Block length mismatch"
 	defb	CR,LF,0
 	jr	udbskp
-udubt:	call	ilprt
+udubt:
+	call	ilprt
 	defm	"Unknown block type"
 	defb	CR,LF,0
 	jr	udbskp
@@ -2864,9 +2945,9 @@ opext	ds.b	3 + 24
 mtchfcb	ds.b	11
 ; note that as indicated above, bitbuf must be the byte before bleft
 bitbuf	ds.b	1
-
 vars	ds.b	0
 bleft	ds.b	1
+
 wrtpt	ds.b	1
 outpos	ds.b	4
 crc32	ds.b	4
