@@ -42,14 +42,14 @@ defc setusr	=	32
 ;
 ; Other
 ;
-defc STRSIZ		=	256		; must be 256 exactly, see plfh for why
+;defc STRSIZ		=	256		; must be 256 exactly, see plfh for why
 defc DLE		=	144
-defc max_bits	=	13
-defc init_bits 	=	9
+;defc max_bits	=	13
+;defc init_bits 	=	9
 ;defc hsize		=	8192
-defc first_ent	=	257
+;defc first_ent	=	257
 ;defc clear		=	256
-defc maxcmax	=	1 << max_bits
+;defc maxcmax	=	1 << max_bits
 defc maxSF		=	256
 ;defc _entry		=	4
 defc _sf_tree_ 	=	4 + 4 * maxSF
@@ -1387,22 +1387,22 @@ inusr	ds.b	1
 outusr	ds.b	1
 mode	ds.b	1
 opts	ds.b	1
-junk	ds.b	STRSIZ
-lfh		ds.b	0		; data read from local file header
-
-vnte	ds.w	1		; version
-gpbf	ds.w	1		; general purpose bit flag
-cm		ds.w	1		; compression method
-lmft	ds.w	1		; file last modification time
-lmfd	ds.w	1		; file last modification date
-
-crc		ds.b	4	; CRC-32 of uncompressed data
+;junk	ds.b	STRSIZ
+;lfh		ds.b	0		; data read from local file header
+;
+;vnte	ds.w	1		; version
+;gpbf	ds.w	1		; general purpose bit flag
+;cm		ds.w	1		; compression method
+;lmft	ds.w	1		; file last modification time
+;lmfd	ds.w	1		; file last modification date
+;
+;crc		ds.b	4	; CRC-32 of uncompressed data
 cs		ds.b	4	; compressed size
-ucs		ds.b	4	; uncompressed size
-fnl		ds.w	1	; file name length
-efl		ds.w	1	; extra field length
-endlfh	ds.b	1	; marker for end of lfh data; also,
-					; zero byte is written here by getstring
+;ucs		ds.b	4	; uncompressed size
+;fnl		ds.w	1	; file name length
+;efl		ds.w	1	; extra field length
+;endlfh	ds.b	1	; marker for end of lfh data; also,
+;					; zero byte is written here by getstring
 
 opfcb	ds.b	1	; output file control block
 opfn	ds.b	8
