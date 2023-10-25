@@ -9,13 +9,17 @@
 ;
 ; Can be assembled with z88dk-z80asm with:
 ;
-;    z80asm -b -oZCAT.COM zcat.asm
+;    z80asm -b -oZCAT.COM -DZ80 zcat.asm
 
+
+; Experimental, non-working, 8080 version:
+;	z80asm -b -oZCAT.COM -m8080 zcat.asm
+ 
 ; Opt flags:
 
 
 FASTQUIT  equ	1	; Quit as soon as end of data section
-CCPQUIT   equ   1	; Returns to CCP instead of WARM
+CCPQUIT   equ   0	; Returns to CCP instead of WARM
 
 
 ;
@@ -87,14 +91,20 @@ defc CtrlZ	=	1Ah
 
 Z3EAdr:	defw	0
 ;
-start:	ld	(oldstk),sp	; save old stack here for future use
+start:
 if CCPQUIT
+	ld	(oldstk),sp	; save old stack here for future use
 	ld	hl,(6)		; get top of memory
 	ld	de,0f800h	; allow space for CCP
 	add	hl,de
 	ld	sp,hl		; set the stack pointer
 else
+IF Z80
 	ld	sp,(6)		; set the stack pointer
+ELSE
+	ld	hl,(6)		; set the stack pointer
+	ld	sp,hl
+ENDIF
 endif
 	ld	a,(infcb+1)	; filename?
 	cp	' '
@@ -113,8 +123,14 @@ endif
 	jp	c,nomem
 ;
 	ld	hl,0080h	; command buffer
+IF Z80
 	ld	l,(hl)		; get length
 	set	7,l		; point after end of line
+ELSE
+	ld	a,(hl)		; get length
+	or	80h
+	ld	l,a
+ENDIF
 	inc	hl
 	ld	(hl),0		; put terminator in
 	ld	l,81h		; hl=>start of line
@@ -147,7 +163,14 @@ options:
 	ld	b,a
 	jr	options
 optdone:
+IF Z80
 	ld	(opts-1),bc	; note options
+ELSE
+	ld	a,c
+	ld (opts-1),a
+	ld	a,b
+	ld (opts),a
+ENDIF
 ; bit 1 = [O]verwrite
 ; bit 4 = [Q]uiet
 ;
@@ -312,13 +335,33 @@ getbit:
 	pop	bc
 	pop	af
 getbt2:
+IF Z80
 	rr	l
 	rr	c
 	rra
+ELSE
+	ld e,a
+	ld a,l
+	rra
+	ld l,a
+	ld a,c
+	rra
+	ld c,a
+	ld a,e
+	rra
+ENDIF
 	jr	c,bitret
 	djnz	getbit
 finbit:
+IF Z80
 	srl	c
+ELSE
+	ld e,a
+	ld a,c
+	rra		; we have "jr c", we know CY is reset  (djnz preserves all flags)
+	ld c,a
+	ld a,e
+ENDIF
 	rra
 	jp	nc,finbit	; jp likely faster in this case
 bitret:
@@ -340,7 +383,8 @@ rdbybits:
 	ld	b,a
 	xor	a		; bits rotate into A (rra faster)
 	ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
-rdbylp:	dec	h
+rdbylp:
+	dec	h
 	jp	p,rdby1		; skip if new byte not needed yet
 	ld	c,a
 	push	bc
@@ -349,13 +393,27 @@ rdbylp:	dec	h
 	ld	h,7		; 8 bits left, pre-dec'd
 	pop	bc
 	ld	a,c
-rdby1:	rr	l
+rdby1:
+
+IF Z80
+	rr	l
 	rra
+ELSE
+	ld e,a
+	ld a,l
+	rra
+	ld l,a
+	ld a,e
+	rra
+ENDIF
+
 	djnz	rdbylp
 	ld	(bitbuf),hl	; update bitbuf/bleft
 	or	a
-rdbyop:	jr	rdbyr8
-rdbyr8:	rra			; 8x rra, not all are used in practice but
+rdbyop:
+	jr	rdbyr8
+rdbyr8:
+	rra			; 8x rra, not all are used in practice but
 	rra			; this arrangement simplifies code above
 	rra
 	rra
@@ -366,12 +424,14 @@ rdbyr8:	rra			; 8x rra, not all are used in practice but
 	ld	h,b		; B still zero after the final djnz
 	ld	l,a		; return bits in HL and A
 	ret
+
+IF Z80
 ;
 ; rd1bit - faster version which reads a single bit only.
 ; The jp instruction here is awkward, due to differing
 ; local-symbol syntax between assemblers.
 ;
-rd1bit	macro
+rd1bit macro
 	ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
 	dec	h
 	jp	p,$+9		; jump to "xor a", past jp op plus 6 bytes:
@@ -379,12 +439,36 @@ rd1bit	macro
 	ld	l,a		; (1 byte)  new bitbuf
 	ld	h,7		; (2 bytes) 8 bits left, pre-dec'd
 	xor	a		; jp op above jumps here
+;IF Z80
 	rr	l
+;ELSE
+;	push af
+;	ld	a,l
+;	rra
+;	ld	l,a
+;	pop af
+;ENDIF
 	ld	(bitbuf),hl	; update bitbuf/bleft
+;IF Z80
 	ld	h,a		; A still zero
+;ELSE
+;	ld	h,0
+;ENDIF
 	rla			; return bit in HL and A
 	ld	l,a
 	endm
+ELSE
+
+; The code above should work also on the 8080, but I'm not 100% sure
+; conversion to 8080 is still in progress
+rd1bit macro
+	ld    a,1
+	call  rdbybits
+endm
+
+ENDIF
+
+
 ;
 ; scans up to B characters, padding if less, skipping any extras
 scanfn:	ld	a,(de)
@@ -416,12 +500,29 @@ ilprt0:	xor	a
 ilprt:	pop	hl
 	call	pstr
 	jp	(hl)
+
 ;
-pstr:	ld	bc,(opts-1)	; d=options
+pstr:
+IF Z80
+	ld	bc,(opts-1)	; d=options
+ELSE
+	ld	a,(opts-1)
+	ld	c,a
+	ld	a,(opts)
+	ld	b,a
+ENDIF
+
 pstrlp:	ld	a,(hl)
 	or	a
 	ret	z
+IF Z80
 	bit	4,b
+ELSE
+	ld	e,a
+	ld	a,b
+	and 00010000b
+	ld	a,e
+ENDIF
 	jr	nz,pskip	; [Q]uiet
 	push	hl
 	ld	e,a
@@ -580,8 +681,15 @@ callback:
 	sbc	hl,bc
 	jr	nc,cb2
 	dec	de
-cb2:	pop	bc
-cb3:	bit	7,d
+cb2:
+	pop	bc
+cb3:
+IF Z80
+	bit	7,d
+ELSE
+	ld	a,d
+	and	80h
+ENDIF
 	jr	z,cb4
 	ld	a,b
 	or	c
@@ -593,11 +701,14 @@ cb3:	bit	7,d
 	or	l
 	jr	nz,cb5
 	inc	de
-cb5:	dec	bc
+cb5:
+	dec	bc
 	jr	cb3
 ;
-cb4:	ex	de,hl
-cb6:	ld	a,b
+cb4:
+	ex	de,hl
+cb6:
+	ld	a,b
 	or	c
 	ret	z
 	ld	a,(omask)
@@ -656,7 +767,13 @@ nsleaf:	and	0fh
 buildcode:
 	ld	(lenp),hl
 	ld	(nodes),de
+IF Z80
 	ld	(nrsym),bc
+ELSE
+	ld	h,b
+	ld	l,c
+	ld	(nrsym),hl
+ENDIF
 
 	ld	hl,blcnt
 	ld	de,blcnt + 1
@@ -664,7 +781,14 @@ buildcode:
 	ld	(hl),b
 	ldir
 
+IF Z80
 	ld	bc,(nrsym)
+ELSE
+	ld	hl,(nrsym)
+	ld	b,h
+	ld	c,l
+ENDIF
+
 	ld	de,(lenp)
 bclp1:
 	ld	a,(de)
@@ -781,7 +905,14 @@ bccn4:
 	ld	hl,(nodes)
 bclp5:
 	ld	de,(bcode)
+IF Z80
 	ld	bc,(bmask)
+ELSE
+	ld	a,(bmask)
+	ld	c,a
+	ld	a,(bmask+1)
+	ld	b,a
+ENDIF
 	ld	a,d
 	and	b
 	ld	d,a
@@ -793,10 +924,28 @@ bclp5:
 	inc	hl
 	inc	hl
 bcleft:
+IF Z80
 	srl	b
 	rr	c
+ELSE
+	sub	a	; make sure CY is reset
+	ld	a,b
+	rra
+	ld	b,a
+	ld	a,c
+	rra
+	ld	c,a
+ENDIF
+
+IF Z80
 	ld	(bmask),bc
 	ld	a,b
+ELSE
+	;ld	a,c
+	ld	(bmask),a
+	ld	a,b
+	ld	(bmask+1),a
+ENDIF
 	or	c
 	jr	z,bccn5
 
@@ -836,7 +985,7 @@ bccn3:
 	ld	hl,(nrsym)
 	or	a
 	sbc	hl,bc
-	jr	nz,bclp3
+	jp	nz,bclp3
 	ret
 
 ;
@@ -986,10 +1135,15 @@ hmcn3:
 	ld	a,b
 	or	c
 	jr	nz,hmlp3
-
+IF Z80
+	ld	bc,(hlit)
+ELSE
+	ld	hl,(hlit)
+	ld	b,h
+	ld	c,l
+ENDIF
 	ld	hl,lenld
 	ld	de,littr
-	ld	bc,(hlit)
 	call	buildcode
 
 	ld	hl,(hlit)
@@ -1113,8 +1267,15 @@ udloop:
 	push	hl
 	call	rd16bits
 	pop	bc
+;IF Z80
 	scf
 	adc	hl,bc
+;ELSE
+;	inc hl
+;	add hl,bc
+;	ld	a,h
+;	or	l
+;ENDIF
 	jr	nz,udblm
 
 udt0lp:
