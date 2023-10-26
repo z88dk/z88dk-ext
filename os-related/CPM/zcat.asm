@@ -318,6 +318,20 @@ fnameloop:
 ;
 rd16bits:
 	ld	a,16
+
+IF !Z80
+	jp readbits
+
+rdbyte:
+	ld	a,8
+	jp readbits
+
+read1bit:
+	ld	a,1
+
+rdbybits:
+ENDIF
+
 ;
 readbits:
 	ld	b,a
@@ -369,6 +383,9 @@ bitret:
 	ld	h,c		; return bits in HL and A
 	ld	l,a
 	ret
+
+
+IF Z80
 ;
 ; rdbybits - faster version of readbits for <=8 bits.
 ; Due to the implementation this must not ever be called with A>8.
@@ -395,17 +412,17 @@ rdbylp:
 	ld	a,c
 rdby1:
 
-IF Z80
+;;IF Z80
 	rr	l
 	rra
-ELSE
-	ld e,a
-	ld a,l
-	rra
-	ld l,a
-	ld a,e
-	rra
-ENDIF
+;;ELSE
+;;	ld e,a
+;;	ld a,l
+;;	rra
+;;	ld l,a
+;;	ld a,e
+;;	rra
+;;ENDIF
 
 	djnz	rdbylp
 	ld	(bitbuf),hl	; update bitbuf/bleft
@@ -424,13 +441,10 @@ rdbyr8:
 	ld	h,b		; B still zero after the final djnz
 	ld	l,a		; return bits in HL and A
 	ret
+ENDIF
+
 
 IF Z80
-;
-; rd1bit - faster version which reads a single bit only.
-; The jp instruction here is awkward, due to differing
-; local-symbol syntax between assemblers.
-;
 rd1bit macro
 	ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
 	dec	h
@@ -439,31 +453,19 @@ rd1bit macro
 	ld	l,a		; (1 byte)  new bitbuf
 	ld	h,7		; (2 bytes) 8 bits left, pre-dec'd
 	xor	a		; jp op above jumps here
-;IF Z80
 	rr	l
-;ELSE
-;	push af
-;	ld	a,l
-;	rra
-;	ld	l,a
-;	pop af
-;ENDIF
 	ld	(bitbuf),hl	; update bitbuf/bleft
-;IF Z80
-	ld	h,a		; A still zero
-;ELSE
-;	ld	h,0
-;ENDIF
+;	ld	h,a		; A still zero
 	rla			; return bit in HL and A
-	ld	l,a
-	endm
+;	ld	l,a
+endm
+
 ELSE
 
 ; The code above should work also on the 8080, but I'm not 100% sure
 ; conversion to 8080 is still in progress
 rd1bit macro
-	ld    a,1
-	call  rdbybits
+	call  read1bit
 endm
 
 ENDIF
@@ -844,7 +846,8 @@ bclp2:
 	ld	(hl),d
 
 	inc	c
-	jr	bclp2
+	jp	bclp2
+
 bccn2:
 	pop	hl
 
@@ -879,7 +882,7 @@ bclp3:
 	add	a,a
 	add	a,l
 	ld	l,a
-	jr	nc,bc4
+	jp	nc,bc4
 	inc	h
 bc4:
 	ld	e,(hl)
@@ -898,7 +901,7 @@ bclp4:
 	or	a
 	jr	z,bccn4
 	add	hl,hl
-	jr	bclp4
+	jp	bclp4
 bccn4:
 	ld	(bmask),hl
 
@@ -954,7 +957,7 @@ ENDIF
 	ld	d,(hl)
 	ld	a,d
 	or	e
-	jr	nz,bc6
+	jp	nz,bc6
 	ld	de,(nnode)
 	ld	(hl),d
 	dec	hl
@@ -969,7 +972,7 @@ bc6:
 	add	hl,de
 	add	hl,de
 	add	hl,de
-	jr	bclp5
+	jp	bclp5
 
 bccn5:
 	pop	bc
