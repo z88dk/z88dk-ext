@@ -28,7 +28,7 @@ CCPQUIT   equ   0	; Returns to CCP instead of WARM
 defc wboot	=	0
 defc bdos	=	5
 defc infcb	=	5Ch
-defc altfcb	=	6Ch
+;defc altfcb	=	6Ch
 ;
 ; BDOS service functions
 ;
@@ -174,34 +174,34 @@ ENDIF
 ; bit 1 = [O]verwrite
 ; bit 4 = [Q]uiet
 ;
-	ld	de,altfcb
-	ld	a,(de)		; output drive given?
-	ld	(opfcb),a	; store it in output file control block
-	ld	(mode),a	; set the mode (non-zero = extract)
-	call	getusr		; get input and output users, if ZCPR3
-	ld	hl,mtchfcb
-	ld	bc,11
-	inc	de
-	ld	a,(de)
-	cp	20h
-	jr	z,wildfill
-	ex	de,hl
-	ldir
-	ld	a,(altfcb)
-	or	a
-	jr	nz,filldn
-	ld	c,getdrv
-	call	bdos
-	inc	a
-	ld	(opfcb),a	; store it in output file control block
-	ld	(mode),a	; set the mode (non-zero = extract)
-	jr	filldn
-wildfill:
-	ld	b,c
-wildlp:	ld	(hl),'?'
-	inc	hl
-	djnz	wildlp
-filldn:	ld	a,(infcb+9)	; check for filetype
+;	ld	de,altfcb
+;	ld	a,(de)		; output drive given?
+;	ld	(opfcb),a	; store it in output file control block
+;	ld	(mode),a	; set the mode (non-zero = extract)
+;	call	getusr		; get input and output users, if ZCPR3
+;	ld	hl,mtchfcb
+;	ld	bc,11
+;	inc	de
+;	ld	a,(de)
+;	cp	20h
+;	jr	z,wildfill
+;	ex	de,hl
+;	ldir
+;	ld	a,(altfcb)
+;	or	a
+;	jr	nz,filldn
+;	ld	c,getdrv
+;	call	bdos
+;	inc	a
+;	;ld	(opfcb),a	; store it in output file control block
+;	ld	(mode),a	; set the mode (non-zero = extract)
+;	jr	filldn
+;wildfill:
+;	ld	b,c
+;wildlp:	ld	(hl),'?'
+;	inc	hl
+;	djnz	wildlp
+;filldn:	ld	a,(infcb+9)	; check for filetype
 ;	cp	20h
 ;	jr	nz,wasext
 ;	ld	hl,+('I' << 8) + 'Z'	; set default type to ZIP
@@ -211,7 +211,7 @@ filldn:	ld	a,(infcb+9)	; check for filetype
 wasext:	call	setin		; log input user
 	ld	de,infcb
 	ld	c,fopen
-	call	bdos		; try and open ZIP file
+	call	bdos		; try and open GZIP file
 	inc	a
 	jr	nz,openok	; ok
 	call	ilprt0
@@ -1374,7 +1374,8 @@ udubt:
 ; Only really checks every 16 calls, since this is called
 ; from getbyte for every input byte.
 ;
-ckcon:	ld	a,1		; modified below
+ckcon:
+	ld	a,1		; modified below
 	dec	a
 	and	15
 	ld	(ckcon+1),a	; update LD A instruction above
@@ -1386,42 +1387,42 @@ ckcon:	ld	a,1		; modified below
 	ret	z
 	cp	CtrlC		; ^C ?
 	ret	nz		; (no, continue)
-	ld	a,(curmode)	; are we writing a file?
-	or	a
-	jr	z,ckcon1	; (no)
-	call	setout
-ckcon0:	ld	de,opfcb	; ckcon0 jumped to for write error
-	ld	c,fclose	; yes, close it
-	call	bdos
-	ld	de,opfcb
-	ld	c,ferase	; and delete it
-	call	bdos
-	call	ilprt
-	defm	"Partial file erased -- "
-	defb	0
-ckcon1:	call	ilprt0
+;;	ld	a,(curmode)	; are we writing a file?
+;;	or	a
+;;	jr	z,ckcon1	; (no)
+;;	call	setout
+;;ckcon0:	ld	de,opfcb	; ckcon0 jumped to for write error
+;;	ld	c,fclose	; yes, close it
+;;	call	bdos
+;;	ld	de,opfcb
+;;	ld	c,ferase	; and delete it
+;;	call	bdos
+;;	call	ilprt
+;;	defm	"Partial file erased -- "
+;;	defb	0
+;;ckcon1:	call	ilprt0
 	defm	"Aborted"
 	defb	0
 	jp	exit
 ;
 ; getusr -- gets and stores source and destination users
 ;
-getusr:	ld	hl,(Z3EAdr)	; ZCPR3?
-	ld	a,h
-	or	l
-	ret	z		; (no, skip this)
-	ld	a,(infcb+13)	; get source user
-	ld	(inusr),a
-	ld	a,(altfcb+13)	; get destination user
-	ld	(outusr),a
-	ret
+;;getusr:	ld	hl,(Z3EAdr)	; ZCPR3?
+;;	ld	a,h
+;;	or	l
+;;	ret	z		; (no, skip this)
+;;	ld	a,(infcb+13)	; get source user
+;;	ld	(inusr),a
+;;	ld	a,(altfcb+13)	; get destination user
+;;	ld	(outusr),a
+;;	ret
 ;
 ; setin, setout -- logs to source or destination user
 ;
 setin:	ld	a,(inusr)
 	jr	setbth
 ;
-setout:	ld	a,(outusr)
+;setout:	ld	a,(outusr)
 setbth:	ld	e,a
 	ld	hl,(Z3EAdr)	; ZCPR3?
 	ld	a,h
