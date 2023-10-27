@@ -322,9 +322,9 @@ rd16bits:
 IF !Z80
 	jp readbits
 
-rdbyte:
-	ld	a,8
-	jp readbits
+;rdbyte:
+;	ld	a,8
+;	jp readbits
 
 read1bit:
 	ld	a,1
@@ -392,8 +392,8 @@ IF Z80
 ; (No caller seems to require saving BC, so I removed that for both
 ; this and readbits.)
 ;
-rdbyte:
-	ld	a,8
+;rdbyte:
+;	ld	a,8
 
 rdbybits:
 	ld	(rdbyop+1),a	; modify jr instruction at rdbyop
@@ -736,10 +736,34 @@ outbp:	push	hl
 ;
 nextsymbol:
 	ld	(treep),hl
+
+IF	Z80
+	exx
+	ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
+	exx
+ENDIF
+
 nsloop:
-	push	hl
-	rd1bit
-	pop	hl
+;	push	hl
+IF	Z80
+	exx
+	;ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
+	dec	h
+	jp	p,$+9		; jump to "xor a", past jp op plus 6 bytes:
+	call	getbyte		; (3 bytes)
+	ld	l,a		; (1 byte)  new bitbuf
+	ld	h,7		; (2 bytes) 8 bits left, pre-dec'd
+	xor	a		; jp op above jumps here
+	rr	l
+;	ld	(bitbuf),hl	; update bitbuf/bleft
+	exx
+	;ld	h,a		; A still zero
+	rla			; return bit in HL and A
+	;ld	l,a
+ELSE
+	call	rd1bit
+ENDIF
+;	pop	hl
 	or	a
 	jr	z,nsleft
 	inc	hl
@@ -753,7 +777,8 @@ nsleft:
 	cp	10h
 	jr	nc,nsleaf
 	or	e
-	ret	z
+	;ret	z
+	jr	z,nsexit
 
 	ld	hl,(treep)
 	add	hl,de
@@ -764,7 +789,15 @@ nsleft:
 
 nsleaf:	and	0fh
 	ld	d,a
+nsexit:
+
+IF Z80
+	exx
+	ld	(bitbuf),hl	; keep bitbuf in L, bleft in H
+	exx
+ENDIF
 	ret
+
 ;
 buildcode:
 	ld	(lenp),hl
