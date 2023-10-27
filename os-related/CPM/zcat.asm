@@ -444,31 +444,6 @@ rdbyr8:
 ENDIF
 
 
-IF Z80
-rd1bit macro
-	ld	hl,(bitbuf)	; keep bitbuf in L, bleft in H
-	dec	h
-	jp	p,$+9		; jump to "xor a", past jp op plus 6 bytes:
-	call	getbyte		; (3 bytes)
-	ld	l,a		; (1 byte)  new bitbuf
-	ld	h,7		; (2 bytes) 8 bits left, pre-dec'd
-	xor	a		; jp op above jumps here
-	rr	l
-	ld	(bitbuf),hl	; update bitbuf/bleft
-;	ld	h,a		; A still zero
-	rla			; return bit in HL and A
-;	ld	l,a
-endm
-
-ELSE
-
-; The code above should work also on the 8080, but I'm not 100% sure
-; conversion to 8080 is still in progress
-rd1bit macro
-	call  read1bit
-endm
-
-ENDIF
 
 
 ;
@@ -761,7 +736,7 @@ IF	Z80
 	rla			; return bit in HL and A
 	;ld	l,a
 ELSE
-	call	rd1bit
+	call	read1bit
 ENDIF
 ;	pop	hl
 	or	a
@@ -1289,12 +1264,20 @@ udloop:
 	and	1
 	ret	nz
 
-	rd1bit
-	push	af
+;	rd1bit
+;	push	af
+;
+;	ld	a,2
+;	call	rdbybits
+;	or	a
 
-	ld	a,2
+	ld	a,3
 	call	rdbybits
-	or	a
+	
+	srl	a		; keep the first bit in CY
+	push af		; F holds the first bit in CY
+				; we have 2 bits left in A and Z flag properly set
+
 	jr	nz,udnt0
 
 	xor	a
@@ -1362,8 +1345,9 @@ udnt1:
 
 udnext:
 	pop	af
-	or	a
-	jp	z,udloop
+	;or	a
+	;jp	z,udloop
+	jp	nc,udloop
 	ret
 
 udpret:
