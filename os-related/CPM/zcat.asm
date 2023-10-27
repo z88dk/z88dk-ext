@@ -823,7 +823,9 @@ bcnol:
 	or	c
 	jr	nz,bclp1
 
-	ld	hl,0
+	;ld	hl,0
+	ld h,a
+	ld l,a
 	push	hl
 
 	ld	bc,1
@@ -875,7 +877,9 @@ bccn2:
 	ld	hl,1
 	ld	(nnode),hl
 
-	ld	bc,0
+	;ld	bc,0
+	ld	b,h
+	ld	c,h
 bclp3:
 	ld	hl,(lenp)
 	add	hl,bc
@@ -1208,7 +1212,9 @@ hmsym:
 	ld	hl,lenex
 	add	hl,de
 	ld	a,(hl)
-	ld	hl,0
+	;ld	hl,0
+	ld  h,d
+	ld  l,d
 	or	a
 	jr	z,hmnlen
 	push	de
@@ -1469,12 +1475,6 @@ inbufp:	defw	0080h
 readpt:	defb	80h
 omask:	defb	1fh
 
-IF !NOREDUCE
-_L_table:
-	defb	7fh, 3fh, 1fh, 0fh
-_D_shift:
-	defb	07h, 06h, 05h, 04h
-ENDIF
 
 clord:
 	defb	16, 17, 18
@@ -1604,20 +1604,20 @@ outpos	ds.b	4
 curmode	ds.b	1
 opbuf	ds.b	128
 
-L_table	ds.b	1
-D_shift	ds.b	1
-urV		ds.b	1
-nchar	ds.b	1
-lchar	ds.b	1
-ExState	ds.b	1
+;L_table	ds.b	1
+;D_shift	ds.b	1
+;urV		ds.b	1
+;nchar	ds.b	1
+;lchar	ds.b	1
+;ExState	ds.b	1
 
-Len		ds.b	2
-ltp		ds.b	1
-mml		ds.b	1
-dictb	ds.b	1
-noswps	ds.b	1
-entrs	ds.b	2
-lbl		ds.b	1
+;Len		ds.b	2
+;ltp		ds.b	1
+;mml		ds.b	1
+;dictb	ds.b	1
+;noswps	ds.b	1
+;entrs	ds.b	2
+;lbl		ds.b	1
 
 treep	ds.w	1
 lenp	ds.w	1
@@ -1642,24 +1642,17 @@ blfts		ds.b	1
 
 codesize	ds.b	1
 
-IF !NOSHRINK
-oldcode		ds.w	1
-;offset		ds.w	1
-maxcode		ds.w	1
-free_ent	ds.w	1
-finchar		ds.b	1
-ENDIF
 
 ; Various
-stackp		ds.w	1
-incode		ds.w	1
-code		ds.w	1
+;stackp		ds.w	1
+;incode		ds.w	1
+;code		ds.w	1
 
 
 outbuf		ds.b	0 
-suffix_of	ds.b	8192
-prefix_of	ds.b	0 
-Slen		ds.b	0 
+;suffix_of	ds.b	8192
+;prefix_of	ds.b	0 
+;Slen		ds.b	0 
 
 lit_tree	ds.b	_sf_tree_
 len_tree	ds.b	_sf_tree_
