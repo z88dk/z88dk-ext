@@ -1650,8 +1650,8 @@ codesize	ds.b	1
 
 
 outbuf		ds.b	0 
-;suffix_of	ds.b	8192
-;prefix_of	ds.b	0 
+suffix_of	ds.b	8192
+prefix_of	ds.b	0 
 ;Slen		ds.b	0 
 
 lit_tree	ds.b	_sf_tree_
