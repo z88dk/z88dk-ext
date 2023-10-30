@@ -257,6 +257,7 @@ openok:
 	jr	nz,sigerr
 
 	call	getbyte		; File Flags  (see table below)
+	push    af
 
 	call	getword		; 32-bit timestamp
 	call	getword
@@ -270,11 +271,29 @@ openok:
 ;    ... if so we should skip the extra field
 
 
-;  We have the original filename here, let's skip it for now
+;;  We have the original filename here, let's skip it if present
+
+	pop		af
+	and		8
+	jr		z,nofname
+	push	hl
+	call	ilprt
+	defm	"Original file name was: "
+	defb	0
+	pop		hl
+	push hl
+	call	pstr
+	call	ilprt
+	defb	CR,LF
+	defb	CR,LF,0
+	pop hl
+
 fnameloop:
 	call	getbyte
 	and     a
 	jr nz,fnameloop
+
+nofname:
 
 
 	call	undeflate
