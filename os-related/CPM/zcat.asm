@@ -253,18 +253,18 @@ openok:
 	jr	nz,sigerr
 
 	call	getbyte     ; CM (Compression Method)
-	sub     8           ; il must be 8 (Deflate)
+	sub     8           ; it must be 8 (Deflate)
 	jr	nz,sigerr
 
-	call	getbyte		; File Flags  (see table below)
+	call	getbyte		; FLG File Flags  (see table below)
 	push    af
 
-	call	getword		; 32-bit timestamp
+	call	getword		; MTIME 32-bit timestamp
 	call	getword
 
-	call	getbyte		; Compression flags
+	call	getbyte		; XFL Compression flags
 ;	push    af
-	call	getbyte		; Operating system (see table below)
+	call	getbyte		; OS Operating system (see table below)
 ;	pop     af
 	
 ;	and     4 ; FEXTRA?
@@ -1425,7 +1425,7 @@ ckcon:
 ;;	call	ilprt
 ;;	defm	"Partial file erased -- "
 ;;	defb	0
-;;ckcon1:	call	ilprt0
+ckcon1:	call	ilprt0
 	defm	"Aborted"
 	defb	0
 	jp	exit
