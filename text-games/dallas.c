@@ -454,7 +454,7 @@ void dj(float VV){
 		gotoxy(32-strlen(total),wherey());
 	#endif
 #else
-	#if defined(__X820__)
+	#if defined(__X820__) | defined(__SHARPMZ__)
 		gotoxy(32-strlen(total),wherey());
 	#else
 		gotoxy(32-strlen(total),wherey()-1);
@@ -2743,7 +2743,7 @@ outp(0xd018,0x8c);
 #if defined(__V1050__)
 	gotoxy(1,2);
 #else
-#if defined(__ZX81__) | defined(__SANYO__) | defined(__X820__)
+#if defined(__ZX81__) | defined(__SANYO__) | defined(__X820__) | defined(__SHARPMZ__)
 	gotoxy(1,1);
 #else
 	gotoxy(1,0);
