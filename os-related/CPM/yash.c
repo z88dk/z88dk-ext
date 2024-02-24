@@ -60,7 +60,7 @@
 // zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/ff yash.c -o yash -create-app
 // zcc +rc2014 -subtype=cpm -clib=new -O2 -v -m --list -llib/rc2014/ff yash.c -o yash -create-app
 // This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
-// Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 IDE interface will work.
+// Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 Hard Drive Module or CF Module interface will work.
 // Drive 0:
 #include <arch/rc2014.h>
 #include <lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
@@ -201,8 +201,14 @@ int8_t ya_date(char ** args);   // print the local time in US: Sun Mar 23 01:03:
 #endif
 
 // helper functions
+uint8_t ya_num_builtins(void);
 static void put_rc (FRESULT rc);    // print error codes to defined error IO
 static void put_dump (const uint8_t * buff, uint16_t ofs, uint8_t cnt);
+
+// main loop functions
+int8_t ya_execute(char ** args);
+void ya_split_line(char ** tokens, char * line);
+void ya_loop(void);
 
 // RC2014 CP/M-IDE & YAZ180 CP/M stores four LBA bases from cpm_dsk0_base.
 // XXX Adjust this base value to suit the current build.
@@ -273,7 +279,7 @@ struct Builtin builtins[] = {
     { "exit", &ya_exit, "- exit and return to CCP"}
 };
 
-uint8_t ya_num_builtins() {
+uint8_t ya_num_builtins(void) {
   return sizeof(builtins) / sizeof(struct Builtin);
 }
 
