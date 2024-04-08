@@ -20,7 +20,7 @@ int main(void)
     int graphic_driver = DETECT, graphic_mode;
     initgraph(&graphic_driver, &graphic_mode, "//turboc3/bgi");
     x = 256 ;
-    y = 200 ;
+    y = 256 ;
     //while (!kbhit())
 	while (getk()!=' ')
     {
@@ -81,7 +81,7 @@ int main(void)
         if (h == 360)
             h = 0;
         //delay(200);
-		msleep(200);
+		msleep(500);
         cleardevice();
     }
     getch();
