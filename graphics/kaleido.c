@@ -3,6 +3,7 @@
  * 
  * To compile:
  * zcc +zx -create-app -O3 -lm -DGFXSCALEX=2/5 -DGFXSCALEY=2/5 -llib3d kaleido.c
+ * zcc +ts2068 -create-app -O3 -lm -DGFXSCALEX=4/5 -DGFXSCALEY=2/5 -llib3d -pragma-define:CLIB_DEFAULT_SCREEN_MODE=6 kaleido.c
  * 
  * By Guido Gonzato, December 2018
  * z88dk conversion by Stefano Bodrato, 9/4/2024
