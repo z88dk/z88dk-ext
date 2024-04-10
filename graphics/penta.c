@@ -12,7 +12,6 @@ void turn (int degrees)
 		turn_right(degrees);
 }
 
-
 void main( void )
 {
   int a = 0, n = 0, i, j, A = 2, N = 10;
@@ -31,7 +30,7 @@ void main( void )
      fwd( 20 );
      turn( deg );
    }
-   fwd( 20 );
+   fwd( 19 );
    deg = -deg;
    turn( deg );
    if ( ++n > N ){
