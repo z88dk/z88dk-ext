@@ -13,9 +13,9 @@
 
         MSX  (Way too slow, but works)
         zcc +msx -lndos -create-app -DSOUND -DJOYSTICK_DIALOG -subtype=rom -clib=ansi -DNODELAY invazion.c
-		
-		TS2068
-		zcc +ts2068 -pragma-define:CLIB_ZX_CONIO32=1 -DSOUND -DJOYSTICK_DIALOG -pragma-define:CLIB_DEFAULT_SCREEN_MODE=6 -DDETAILED -create-app  invazion.c
+        
+        TS2068
+        zcc +ts2068 -pragma-define:CLIB_ZX_CONIO32=1 -DSOUND -DJOYSTICK_DIALOG -pragma-define:CLIB_DEFAULT_SCREEN_MODE=6 -DDETAILED -create-app  invazion.c
 
 
         $Id: invazion.c $
@@ -843,7 +843,7 @@ new_game:
  /****  JOYSTICK CHOICE AND TITLE PICTURES  ****/
 
 #ifdef __TS2068__
-	gfx_set_fatpix(1);
+    gfx_set_fatpix(1);
 #endif
 
 #ifdef JOYSTICK_DIALOG
@@ -879,7 +879,7 @@ new_game:
   stick=0;
 
   while ((stick<1) || (stick>GAME_DEVICES)) {
-	  rand();
+      rand();
       stick=getk()-48;
   }
 #else
