@@ -4,8 +4,8 @@
    
    ..reworked for z88dk in 2022
    
-    zcc +zx -lndos -llib3d -lm -create-app bgidemo.c
-	zcc +zx81 -subtype=wrx -clib=wrx -llib3d -create-app -lm81 -O3 bgidemo.c
+    zcc +zx -lndos -lm -create-app -O3 bgidemo.c
+	zcc +zx81 -subtype=wrx -clib=wrx -create-app -lm81 -O3 bgidemo.c
 */
 
 #ifdef __ZX81__
@@ -272,7 +272,7 @@ void SayGoodbye(void)
 /*									*/
 
 #define adjasp( y )	((int)(AspectRatio * (double)(y)))
-#define torad( d )	(( (double)(d) * PI ) / 180.0 )
+#define torad( d )	(( (double)(d) * M_PI ) / 180.0 )
 
 void PieDemo(void)
 {
@@ -590,7 +590,7 @@ void LineToDemo(void)
 
   angle = 0;				/* Begin at zero degrees	*/
   for( i=0 ; i<MAXPTS ; ++i ){		/* Determine circle intercepts	*/
-    rads = (double)angle * PI / 180.0;	/* Convert angle to radians	*/
+    rads = (double)angle * M_PI / 180.0;	/* Convert angle to radians	*/
     points[i].x = xcenter + (int)( cos(rads) * radius );
     points[i].y = ycenter - (int)( sin(rads) * radius * AspectRatio );
     angle += step;			/* Move to next increment	*/
