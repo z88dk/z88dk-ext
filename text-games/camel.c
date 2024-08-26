@@ -19,7 +19,7 @@
 #include <time.h>
 
 
-char *line[256];
+char line[10];
 
 
 struct game_state_t {
@@ -189,7 +189,9 @@ void game() {
     state.turn_count++;
 
     // pygmies are a bit faster than moderate camel speed
-    int pygmy_advance = (fnr(100)+25)/10;
+    //int pygmy_advance = (fnr(100)+25)/10;
+	// Let's make them weaker
+	int pygmy_advance = (fnr(100)+25)/20;
 
     // pygmies start after turn 3
     if (state.turn_count >= 4) {
@@ -295,7 +297,7 @@ void game() {
 }
 
 int main() {
-  char *line = NULL;
+  //char *line = NULL;
   size_t linecap = 0;
 
   tab(26);printf("Camel\n");
@@ -304,19 +306,17 @@ int main() {
   printf("\n\n\n");
   printf("Would you like instructions? ");
 
-  int compare=0;
   //line = NULL;
   //linecap = 0;
   //getline(&line, &linecap, stdin);
   gets(line);
 
   srand(clock());
-  compare = strncasecmp(line, "n", 1);
   //free(line);
   fputc_cons(12);   // Clear screen
 
-  if (compare) {
-    printf("   Welcome to Camel. The object is to travel\n");
+  if ((line[0]=='y')||(line[0]=='Y')) {
+    printf("Welcome to Camel. The object is to travel\n");
     printf("200 miles across the great Gobi Desert.\n");
     printf("A tribe of knock kneed pigmies will be chasing you.\n");
     printf("You will be asked for commands every so often.\n");
@@ -335,7 +335,6 @@ int main() {
     printf("If help does not find you after command six, you lose.\n");
   }
 
-  compare = 0;
   do {
     game();
     printf("\n\n");
@@ -344,9 +343,8 @@ int main() {
     //linecap = 0;
     //getline(&line, &linecap, stdin);
     gets(line);
-    compare = strncasecmp(line, "y", 1);
     //free(line);
-  } while (!compare);
+  } while ((line[0]=='y')||(line[0]=='Y'));
 
   printf("-----------------\n");
   printf("     CHICKEN\n");
