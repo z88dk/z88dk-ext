@@ -268,6 +268,8 @@ int main() {
   printf("for a ten-year term of office.\n");
 
   game();
-  
+
+  printf("\n\n");
+
   return 0;
 }
