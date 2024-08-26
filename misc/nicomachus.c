@@ -34,7 +34,7 @@ void tab(int num) {
 void game() {
   //char *line = NULL;
   //size_t linecap = 0;
-  char *line[256];
+  char line[256];
 
   printf("Please think of a number between 1 and 100.\n");
   printf("Your number divided by 3 has a remainder of? ");
