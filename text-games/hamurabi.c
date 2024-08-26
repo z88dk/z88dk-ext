@@ -61,7 +61,7 @@ void game() {
 
   //char *line = NULL;
   //size_t linecap = 0;
-  char *line[256];
+  char line[256];
 
   round:
   srand(clock());
