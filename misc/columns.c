@@ -4,6 +4,8 @@
 // Converted to C by Michael Stroucken
 // Original by Alan Barnes
 
+// zcc +zx -lndos -create-app -DAMALLOC columns.c
+
 // The trick behind this game is that after the first round,
 // the matrix is read in column-major order and replaced in
 // row major order. Each new column of 9 cards contains 3
