@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-    unsigned int r[4201];
-    unsigned long i
+	unsigned int r[4201];
+	unsigned long i;
 	unsigned int k;
-    unsigned long d;
+	unsigned long d;
 	unsigned int b;
-    unsigned int c;
+	unsigned int c;
 
 
 int main() {
