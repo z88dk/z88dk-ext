@@ -35,7 +35,7 @@ int fnr() {
 }
 
 void game() {
-  char *line[256];
+  char line[256];
   int isDone = 0;
   int p = 100;
   do {
