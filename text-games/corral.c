@@ -105,10 +105,10 @@ void game() {
   cowboyHitpoints = 2 + pVal;
   printf("\n");
 
-  action = "            ";
+  action = "       ";
   while (1) {
     setupArena(arena, cowboyPos, horsePos);
-    printf("%d\tI%sI\t%s", moveCount, arena, action);
+    printf("%2d\tI%sI\t%s", moveCount, arena, action);
     int distance = horsePos - cowboyPos;
     cowboyLeftOfHorse = (distance > 0) ? 1 : -1;
     distance = abs(distance);
@@ -127,11 +127,11 @@ void game() {
       getRandomState(&randomVal, &pVal, &qVal);
       horsePos = horsePos + cowboyLeftOfHorse * (pVal + 1);
       boundHorse(&horsePos);
-      action = "            ";
+      action = "       ";
       continue;
     }
 
-    if (moveCount > 100) {
+    if (moveCount >= 100) {
       printf("\n");
       printf("Enough!! You'd do better as camp cook!\n");
       return;
@@ -171,7 +171,7 @@ void game() {
 
     if (randomVal > 2 || (horsePos > 0 && horsePos < ARENASIZE - 1)) {
       if (abs(horsePos - cowboyPos) > 2) {
-        action = "            ";
+        action = "       ";
         continue;
       }
       getRandomState(&randomVal, &pVal, &qVal);
@@ -183,7 +183,7 @@ void game() {
           printf("Yippee!!  Now see if you can catch him in fewer moves\n");
           return;
         }
-        action = "            ";
+        action = "       ";
         continue;
       }
       getRandomState(&randomVal, &pVal, &qVal);
@@ -191,11 +191,11 @@ void game() {
       kickCount++;
       horsePos = horsePos - 5 * cowboyLeftOfHorse;
       boundHorse(&horsePos);
-      action = "kicked";
+      action = "kicked ";
       continue;
     }
     if (distance > 7) {
-      action = "            ";
+      action = "       ";
       continue;
     }
    
@@ -207,7 +207,7 @@ void game() {
       } else {
         horsePos = horsePos - 3 * cowboyLeftOfHorse;
       }
-      action = "bolted      ";
+      action = "bolted ";
       continue; 
     }
   }    
