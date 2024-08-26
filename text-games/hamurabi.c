@@ -40,24 +40,28 @@ int fnr(unsigned int p) {
   return rand()%p;
 }
 
+int population = 95;
+int grain = 2800;
+int harvest = 3000;
+int bushelAcre = 3;
+int immigration = 5;
+int plague = 1;
+int year = 0;
+int dead = 0;
+int deathrate = 0;
+int totalDead = 0;
+int val = 0;
+int ratfood;
+int acres;
+
+
 void game() {
-  int population = 95;
-  int grain = 2800;
-  int harvest = 3000;
-  int ratfood = harvest - grain;
-  int bushelAcre = 3;
-  int acres = harvest / bushelAcre;
-  int immigration = 5;
-  int plague = 1;
-  int year = 0;
-  int dead = 0;
-  int deathrate = 0;
-  int totalDead = 0;
+  ratfood = harvest - grain;
+  acres = harvest / bushelAcre;
 
   //char *line = NULL;
   //size_t linecap = 0;
-  char *line[256] = NULL;
-  int val = 0;
+  char *line[256];
 
   round:
   srand(clock());
