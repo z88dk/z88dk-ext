@@ -12,7 +12,9 @@
 // Draws an ASCII art rendering of a men's magazine's bunny logo
 // Not much of a game, but the picture encoding is interesting
 
-int data1[] = { 2, 21, 14, 14, 25 }; // BUNNY ascii offsets
+//int data1[] = { 2, 21, 14, 14, 25 }; // BUNNY ascii offsets
+int data1[] = { 26, -8, -8, 4, 11 }; // Z88DK ascii offsets
+
 
 // -1 = newline, 4096 = end, otherwise pairs of start and end
 // end horizontal position
