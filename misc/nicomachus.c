@@ -4,7 +4,7 @@
 // Converted to C by Michael Stroucken
 // Original by David Ahl
 
-// cc -o nicomachus nicomachus.c
+// zcc +zx -lndos -create-app -DAMALLOC nicomachus.c
 
 // This puzzle was first derived by Nicomachos in 90 CE.
 // and published in his "Arithmetica"
