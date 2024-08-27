@@ -177,7 +177,6 @@ void player_turn (void) {
   else {
     bd[shot.x][shot.y].phit = 1;
     ship = bd[shot.x][shot.y].cship;
-	printf ("\n{%d} ",bd[shot.x][shot.y].cship);
     if (ship) {
       printf ("HIT!\n");
       if (!(--ship_life[CP][--ship]))
@@ -196,11 +195,12 @@ int hit_no_sink (int x, int y) {
   return 0;
 }
 
-COORD c, d;
-int m[5] = {0, 1, 0, -1, 0};
 
 int fill_t (void) {
   int x, i = 0;
+
+COORD c, d;
+int m[5] = {0, 1, 0, -1, 0};
 
   for (c.x = 0; c.x < 10; c.x++)
     for (c.y = 0; c.y < 10; c.y++)
