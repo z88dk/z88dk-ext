@@ -1,9 +1,6 @@
 
 // This game does not work right on z88dk.
 
-
-// This game does not work right on z88dk.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
