@@ -9,8 +9,8 @@
 
 #define PL 0
 #define CP 1
-//#define FULL(x) ((x + (x < 2)) + 1)
-//#define ADD(a,b) if (!bd[a][b].chit) {t[i].x = a; t[i].y = b; i++;}
+#define FULL(x) ((x + (x < 2)) + 1)
+#define ADD(a,b) if (!bd[a][b].chit) {t[i].x = a; t[i].y = b; i++;}
 
 typedef struct {
   unsigned int x : 4;
@@ -28,19 +28,6 @@ GRID bd[10][10];
 COORD t[51];
 char ship_life[2][5];
 char *ship_name[5] = {"pt ship", "submarine", "cruser", "battleship", "carrier"};
-
-int FULL (int x) {
-	return ((x + (x < 2)) + 1);
-};
-
-void add (int a, int b, int i) {
-	if (!bd[a][b].chit) {
-		t[i].x = a;
-		t[i].y = b;
-		i++;
-	}
-};
-
 
 
 void getloc (COORD* loc) {
@@ -208,35 +195,36 @@ int hit_no_sink (int x, int y) {
   return 0;
 }
 
-int m[5] = {0, 1, 0, -1, 0};
-COORD cc, dd;
 
 int fill_t (void) {
   int x, i = 0;
 
-  for (cc.x = 0; cc.x < 10; cc.x++)
-    for (cc.y = 0; cc.y < 10; cc.y++)
-      if (hit_no_sink (cc.x,cc.y)) {
+COORD c, d;
+int m[5] = {0, 1, 0, -1, 0};
+
+  for (c.x = 0; c.x < 10; c.x++)
+    for (c.y = 0; c.y < 10; c.y++)
+      if (hit_no_sink (c.x,c.y)) {
         for (x = 0; x < 4; x++)
-          if (cc.x + m[x] >= 0 && cc.x + m[x] < 10
-            && cc.y + m[x + 1] >= 0 && cc.y + m[x + 1] < 10) {
-            if (hit_no_sink (cc.x + m[x], cc.y + m[x + 1])) {
-              dd.x = cc.x; dd.y = cc.y;
-              while (dd.x >= 0 && dd.x < 10 && dd.y >= 0 && dd.y < 10
-                && hit_no_sink (dd.x, dd.y)) {dd.x -= m[x]; dd.y -= m[x + 1];}
-              if (dd.x >= 0 && dd.x < 10 && dd.y >= 0 && dd.y < 10) add (dd.x, dd.y,i); //ADD (dd.x, dd.y);
+          if (c.x + m[x] >= 0 && c.x + m[x] < 10
+            && c.y + m[x + 1] >= 0 && c.y + m[x + 1] < 10) {
+            if (hit_no_sink (c.x + m[x], c.y + m[x + 1])) {
+              d.x = c.x; d.y = c.y;
+              while (d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10
+                && hit_no_sink (d.x, d.y)) {d.x -= m[x]; d.y -= m[x + 1];}
+              if (d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10) ADD (d.x, d.y);
             }
           }
         if (!i)
           for (x = 0; x < 4; x++)
-            if (cc.x + m[x] >= 0 && cc.x + m[x] < 10
-              && cc.y + m[x + 1] >= 0 && cc.y + m[x + 1] < 10)
-              add (cc.x + m[x], cc.y + m[x + 1], i);  //ADD (cc.x + m[x], cc.y + m[x + 1]);
+            if (c.x + m[x] >= 0 && c.x + m[x] < 10
+              && c.y + m[x + 1] >= 0 && c.y + m[x + 1] < 10)
+              ADD (c.x + m[x], c.y + m[x + 1]);
       }
   if (!i)
-    for (cc.x = 0; cc.x < 10; cc.x++)
-      for (cc.y = 0; cc.y < 10; cc.y++)
-        if ((cc.x + cc.y) % 2) add (cc.x, cc.y, i); //ADD (cc.x, cc.y);
+    for (c.x = 0; c.x < 10; c.x++)
+      for (c.y = 0; c.y < 10; c.y++)
+        if ((c.x + c.y) % 2) ADD (c.x, c.y);
   return i;
 }
 
