@@ -53,8 +53,9 @@ int in_range (int x) {
 	return (isdigit(x+'0'));
 }
 
+char input[10];
+
 void getloc (COORD* loc) {
-  char input[10];
 
   loc->x = 0;
   loc->y = 0;
@@ -171,9 +172,10 @@ void auto_setup (int pl) {
   }
 }
 
+char cinput;
+
 void init (void) {
   int c, d;
-  char input;
 
   putc(12,stdout);    // CLS
   
@@ -189,9 +191,9 @@ void init (void) {
 	ship_life[CP][c] = full(c);
   }
   printf ("Battleship (R)\n\nDo you want (A)uto or (M)anual setup ? (a/m) ");
-  while (!isalpha (input = getchar()));
+  while (!isalpha (cinput = getchar()));
   srand (clock());
-  if (tolower (input) == 'm')
+  if (tolower (cinput) == 'm')
     player_setup ();
   else auto_setup (PL);
   auto_setup (CP);
@@ -303,19 +305,9 @@ void play (void) {
   show_board ();
 }
 
-//int play_again (void) {
-//  char input;
-//
-//  printf ("\nDo you wish to play again? (y/n) ");
-//  while (!isalpha (input = getchar()));
-//  if (tolower (input) != 'n') return 1;
-//  else return 0;
-//}
 
 int main (void) {
   
-  //do {init (); play ();} while (play_again ());
-  //exit (0);
   init ();
   play ();
   
