@@ -1,4 +1,5 @@
 
+
 // This game does not work right on z88dk.
 
 #include <stdio.h>
@@ -9,8 +10,9 @@
 
 #define PL 0
 #define CP 1
-#define FULL(x) ((x + (x < 2)) + 1)
-#define ADD(a,b) if (!bd[a][b].chit) {t[i].x = a; t[i].y = b; i++;}
+
+//#define FULL(x) ((x + (x < 2)) + 1)
+//#define ADD(a,b) if (!bd[a][b].chit) {t[i].x = a; t[i].y = b; i++;}
 
 typedef struct {
   unsigned int x : 4;
@@ -30,18 +32,40 @@ char ship_life[2][5];
 char *ship_name[5] = {"pt ship", "submarine", "cruser", "battleship", "carrier"};
 
 
+int full(int x) {
+	if (x < 2) return (x+2);
+	return (x+1);
+}
+
+int i;
+
+void add(int a, int b) {
+	if (bd[a][b].chit) return (0);
+	t[i].x = a;
+	t[i].y = b;
+	i++;
+}
+
+int in_range (int x) {
+	return (isdigit(x+'0'));
+}
+
 void getloc (COORD* loc) {
   char input[10];
 
-  loc->x = loc->y = input[0] = 0;
+  loc->x = 0;
+  loc->y = 0;
+  input[0] = 0;
+  
   do {
-    if (input[0]) printf ("Invalad location, letter first then number : ");
+    if (input[0]) printf ("Invalid location, letter first then number : ");
     scanf ("%s", input);
     if (isalpha (input[0]) && (loc->x = atoi (&input[1]))) {
       loc->y = tolower (input[0]) - 'a';
-      if (loc->y > 9 || loc->x > 10 || loc->x < 0) loc->x = 0;
+      if ((loc->y > 9) || (loc->x > 10) || (loc->x < 0)) loc->x = 0;
     }
   } while (!loc->x);
+  
   loc->x --;
 }
 
@@ -61,54 +85,58 @@ void show_board (void) {
   }
   for (y = 4; y >= 0; y--) {
     printf ("\n %10s : ", ship_name[y]);
-    if (ship_life[CP][y]) for(x = 0; x < FULL(y); x++) putchar ('#');
+	//printf ("\n %10s [%d]: ", ship_name[y], ship_life[CP][y]);   // debuging/cheating
+    if (ship_life[CP][y]) for(x = 0; x < full(y); x++) putchar ('#');
     else printf ("SUNK");
     printf ("\t\t %10s : ", ship_name[y]);
-    for (x = 0; x < FULL(y); x++) putchar (".#"[ship_life[PL][y] > x]);
+    for (x = 0; x < full(y); x++) putchar (".#"[ship_life[PL][y] > x]);
   }
 }
 
-int valad_ship (COORD s, COORD e, int c) {
+COORD start, end;
+
+int valad_ship (int c) {
   int check, d, v;
   COORD step;
 
-  check = abs ((s.x + 10 * s.y) - (e.x + 10 * e.y));
-  if (check % (FULL(c) - 1)) {
-    printf ("\nInvalad location. The %s is only %d long\n"
+  check = abs ((start.x + 10 * start.y) - (end.x + 10 * end.y));
+  //printf ("- check: %d, full: %d - ",check, full(c));
+  if (check % (full(c) - 1)) {
+    printf ("\nInvalid location. The %s is only %d long\n"
             "and ships can only be placed vertical or horizontal.\n",
-            ship_name[c], FULL(c));
+            ship_name[c], full(c));
     v = 0;
   } else {
-    step.x = step.y = 0;
-    if ((check / (FULL(c) - 1)) - 1) step.y = 1;
+    step.x = 0;
+	step.y = 0;
+    if ((check / (full(c) - 1)) - 1) step.y = 1;
     else step.x = 1;
-    if (s.x > e.x) s.x = e.x;
-    if (s.y > e.y) s.y = e.y;
-    for (d = 0; d < FULL(c) && v; d++) {
-      check = bd[s.x + d * step.x][s.y + d * step.y].pship;
-      if (check && check != 7) {
-        printf ("\nInvalad location. Ships can not overlap.\n");
+    if (start.x > end.x) start.x = end.x;
+    if (start.y > end.y) start.y = end.y;
+    for (d = 0; d < full(c) && v; d++) {
+      check = bd[start.x + d * step.x][start.y + d * step.y].pship;
+      if (check && (check != 7)) {
+        printf ("\nInvalid location. Ships can not overlap.\n");
         v = 0;
       }
     }
   }
-  if (v) for (d = 0; d < FULL(c); d++)
-    bd[s.x + d * step.x][s.y + d * step.y].pship = c + 1;
+  if (v) for (d = 0; d < full(c); d++)
+    bd[start.x + d * step.x][start.y + d * step.y].pship = c + 1;
   return v;
 }
 
 void player_setup (void) {
   int ship;
-  COORD start, end;
 
   for (ship = 4; ship >= 0; ship--)
     do {
       show_board ();
       printf ("\nEnter start location for your %s : ", ship_name[ship]);
       getloc(&start);
-      printf ("Enter end location (length %d) : ", FULL(ship));
+      printf ("Enter end location (length %d) : ", full(ship));
       getloc(&end);
-    } while (!valad_ship (start, end, ship));
+    } while (!valad_ship (ship));
   show_board ();
 }
 
@@ -118,20 +146,22 @@ void auto_setup (int pl) {
 
   for (c = 0; c < 5; c++) {
     do {
-      s.x = rand() % 10; s.y = rand() % 10;
-      step.x = step.y = 0;
+      s.x = rand() % 10;
+	  s.y = rand() % 10;
+      step.x = 0;
+	  step.y = 0;
       if (rand() < RAND_MAX / 2) {
         step.x = 1;
-        if (s.x + FULL(c) > 10) s.x -= FULL(c);
+        if (s.x + full(c) > 10) s.x -= full(c);
       } else {
         step.y = 1;
-        if (s.y + FULL(c) > 10) s.y -= FULL(c);
+        if (s.y + full(c) > 10) s.y -= full(c);
       }
-      for (d = 0; d < FULL(c) &&
-      (pl) ? !bd[s.x + d * step.x][s.y + d * step.y].cship
-      : !bd[s.x + d * step.x][s.y + d * step.y].pship ; d++);
-    } while (d < FULL(c));
-    for (d = 0; d < FULL(c); d++)
+      for (d = 0; (d < full(c)) &&
+      ((pl) ? !bd[s.x + d * step.x][s.y + d * step.y].cship
+      : !bd[s.x + d * step.x][s.y + d * step.y].pship)  ; d++);
+    } while (d < full(c));
+    for (d = 0; d < full(c); d++)
       if (pl)
         bd[s.x + d * step.x][s.y + d * step.y].cship = c + 1;
       else bd[s.x + d * step.x][s.y + d * step.y].pship = c + 1;
@@ -142,16 +172,22 @@ void init (void) {
   int c, d;
   char input;
 
-  srand (clock());
   putc(12,stdout);    // CLS
   
   for (c = 0; c < 10; c++)
-    for (d = 0; d < 10; d++)
-      bd[c][d].pship = bd[c][d].chit = bd[c][d].cship = bd[c][d].phit = 0;
-  for (c = 0; c < 5; c++)
-    ship_life[PL][c] = ship_life[CP][c] = FULL(c);
+    for (d = 0; d < 10; d++) {
+      bd[c][d].pship = 0;
+	  bd[c][d].chit = 0;
+	  bd[c][d].cship = 0;
+	  bd[c][d].phit = 0;
+	}
+  for (c = 0; c < 5; c++) {
+    ship_life[PL][c] = full(c);
+	ship_life[CP][c] = full(c);
+  }
   printf ("Battleship (R)\n\nDo you want (A)uto or (M)anual setup ? (a/m) ");
   while (!isalpha (input = getchar()));
+  srand (clock());
   if (tolower (input) == 'm')
     player_setup ();
   else auto_setup (PL);
@@ -161,7 +197,7 @@ void init (void) {
 int check_for_lose (int player) {
   int c;
 
-  for (c = 0; c < 5 && !ship_life[player][c]; c++);
+  for (c = 0; (c < 5) && !ship_life[player][c]; c++);
   return (c == 5);
 }
 
@@ -195,36 +231,34 @@ int hit_no_sink (int x, int y) {
   return 0;
 }
 
+int m[5] = {0, 1, 0, -1, 0};
+COORD cc, dd;
 
 int fill_t (void) {
-  int x, i = 0;
+  int x = 0;
+  i = 0;
 
-COORD c, d;
-int m[5] = {0, 1, 0, -1, 0};
-
-  for (c.x = 0; c.x < 10; c.x++)
-    for (c.y = 0; c.y < 10; c.y++)
-      if (hit_no_sink (c.x,c.y)) {
+  for (cc.x = 0; cc.x < 10; cc.x++)
+    for (cc.y = 0; cc.y < 10; cc.y++)
+      if (hit_no_sink (cc.x,cc.y)) {
         for (x = 0; x < 4; x++)
-          if (c.x + m[x] >= 0 && c.x + m[x] < 10
-            && c.y + m[x + 1] >= 0 && c.y + m[x + 1] < 10) {
-            if (hit_no_sink (c.x + m[x], c.y + m[x + 1])) {
-              d.x = c.x; d.y = c.y;
-              while (d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10
-                && hit_no_sink (d.x, d.y)) {d.x -= m[x]; d.y -= m[x + 1];}
-              if (d.x >= 0 && d.x < 10 && d.y >= 0 && d.y < 10) ADD (d.x, d.y);
+          if ( in_range (cc.x + m[x]) && in_range (cc.y + m[x + 1]) ) {
+            if (hit_no_sink (cc.x + m[x], cc.y + m[x + 1])) {
+              dd.x = cc.x; dd.y = cc.y;
+              while (in_range (dd.x) && in_range (dd.y)
+                && hit_no_sink (dd.x, dd.y)) {dd.x -= m[x]; dd.y -= m[x + 1];}
+              if (in_range (dd.x) && in_range (dd.y))  add (dd.x, dd.y);
             }
           }
         if (!i)
           for (x = 0; x < 4; x++)
-            if (c.x + m[x] >= 0 && c.x + m[x] < 10
-              && c.y + m[x + 1] >= 0 && c.y + m[x + 1] < 10)
-              ADD (c.x + m[x], c.y + m[x + 1]);
+            if ( in_range (cc.x) && in_range (cc.y + m[x + 1]) )
+              add (cc.x + m[x], cc.y + m[x + 1]);
       }
   if (!i)
-    for (c.x = 0; c.x < 10; c.x++)
-      for (c.y = 0; c.y < 10; c.y++)
-        if ((c.x + c.y) % 2) ADD (c.x, c.y);
+    for (cc.x = 0; cc.x < 10; cc.x++)
+      for (cc.y = 0; cc.y < 10; cc.y++)
+        if ((cc.x + cc.y) % 2) add (cc.x, cc.y);
   return i;
 }
 
@@ -277,6 +311,7 @@ int play_again (void) {
 
 int main (void) {
   init ();
+  puts("!!!!!---");
   do {play ();} while (play_again ());
   exit (0);
 }
