@@ -1,4 +1,10 @@
 
+//  This game was a 2008 Cymon's Games game
+//  adapted to z88dk by Stefano Bodrato, 2024
+
+//  zcc +zx -lndos -create-app battleship.c
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -297,18 +303,20 @@ void play (void) {
   show_board ();
 }
 
-int play_again (void) {
-  char input;
-
-  printf ("\nDo you wish to play again? (y/n) ");
-  while (!isalpha (input = getchar()));
-  if (tolower (input) != 'n') return 1;
-  else return 0;
-}
+//int play_again (void) {
+//  char input;
+//
+//  printf ("\nDo you wish to play again? (y/n) ");
+//  while (!isalpha (input = getchar()));
+//  if (tolower (input) != 'n') return 1;
+//  else return 0;
+//}
 
 int main (void) {
+  
+  //do {init (); play ();} while (play_again ());
+  //exit (0);
   init ();
-  puts("!!!!!---");
-  do {play ();} while (play_again ());
-  exit (0);
+  play ();
+  
 }
