@@ -1,5 +1,6 @@
 
-// This is a crappy adventure game.
+// This is a very crappy cave game, you must get the items and exit.
+
 // A full Real Time Clock and a fully implemented library is required for it to run properly.
 
 // zcc +cpm -subtype=px8 -create-app twisty.c
@@ -378,5 +379,8 @@ int main()
 
 		printf("score: %d\n", score);
 	}
+
+	readCommand();
+
 	return 0;
 }
