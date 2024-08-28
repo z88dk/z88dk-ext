@@ -3,6 +3,7 @@
 //  adapted to z88dk by Stefano Bodrato, 2024
 
 //  zcc +zx -lndos -create-app battleship.c
+//  zcc +cpm -create-app battleship.c
 
 
 #include <stdio.h>
@@ -98,10 +99,10 @@ void show_board (void) {
 }
 
 COORD start, end;
+int xx,yy;
 
 int valad_ship (int c) {
   int check, d, v;
-  COORD step;
 
   check = abs ((start.x + 10 * start.y) - (end.x + 10 * end.y));
   //printf ("- check: %d, full: %d - ",check, full(c));
@@ -111,14 +112,14 @@ int valad_ship (int c) {
             ship_name[c], full(c));
     v = 0;
   } else {
-    step.x = 0;
-	step.y = 0;
-    if ((check / (full(c) - 1)) - 1) step.y = 1;
-    else step.x = 1;
+    xx = 0;
+	yy = 0;
+    if ((check / (full(c) - 1)) - 1) yy = 1;
+    else xx = 1;
     if (start.x > end.x) start.x = end.x;
     if (start.y > end.y) start.y = end.y;
     for (d = 0; d < full(c) && v; d++) {
-      check = bd[start.x + d * step.x][start.y + d * step.y].pship;
+      check = bd[start.x + d * xx][start.y + d * yy].pship;
       if (check && (check != 7)) {
         printf ("\nInvalid location. Ships can not overlap.\n");
         v = 0;
@@ -126,15 +127,15 @@ int valad_ship (int c) {
     }
   }
   if (v) for (d = 0; d < full(c); d++)
-    bd[start.x + d * step.x][start.y + d * step.y].pship = c + 1;
+    bd[start.x + d * xx][start.y + d * yy].pship = c + 1;
   return v;
 }
 
 void player_setup (void) {
   int ship;
-
   for (ship = 4; ship >= 0; ship--)
     do {
+      putchar('\n');
       show_board ();
       printf ("\nEnter start location for your %s : ", ship_name[ship]);
       getloc(&start);
@@ -144,51 +145,51 @@ void player_setup (void) {
   show_board ();
 }
 
-void auto_setup (int pl) {
-  COORD s, step;
-  int c, d;
+int cc,dd;
+int sx,sy;
 
-  for (c = 0; c < 5; c++) {
+void auto_setup (int pl) {
+
+  for (cc = 0; cc < 5; cc++) {
     do {
-      s.x = rand() % 10;
-	  s.y = rand() % 10;
-      step.x = 0;
-	  step.y = 0;
+      sx = rand() % 10;
+	  sy = rand() % 10;
+      xx = 0;
+	  yy = 0;
       if (rand() < RAND_MAX / 2) {
-        step.x = 1;
-        if (s.x + full(c) > 10) s.x -= full(c);
+        xx = 1;
+        if (sx + full(cc) > 10) sx -= full(cc);
       } else {
-        step.y = 1;
-        if (s.y + full(c) > 10) s.y -= full(c);
+        yy = 1;
+        if (sy + full(cc) > 10) sy -= full(cc);
       }
-      for (d = 0; (d < full(c)) &&
-      ((pl) ? !bd[s.x + d * step.x][s.y + d * step.y].cship
-      : !bd[s.x + d * step.x][s.y + d * step.y].pship)  ; d++);
-    } while (d < full(c));
-    for (d = 0; d < full(c); d++)
+      for (dd = 0; (dd < full(cc)) &&
+      ((pl) ? !bd[sx + dd * xx][sy + dd * yy].cship
+      : !bd[sx + dd * xx][sy + dd * yy].pship)  ; dd++);
+    } while (dd < full(cc));
+    for (dd = 0; dd < full(cc); dd++)
       if (pl)
-        bd[s.x + d * step.x][s.y + d * step.y].cship = c + 1;
-      else bd[s.x + d * step.x][s.y + d * step.y].pship = c + 1;
+        bd[sx + dd * xx][sy + dd * yy].cship = cc + 1;
+      else bd[sx + dd * xx][sy + dd * yy].pship = cc + 1;
   }
 }
 
 char cinput;
 
 void init (void) {
-  int c, d;
 
-  putc(12,stdout);    // CLS
+  putchar (12);    // CLS
   
-  for (c = 0; c < 10; c++)
-    for (d = 0; d < 10; d++) {
-      bd[c][d].pship = 0;
-	  bd[c][d].chit = 0;
-	  bd[c][d].cship = 0;
-	  bd[c][d].phit = 0;
+  for (cc = 0; cc < 10; cc++)
+    for (dd = 0; dd < 10; dd++) {
+      bd[cc][dd].pship = 0;
+	  bd[cc][dd].chit = 0;
+	  bd[cc][dd].cship = 0;
+	  bd[cc][dd].phit = 0;
 	}
-  for (c = 0; c < 5; c++) {
-    ship_life[PL][c] = full(c);
-	ship_life[CP][c] = full(c);
+  for (cc = 0; cc < 5; cc++) {
+    ship_life[PL][cc] = full(cc);
+	ship_life[CP][cc] = full(cc);
   }
   printf ("Battleship (R)\n\nDo you want (A)uto or (M)anual setup ? (a/m) ");
   while (!isalpha (cinput = getchar()));
@@ -237,33 +238,33 @@ int hit_no_sink (int x, int y) {
 }
 
 int m[5] = {0, 1, 0, -1, 0};
-COORD cc, dd;
+int cx,cy,dx,dy;
 
 int fill_t (void) {
   int x = 0;
   i = 0;
 
-  for (cc.x = 0; cc.x < 10; cc.x++)
-    for (cc.y = 0; cc.y < 10; cc.y++)
-      if (hit_no_sink (cc.x,cc.y)) {
+  for (cx = 0; cx < 10; cx++)
+    for (cy = 0; cy < 10; cy++)
+      if (hit_no_sink (cx,cy)) {
         for (x = 0; x < 4; x++)
-          if ( in_range (cc.x + m[x]) && in_range (cc.y + m[x + 1]) ) {
-            if (hit_no_sink (cc.x + m[x], cc.y + m[x + 1])) {
-              dd.x = cc.x; dd.y = cc.y;
-              while (in_range (dd.x) && in_range (dd.y)
-                && hit_no_sink (dd.x, dd.y)) {dd.x -= m[x]; dd.y -= m[x + 1];}
-              if (in_range (dd.x) && in_range (dd.y))  add (dd.x, dd.y);
+          if ( in_range (cx + m[x]) && in_range (cy + m[x + 1]) ) {
+            if (hit_no_sink (cx + m[x], cy + m[x + 1])) {
+              dx = cx; dy = cy;
+              while (in_range (dx) && in_range (dy)
+                && hit_no_sink (dx, dy)) {dx -= m[x]; dy -= m[x + 1];}
+              if (in_range (dx) && in_range (dy))  add (dx, dy);
             }
           }
         if (!i)
           for (x = 0; x < 4; x++)
-            if ( in_range (cc.x) && in_range (cc.y + m[x + 1]) )
-              add (cc.x + m[x], cc.y + m[x + 1]);
+            if ( in_range (cx) && in_range (cy + m[x + 1]) )
+              add (cx + m[x], cy + m[x + 1]);
       }
   if (!i)
-    for (cc.x = 0; cc.x < 10; cc.x++)
-      for (cc.y = 0; cc.y < 10; cc.y++)
-        if ((cc.x + cc.y) % 2) add (cc.x, cc.y);
+    for (cx = 0; cx < 10; cx++)
+      for (cy = 0; cy < 10; cy++)
+        if ((cx + cy) % 2) add (cx, cy);
   return i;
 }
 
