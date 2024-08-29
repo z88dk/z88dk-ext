@@ -3,6 +3,7 @@
 //  adapted to z88dk by Stefano Bodrato, 2024
 
 //  zcc +zx -lndos -create-app battleship.c
+//  zcc +zx81 -subtype=fast -create-app -DTHICK battleship.c
 //  zcc +cpm -create-app battleship.c
 
 
@@ -33,8 +34,12 @@ typedef struct {
 GRID bd[10][10];
 COORD t[51];
 char ship_life[2][5];
-char *ship_name[5] = {"pt ship", "submarine", "cruser", "battleship", "carrier"};
 
+#ifdef THICK
+char *ship_name[5] = {"pt ship", "submar.", "cruser", "b.ship", "carrier"};
+#else
+char *ship_name[5] = {"pt ship", "submarine", "cruser", "battleship", "carrier"};
+#endif
 
 int full(int x) {
 	if (x < 2) return (x+2);
@@ -77,25 +82,57 @@ void getloc (COORD* loc) {
 void show_board (void) {
   int x, y;
 
-  printf ("%16s\t\t%16s\n_ 1 2 3 4 5 6 7 8 9 10\t\t_ 1 2 3 4 5 6 7 8 9 10"
+#ifdef THICK
+  printf ("%8s     %8s\n_12345678910 _12345678910"
+    ,"RADAR","FLEET");
+
+  for (y = 0; y < 10; y++) {
+    printf ("\n%c", y + 'a');
+    for (x = 0; x < 10; x++)
+      printf ("%c", (bd[x][y].phit) ? (bd[x][y].cship) ? 'X' : 'o' : '.');
+
+    printf ("  %c", y + 'a');
+    for (x = 0; x < 10; x++)
+      printf ("%c", (bd[x][y].chit) ? (bd[x][y].pship) ? 'X'
+      : 'o' : ".12345"[bd[x][y].pship]);
+  }
+
+  for (y = 4; y >= 0; y--) {
+    printf ("\n%7s:", ship_name[y]);
+	//printf ("\n %10s [%d]: ", ship_name[y], ship_life[CP][y]);   // debuging/cheating
+    if (ship_life[CP][y]) for(x = 0; x < full(y); x++) putchar ('#');
+    else {printf ("SUNK"); x=3;};
+	for(;x<8;x++) putchar (' ');
+    printf ("%7s:", ship_name[y]);
+    for (x = 0; x < full(y); x++) putchar (".#"[ship_life[PL][y] > x]);
+  }
+
+#else
+
+  printf ("%16s         %16s\n_ 1 2 3 4 5 6 7 8 9 10   _ 1 2 3 4 5 6 7 8 9 10"
     ,"R A D A R","F L E E T");
+
   for (y = 0; y < 10; y++) {
     printf ("\n%c ", y + 'a');
     for (x = 0; x < 10; x++)
       printf ("%c ", (bd[x][y].phit) ? (bd[x][y].cship) ? 'X' : 'o' : '.');
-    printf ("\t\t%c ", y + 'a');
+
+    printf ("   %c ", y + 'a');
     for (x = 0; x < 10; x++)
       printf ("%c ", (bd[x][y].chit) ? (bd[x][y].pship) ? 'X'
       : 'o' : ".12345"[bd[x][y].pship]);
   }
+
   for (y = 4; y >= 0; y--) {
     printf ("\n %10s : ", ship_name[y]);
 	//printf ("\n %10s [%d]: ", ship_name[y], ship_life[CP][y]);   // debuging/cheating
     if (ship_life[CP][y]) for(x = 0; x < full(y); x++) putchar ('#');
-    else printf ("SUNK");
-    printf ("\t\t %10s : ", ship_name[y]);
+    else {printf ("SUNK"); x=3;};
+	for(;x<12;x++) putchar (' ');
+    printf ("%10s : ", ship_name[y]);
     for (x = 0; x < full(y); x++) putchar (".#"[ship_life[PL][y] > x]);
   }
+#endif
 }
 
 COORD start, end;
@@ -178,7 +215,15 @@ char cinput;
 
 void init (void) {
 
+#ifdef THICK
+#ifdef SPECTRUM
+  putchar (1);    // 32 columns
+  putchar (32);
+#endif
+#endif
   putchar (12);    // CLS
+  
+
   
   for (cc = 0; cc < 10; cc++)
     for (dd = 0; dd < 10; dd++) {
