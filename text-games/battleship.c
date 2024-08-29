@@ -101,7 +101,7 @@ void show_board (void) {
     printf ("\n%7s:", ship_name[y]);
 	//printf ("\n %10s [%d]: ", ship_name[y], ship_life[CP][y]);   // debuging/cheating
     if (ship_life[CP][y]) for(x = 0; x < full(y); x++) putchar ('#');
-    else {printf ("SUNK"); x=3;};
+    else {printf ("SUNK"); x=4;};
 	for(;x<8;x++) putchar (' ');
     printf ("%7s:", ship_name[y]);
     for (x = 0; x < full(y); x++) putchar (".#"[ship_life[PL][y] > x]);
