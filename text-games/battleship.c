@@ -2,7 +2,7 @@
 //  This game was a 2008 Cymon's Games game
 //  adapted to z88dk by Stefano Bodrato, 2024
 
-//  zcc +zx -lndos -create-app battleship.c
+//  zcc +zx -lndos -create-app -zorg=24576 battleship.c
 //  zcc +zx81 -subtype=fast -create-app -DTHICK battleship.c
 //  zcc +cpm -create-app battleship.c
 
