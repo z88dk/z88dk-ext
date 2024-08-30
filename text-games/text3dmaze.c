@@ -8,6 +8,7 @@
 // 2 text rows removed to fit in s 24 lines screen, see "for (line = -11..."
 
 // zcc +zx -lndos -create-app -lm  text3dmaze.c
+// zcc +cpm -create-app -lm  text3dmaze.c
 
 
 #include <stdio.h>
