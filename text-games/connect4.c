@@ -6,7 +6,7 @@
 
 
 // zcc +zx -lndos -DUSE_UDGS -create-app row4.c
-
+// zcc +c128 -zorg=20480 -clib=gencon -DUSE_UDGS -create-app row4.c
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,6 @@
 #include <string.h>
 
 //#define SHOWBD for (c=9; c >= 0; c--) puts (bd[c])
-
 
 #ifdef USE_UDGS
 
@@ -173,6 +172,7 @@ int compmove (void) {
   return bestmove;
 }
 
+
 int main (void) {
   int numpl, w = 0;
 
@@ -195,7 +195,14 @@ int main (void) {
   while (numpl > 2 || numpl < 1) {
     printf ("Please type the number 1 or 2 ? "); scanf ("%d", &numpl);
   }
+#ifdef __C128__
+  int c=0;
+  printf ("\nRandomizing, please SPACE\n");
+  while (getk()!=' ') c++;
+  srand (c);
+#else
   srand (clock());
+#endif
   if (!--numpl) puts ("The Computer will be Player 2.");
   if (rand () % 2) {
     puts ("Player 1 goes first.");
