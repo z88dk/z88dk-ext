@@ -1,364 +1,219 @@
-//  Connect 4 game
-//  This program is by Ale.gatti96
-//  Original program:  http://www.pierotofy.it/pages/sorgenti/dettagli/19253-Forza_4/
+/* 4inarow 2007-Oct-25
+ * by Joseph Larson (c) 2008
+ * based on a BASIC game by James L. Murphy
+ * as found in 'More BASIC Computer Games' by David H. Ahl (c) 1979
+ */
+
+
+// zcc +zx -lndos -DUSE_UDGS -create-app row4.c
 
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <conio.h>
-#include <string.h>
 #include <time.h>
+#include <string.h>
 
-//Dimensioni campo da gioco
-#define R 9					//Numero di righe
-#define C 8					//Numero di colonne
-#define RC R*C
-
-//Caratteri stampati a video
-#define g1 		 'X'		//Carattere del giocatore 1
-#define g2 		 'O'		//Carattere del giocatore 2
-#define vuoto  '.'		//Carattere per uno spazio vuoto
-#define CVitt  'V' 		//Carattere per segnare la combinazione vincente
-
-//Valori nella matrice
-#define vuotoI 0		//Valore di uno spazio vuoto
-#define g1I 1				//Valore del giocatore 1
-#define g2I 2				//Valore del giocatore 2
-#define vI 3				//Valore per segnare la combinazione vincente
-
-//Valori che può assumere f in gioca
-#define FGioca 0		//Partita in corso
-#define FG1 1				//Ha vinto il giocatore 1
-#define FG2 2				//Ha vinto il giocatore 2
-#define FPareggio 3 //Pareggio
-
-//Varie
-#define CN 15							//Numero dei caratteri dei nomi dei giocatori
-#define NGV 4							//Numero Gettoni per la Vittoria
-//#define CLS system("cls")	//Funzione per pulire lo schermo su windows
-#define CLS fputc_cons(12)	//Funzione per pulire lo schermo su windows
-
-//Tipologia di Gioco
-#define UvsU 1			//User contro User
-#define UvsC 2			//User contro Computer
-#define CvsC 3			//Computer contro Computer
-
-//Tipologia Giocatore
-#define User 1
-#define CPU  2
+//#define SHOWBD for (c=9; c >= 0; c--) puts (bd[c])
 
 
-//Prototipi funzioni
-void azzera(int m[RC]);
-void stampa(int m[RC]);
-char stampaCasella(int x);
-void stampaTitolo(void);
-void stampaRigaPiena(void);
-void gioca(char n1[CN], char n2[CN], int tg1, int tg2);
-int mossaPC(int m[RC], int gp, int ga);
-int inserisci(int m[RC], int c);
-int controllaF(int m[RC], const int g, const int r, const int c, const int e);
-int giocatoreP(int g);
-int esiste(int r, int c);
+#ifdef USE_UDGS
+
+#include <sys/ioctl.h>
+
+#define _X 128
+#define _O 129
+
+static unsigned char udgs[] = {
+    0b00111100, // X
+    0b01000010,
+    0b10000001,
+    0b10000001,
+    0b10000001,
+    0b01000010,
+    0b00111100,
+    0b00000000,
+
+//    0b10000001,	// X
+//    0b01000010,
+//    0b00100100,
+//    0b00011000,
+//    0b00100100,
+//    0b01000010,
+//    0b10000001,
+//    0b00000000,
+
+    0b00111100, // O
+    0b01111110,
+    0b11111111,
+    0b11111111,
+    0b11111111,
+    0b01111110,
+    0b00111100,
+    0b00000000
+};
+
+#else
+
+#define _X 'X'
+#define _O 'O'
+
+#endif
+
+unsigned long v[16] = {1, 75, 500, 1e9, 1, 800, 4000, 1e9
+                      ,1,100, 900, 1e7, 1, 450, 3000, 1e7};
+int inrow[4];
+int open[4];
+int h[8];
+char bd[9][20];
 
 
-//Corpi delle funzioni
-int main(int argc, char *argv[]){
-  char n1[CN];
-  char n2[CN];
-  unsigned char r, k=0;
-  int m[RC], tipoGioco=0, tg1, tg2;
-  srand(time(NULL));
-  
-  sprintf(n1,"Player A");
-  sprintf(n2,"Player B");
+void showbd() {
+	int c;
+	for (c=9; c >= 0; c--) puts (bd[c]);
+}
 
-  do{
-  	CLS;
-  	stampaTitolo();
-  	printf("\n\t 1. User vs User");
-		printf("\n\t 2. User vs Computer");
-		printf("\n\t 3. Computer vs Computer");
-  	printf("\n\n   Choose the game type: ");
-  	scanf("%d", &tipoGioco);
-  	fflush(stdin);
-  }while(tipoGioco<1||tipoGioco>3);
-  
-  if(tipoGioco!=CvsC){
-  	printf("Insert the 1st player's name:\n   ");
-    scanf("%s", n1);
-    fflush(stdin);
-    if(tipoGioco==UvsU){
-    	printf("Insert the 2nd player's name:\n   ");
-      scanf("%15s", n2);
-      fflush(stdin);
-    }else
-    	strcpy(n2, "CPU1");
-  }else{
- 	  strcpy(n1, "CPU1");
-    strcpy(n2, "CPU2");
+void intro (void) {
+  putchar(12);
+  puts ("Four in a Row\n---- -- - ---\n"
+  "Stack X's and O's in order to\n"
+  "make 4 in a row either\n"
+  "vertically, horizontally or\n"
+  "diagonally before your\n"
+  "opponent does.\n");
+}
+
+void init (void) {
+  int c;
+
+  for (c = 0; c < 8;) {
+    h[c] = 0;
+    strcpy (bd[++c], "- - - - - - - - ");
   }
-  
-  do{
-    if(tipoGioco==UvsU)
-      tg1=tg2=User;
-    else if(tipoGioco==UvsC){
-    	tg1=User; tg2=CPU;
-    }else
-      tg1=tg2=CPU;
-    
-		gioca(n1, n2, tg1, tg2);
-    printf("\n\nAnother game? (y/n)");
-    scanf("%c", &r);
-    fflush(stdin);
-  }while(r=='y' || r=='Y');
+  strcpy (bd[0], "1 2 3 4 5 6 7 8 ");
+}
+
+int count (int x, int y, char token) {
+  int w, k, dx, dy, cx, cy, c, t;
+  char op;
+
+  x *= 2; op = (token != _X) ? _X : _O;
+  for (c = 0; c < 4; c++) {
+    inrow[c] = 1; open[c] = 0;
+    dx = 2 * (c - 1 - (c > 2));
+    dy = (c != 3);
+    for (w = 0; w < 2; w++) {
+      t = 1;
+      for (k = 1; k < 4 && bd [cy = y + dy * k][cx = x + dx * k] != op; k++)
+        if (cx <= 15 && cx >= 0 && cy <= 8 && cy > 0) {
+          if (t && bd[cy][cx] == token) inrow[c]++;
+          else {open[c]++; t = 0;}
+        }
+      dx = -dx; dy = -dy;
+    }
+    if (inrow[c] > 3) return 1;
+  }
+  k = 0;
+  for (c = 0; c < 8; c++) if (h[c] < 8) k++;
+  if (!k) return 2;
   return 0;
 }
 
+int domove (int m, char token) {
+  bd [++h[m]][2 * m] = token;
+  return count (m, h[m], token);
+}
 
-//###############################
-void gioca(char n1[CN], char n2[CN], int tg1, int tg2){
-  int m[RC], t=1, f, nt=0, r, c, g=g2I;
-  
-  f=FGioca;
-  azzera(m);
-  
-  do{
-    CLS;
-    stampaTitolo();
-    g=giocatoreP(g);
-//printf("g=%d   tg=%d\n",g, g==g1I?tg1:tg2);
-    printf("Move number: %d\n",++nt);
-    if(t)
-      //printf("E' il turno di %s (%c)\n\n", n1,g1);
-	  printf("%s's turn (%c)\n\n", n1,g1);
-    else
-      //printf("E' il turno di %s (%c)\n\n", n2,g2);
-	  printf("%s's turn (%c)\n\n", n2,g2);
-    stampa(m);
-    
-    //Se gioca l'utente
-    if( (g==1 && tg1==User) || (g==2 && tg2==User)){
-      while(1){
-        //printf("In che colonna vuoi mettere il gettone?  ");
-		printf("Enter your move:  ");
-        scanf("%d", &c);
-			  fflush(stdin);
-			  c--;
-        if(c<0 || c>=C)
-          continue;
-        r=inserisci(m,c);
-        if(r!=-1)
-          break;
+int getmove (int pl) {
+  int input = 0;
+
+  do {
+    if (input) puts ("Illegal move, try again.");
+    printf ("Player %d, pick a column (1 - 8) ? ", pl); scanf ("%d", &input);
+    if (input < 1 || input > 8 || h[input - 1] > 7) input = -1;
+  } while (input < 0);
+  return --input;
+}
+
+unsigned long rank, bestrank;
+int bestmove, numsame;
+
+int compmove (void) {
+  int w, x, y, c, n[4];
+  char token;
+
+  bestmove = 0;
+  bestrank = 0;
+  numsame = 1;
+
+  for (x = 0; x < 8; x++) {
+    y = h[x] + 1;
+    if (y < 9) {
+      rank = 1; token = _O;
+      for (w = 0; w < 2; w++) {
+        if (count (x, y, token)) {
+          printf ("Computer picks column %d\n", x + 1); return x;
+        }
+        for (c = 0; c < 4; c++) n[c] = 0;
+        for (c = 0; c < 4; c++) {
+          open[c] += inrow[c];
+          if (open[c] > 3) {rank += 4; n[inrow[c] - 1]++;}
+        }
+        for (c = 0; c < 4; c++) if (n[c]--)
+          rank += v[8 * w + 4 * (n[c] ? 1 : 0) + c] + n[c] * v[8 * w + c];
+        token = _X;
       }
-    }else{ // Se gioca il computer
- 	    c=mossaPC(m, g, giocatoreP(g));
- 	    r=inserisci(m,c); //mossaPc ritorna una colonna valida e con spazio
- 	    m[r*8+c]=g;
-      //printf("\nc = %d \n", c+1);
-      //getch();
+      if (y < 8) if (count(x, y + 1, token)) rank = 2;
+      if (rank == bestrank) if (rand() < RAND_MAX / ++numsame) {
+        bestrank = rank; bestmove = x;
+      }
     }
-    
-    m[r*8+c]=g;
-    f=controllaF(m,g,r,c,1) ? g : f;
-    if(nt==R*C && f==0){
-      f=FPareggio;
-      break;
-    }
-  }while(!f);
-  
-  CLS;
-  stampaTitolo();
-  stampa(m);
-  switch(f){
-    case 1:
-      //printf("\n\nHa vinto %s (%c)", n1, g1);
-	  printf("\n\n%s wins (%c)", n1, g1);
-      break;
-    case 2:
-      //printf("\n\nHa vinto %s (%c)", n2, g2);
-	  printf("\n\n%s wins (%c)", n2, g2);
-      break;
-    case 3:
-      //printf("\n\nPareggio");
-	  printf("\n\nNo winner");
-      break;
+    if (rank > bestrank) {bestrank = rank; bestmove = x; numsame = 1;}
   }
+  printf ("Computer picks column %d\n", bestmove + 1);
+  return bestmove;
 }
 
-//###############################
-int mossaPC(int m[RC], int gp, int ga){
-	int r,c,m2[RC],cas,g,i;
-	
-	//Riempio la matrice di supporto
-	for(r=0; r<R ;r++)
-	  for(c=0; c<C; c++)
-	    m2[r*8+c]=m[r*8+c];
-	
-	//printf("mossaPC ( m, %d, %d )",gp,ga);
-	
-	// 1° ciclo Controlla se può vincere
-	// 2° ciclo controlla se l'avversario può vincere
- 	for(i=0; i<2; i++){
-		g=(i? ga : gp);
-	  for(c=0;c<C;c++){
-	  	r=inserisci(m2,c);
-	  	m2[r*8+c]=g;
-	  	//printf("\n  c=%d  r=%d controllaF( m, %d, %d, %d, 0)=%d", c,r,g,r,c,controllaF(m2, g, r, c, 0));
-	    if(r!=-1 && controllaF(m2, g, r, c, 0))
-	      return c;
-      m2[r*8+c]=vuotoI;
-    }
+int main (void) {
+  int numpl, w = 0;
+
+
+#ifdef USE_UDGS
+  void *param = &udgs;
+  console_ioctl(IOCTL_GENCON_SET_UDGS, &param);
+
+#ifdef __SPECTRUM
+  putchar(1);
+  putchar(32);
+#endif
+
+#endif
+
+  intro ();
+//  srand (time (NULL));
+  init ();
+  printf ("One or two human players? (1/2) "); scanf ("%d", &numpl);
+  while (numpl > 2 || numpl < 1) {
+    printf ("Please type the number 1 or 2 ? "); scanf ("%d", &numpl);
   }
-  
-  while(1)   //Controlla se nella colonna casuale c'è spazio
-    if(inserisci(m2,cas=rand()%C)!=-1)
-      return cas;
-}
-
-//###############################
-int giocatoreP(int g){
-	return g==g1I ? g2I : g1I;
-}	
-
-
-//###############################
-int inserisci(int m[RC], int c){
-  int i;
-  for(i=R-1; i>=0; i--)
-    if(m[i*8+c]==vuotoI)
-      return i;
-  return -1;
-}
-
-
-//###############################
-int controllaF(int m[RC], const int g, const int r, const int c, const int e){
-	int r2, c2, x, ret=0, i, ok;
-	
-	//Controllo diagonale \ ___
-	if(esiste(r-1,c-1) && m[(r-1)*8+c-1]==g)
-	  if(x=controllaF(m,g,r-1,c-1,e)!=0)
-	    ret=ret||x;
-  if(r<R-(NGV-1) && c<C-(NGV-1)){
-  	ok=1;
-    for(i=0; i<NGV && (ok*=(m[r*8+c]==m[(r+i)*8+c+i] || m[(r+i)*8+c+i]==vI)); i++) ;
-    if(ok){
-    	if(e)
-        for(i=0; esiste(r+i, c+i) && m[(r+i)*8+c+i]==g; i++)
-          m[(r+i)*8+c+i]=vI;
-      ret=1;
-    }
+  srand (clock());
+  if (!--numpl) puts ("The Computer will be Player 2.");
+  if (rand () % 2) {
+    puts ("Player 1 goes first.");
+    showbd();
+    domove (getmove (1), _X);
+  } else puts ("Player 2 goes first.");
+  while (!w) {
+    showbd();
+    if (!(w = domove ((numpl) ? getmove (2) : compmove (), _O))) {
+      showbd();
+      w = domove (getmove (1), _X);
+    } else if (w == 1) w = 3;
   }
-  
-  //Controllo diagonale /  ___
-	if(esiste(r+1,c-1) && m[(r+1)*9+(c-1)]==g)
-	  if(x=controllaF(m,g,r+1,c-1,e)!=0)
-	    ret=ret||x;
-  if(r>(NGV-2) && c<C-(NGV-2)){
-  	ok=1;
-    for(i=0; i<NGV && (ok*=(m[r*8+c]==m[(r-i)*8+c+i]) || m[(r-i)*8+c+i]==vI); i++) ;
-    if(ok){
-    	if(e)
-        for(i=0; esiste(r-i, c+i) && m[(r-i)*8+c+i]==g; i++)
-          m[(r-i)*8+c+i]=vI;
-      ret=1;
-    }
+  showbd();
+  switch (w) {
+    case 1 : puts ("Player 1 wins!\n\n"); break;
+    case 2 : puts ("Tie game.\n\n"); break;
+    case 3 : puts ("Player 2 wins!\n\n");
   }
-  
-	//Controllo riga
-	if(esiste(r,c-1) && m[r*8+c-1]==g)
-	  if(x=controllaF(m,g,r,c-1,e)!=0)
-	    ret=ret||x;
-  if(c<C-(NGV-1)){
-  	ok=1;
-    for(i=0; i<NGV && (ok*=(m[r*8+c]==m[r*8+c+i] || m[r*8+c+i]==vI)); i++) ;
-    if(ok){
-    	if(e)
-        for(i=0; esiste(r, c+i) && m[r*8+c+i]==g; i++)
-          m[r*8+c+i]=vI;
-      ret=1;
-    }
-  }
-	
-	//Controllo colonna
-	if(r<R-(NGV-1)){
-	  ok=1;
-		for(i=0; i<NGV && (ok*=(m[r*8+c]==m[(r+i)*8+c] || m[(r+i)*8+c]==vI)); i++) ;
-		if(ok){
-    	if(e)
-			  for(i=0; i<NGV; i++) //Non serve controllare se sono più di 4
-          m[(r+i)*8+c]=vI;
-      ret=1;
-		}
-	}
-	
-  return ret;
-}
-
-
-//###############################
-int esiste(int r, int c){
-	if(r>=0&&r<R && c>=0&&c<C)
-	  return 1;
-	return 0;	
-}
-
-
-//###############################
-void azzera(int m[RC]){
-  int i,j;
-  for(i=0; i<R; i++)
-    for(j=0; j<C; j++)
-      m[i*8+j]=0;
-}
-
-
-//###############################
-void stampa(int m[RC]){
-  int i,j;
-  printf("\n");
-//  stampaRigaPiena();  //Stampo prima riga |---|---|--...
-  
-  for(i=0; i<R; i++){ //Stampo le righe centrali
-    printf("|");
-    for(j=0; j<C; j++)
-      printf(" %c |",stampaCasella(m[i*8+j]));
-    printf("\n");
-//    stampaRigaPiena();
-  }
-  stampaRigaPiena();  //Stampo prima riga |---|---|--...
-  printf("|");
-  for(j=1; j<=C; j++)
-    printf(" %d |", j);
-  printf("\n");
-//  stampaRigaPiena();  //Stampo prima riga |---|---|--...
-  printf("\n");
-}
-
-void stampaRigaPiena(){
-  int i,j;
-  printf("|");
-  for(j=1; j<=C; j++)
-    printf("---|");
-  printf("\n");
-}
-
-char stampaCasella(int x){
-	char c;
-	switch(x){
-		case 0:
-	    c=vuoto; break;
-    case 1:
-    	c=g1; break;
-   	case 2:
-    	c=g2; break;
-   	case 3:
-   		c=CVitt; break;
-	}
-	return c;
-}
-void stampaTitolo(void){
-//  printf("\n\n\t ### Forza quattro ###\n\n");
-  printf("\n\n     ### Connect four ###\n\n");
+  exit (0);
 }
