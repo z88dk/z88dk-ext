@@ -5,8 +5,9 @@
  */
 
 
-// zcc +zx -lndos -DUSE_UDGS -create-app row4.c
-// zcc +c128 -zorg=20480 -clib=gencon -DUSE_UDGS -create-app row4.c
+// zcc +zx -lndos -DUSE_UDGS -create-app connect4.c
+// zcc +c128 -zorg=20480 -clib=gencon -DUSE_UDGS -create-app connect4.c
+// zcc +zx81 -subtype=fast -create-app connect4.c
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,8 +54,13 @@ static unsigned char udgs[] = {
 
 #else
 
+#ifdef __ZX81__
+#define _X 'x'
+#define _O 'o'
+#else
 #define _X 'X'
 #define _O 'O'
+#endif
 
 #endif
 
