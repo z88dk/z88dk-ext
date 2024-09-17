@@ -16,9 +16,10 @@
 // ZX Spectrum, (VT-ANSI terminal type)
 // zcc +zx -clib=ansi -lndos -create-app -pragma-define:ansicolumns=80 pacman.c
 
-// NCR Decision Mate V, Sanyo MBC-200
+// NCR Decision Mate V, Sanyo MBC-200, Otrona Attachè
 // zcc +cpm  -create-app -subtype=dmv --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=mbc200 --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=attache --generic-console pacman.c
 
 // Excalibur 64 (colour)
 // zcc +cpm  -create-app -subtype=excali64 --generic-console pacman.c
