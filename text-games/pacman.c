@@ -11,8 +11,18 @@
  */
 
 
-// TODO: shrink text for smaller column rez and add color
+// TODO: shrink or disable extra text to fit in 40 (or 64) columns
+
+// ZX Spectrum, (VT-ANSI terminal type)
 // zcc +zx -clib=ansi -lndos -create-app -pragma-define:ansicolumns=80 pacman.c
+
+// NCR Decision Mate V, Sanyo MBC-200
+// zcc +cpm  -create-app -subtype=dmv --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=mbc200 --generic-console pacman.c
+
+// Excalibur 64 (colour)
+// zcc +cpm  -create-app -subtype=excali64 --generic-console pacman.c
+
 
 
 //#include <getopt.h>
@@ -81,7 +91,13 @@
 #define	GOLD		'.'
 #define	POTION		'O'
 #define	VACANT		' '	/* space */
+
+#ifdef __DMV__
+#define	WALL		128
+#else
 #define	WALL		'#'
+#endif
+
 #define	GATE		'-'
 #define	START	0
 #define	RUN	1
@@ -140,17 +156,6 @@ struct	pac
 int  which(struct pac *, int, int);
 
 
-int COLOR_PAIR(num) {
-
-	//     init_pair (1, COLOR_YELLOW, COLOR_BLUE);
-	//     init_pair (2, COLOR_BLUE, COLOR_YELLOW);
-	//     init_pair (3, COLOR_YELLOW, COLOR_GREEN);
-	//     init_pair (4, COLOR_MAGENTA, COLOR_CYAN);
-	//     init_pair (5, COLOR_YELLOW, COLOR_RED);
-
-	return (0);
-}
-
 
 /* util.c */
 //extern void syncscreen();
@@ -200,6 +205,113 @@ char runner_names[] = "bipc";
 char *full_names[] = {
 	"Blinky", "Inky", "Pinky", "Clyde", 0
 };
+
+#ifdef __DMV__
+
+/*
+ * initbrd is used to re-initialize the display
+ * array once a new game is started.
+ */
+char	initbrd[BRDY][BRDX] =
+{
+"\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177",
+"\177 . . . * . . . . \177\177\177 . . . . * . . . \177",
+"\177 O \177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177 O \177",
+"\177 * . . * . * . * . . * . * . * . . * \177",
+"\177 . \177\177\177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177\177\177 . \177",
+"\177 . . . * \177 . . . \177\177\177 . . . \177 * . . . \177",
+"\177\177\177\177\177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177\177\177\177\177",
+"      \177 . \177 . . * . . * . . \177 . \177      ",
+"      \177 . \177 . \177\177\177 - - \177\177\177 . \177 . \177      ",
+"\177\177\177\177\177\177\177 . \177 . \177         \177 . \177 . \177\177\177\177\177\177\177",
+"        * . * \177         \177 * . *        ",
+"\177\177\177\177\177\177\177 . \177 . \177         \177 . \177 . \177\177\177\177\177\177\177",
+"      \177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177      ",
+"      \177 . \177 * . . . . . . * \177 . \177      ",
+"\177\177\177\177\177\177\177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177\177\177\177\177\177\177",
+"\177 . . . * . * . . \177\177\177 . . * . * . . . \177",
+"\177 O \177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177 O \177",
+"\177 . . \177 * . * . * . . * . * . * \177 . . \177",
+"\177\177\177 . \177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177 . \177\177\177",
+"\177 . * . . \177 . . . \177\177\177 . . . \177 . . * . \177",
+"\177 . \177\177\177\177\177\177\177\177\177\177\177 . \177\177\177 . \177\177\177\177\177\177\177\177\177\177\177 . \177",
+"\177 . . . . . . . * . . * . . . . . . . \177",
+"\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177",
+};
+
+/*
+ * brd is kept for historical reasons.
+ * It should only be used in the routine "which"
+ * to determine the next move for a monster or
+ * in the routine "monster" to determine if it
+ * was a valid move. Admittedly this is redundant
+ * and could be replaced by initbrd, but it is kept
+ * so that someday additional intelligence or
+ * optimization could be added to the choice of
+ * the monster's next move. Hence, note the symbol
+ * CHOICE at most points that a move decision
+ * logically HAS to be made.
+ */
+char	brd[BRDY][BRDX] =
+{
+"\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177",
+"\177 . . . * . . . . \177\177\177 . . . . * . . . \177",
+"\177 O \177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177 O \177",
+"\177 * . . * . * . * . . * . * . * . . * \177",
+"\177 . \177\177\177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177\177\177 . \177",
+"\177 . . . * \177 . . . \177\177\177 . . . \177 * . . . \177",
+"\177\177\177\177\177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177\177\177\177\177",
+"      \177 . \177 . . * . . * . . \177 . \177      ",
+"      \177 . \177 . \177\177\177 - - \177\177\177 . \177 . \177      ",
+"\177\177\177\177\177\177\177 . \177 . \177         \177 . \177 . \177\177\177\177\177\177\177",
+"        * . * \177         \177 * . *        ",
+"\177\177\177\177\177\177\177 . \177 . \177         \177 . \177 . \177\177\177\177\177\177\177",
+"      \177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177      ",
+"      \177 . \177 * . . . . . . * \177 . \177      ",
+"\177\177\177\177\177\177\177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177\177\177\177\177\177\177",
+"\177 . . . * . * . . \177\177\177 . . * . * . . . \177",
+"\177 O \177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177 O \177",
+"\177 . . \177 * . * . * . . * . * . * \177 . . \177",
+"\177\177\177 . \177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177 . \177\177\177",
+"\177 . * . . \177 . . . \177\177\177 . . . \177 . . * . \177",
+"\177 . \177\177\177\177\177\177\177\177\177\177\177 . \177\177\177 . \177\177\177\177\177\177\177\177\177\177\177 . \177",
+"\177 . . . . . . . * . . * . . . . . . . \177",
+"\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177",
+};
+
+/*
+ * display reflects the screen on the player's
+ * terminal at any point in time.
+ */
+char	display[BRDY][BRDX] =
+{
+"\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177",
+"\177 . . . . . . . . \177\177\177 . . . . . . . . \177",
+"\177 O \177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177 O \177",
+"\177 . . . . . . . . . . . . . . . . . . \177",
+"\177 . \177\177\177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177\177\177 . \177",
+"\177 . . . . \177 . . . \177\177\177 . . . \177 . . . . \177",
+"\177\177\177\177\177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177\177\177\177\177",
+"      \177 . \177 . . . . . . . . \177 . \177      ",
+"      \177 . \177 . \177\177\177 - - \177\177\177 . \177 . \177      ",
+"\177\177\177\177\177\177\177 . \177 . \177         \177 . \177 . \177\177\177\177\177\177\177",
+"        . . . \177         \177 . . .        ",
+"\177\177\177\177\177\177\177 . \177 . \177         \177 . \177 . \177\177\177\177\177\177\177",
+"      \177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177      ",
+"      \177 . \177 . . . . . . . . \177 . \177      ",
+"\177\177\177\177\177\177\177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177\177\177\177\177\177\177",
+"\177 . . . . . . . . \177\177\177 . . . . . . . . \177",
+"\177 O \177\177\177 . \177\177\177\177\177 . \177\177\177 . \177\177\177\177\177 . \177\177\177 O \177",
+"\177 . . \177 . . . . . . . . . . . . \177 . . \177",
+"\177\177\177 . \177 . \177 . \177\177\177\177\177\177\177\177\177\177\177 . \177 . \177 . \177\177\177",
+"\177 . . . . \177 . . . \177\177\177 . . . \177 . . . . \177",
+"\177 . \177\177\177\177\177\177\177\177\177\177\177 . \177\177\177 . \177\177\177\177\177\177\177\177\177\177\177 . \177",
+"\177 . . . . . . . . . . . . . . . . . . \177",
+"\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177\177",
+};
+
+
+#else
 
 
 /*
@@ -303,6 +415,9 @@ char	display[BRDY][BRDX] =
 "# . . . . . . . . . . . . . . . . . . #",
 "#######################################",
 };
+
+#endif
+
 
 int	incharbuf;
 int	bufstat;
@@ -747,7 +862,9 @@ int dokill(mnum)
 		mptr->xpos = MSTARTX + (2 * mnum);
 		mptr->danger = TRUE;
 		mptr->stat = START;
-		PLOT(mptr->ypos, mptr->xpos, monst_names[mnum] | COLOR_PAIR(mnum+1));
+		textcolor(mnum+2);
+		PLOT(mptr->ypos, mptr->xpos, monst_names[mnum]);
+		textcolor(WHITE);
 		monsthere++;
 		rounds = 1;	/* force it to be a while before he comes out */
 		switch (monsthere) {
@@ -1132,9 +1249,19 @@ void startmonst()
 			mptr->ydpos = MBEGINY;
 			mptr->xdpos = MBEGINX;
 			mptr->stat = RUN;
-			PLOT(MBEGINY, MBEGINX, mptr->danger ?
-				monst_names[monstnum] | mflash | COLOR_PAIR (monstnum+1):
-				runner_names[monstnum] | rflash | COLOR_PAIR (monstnum+1));
+			if (mptr->danger == TRUE)
+			{
+				textcolor(monstnum+10);
+				PLOT(MBEGINY, MBEGINX, monst_names[monstnum] | mflash);
+			} else {
+				textcolor(monstnum+2);
+				PLOT(MBEGINY, MBEGINX, runner_names[monstnum] | mflash);
+			}
+			textcolor(WHITE);
+
+//			PLOT(MBEGINY, MBEGINX, mptr->danger ?
+//				monst_names[monstnum] | mflash | COLOR_PAIR (monstnum+1):
+//				runner_names[monstnum] | rflash | COLOR_PAIR (monstnum+1));
 
 			/* DRIGHT or DLEFT? */
 			mptr->dirn = getrand(2) + DLEFT;
@@ -1211,12 +1338,15 @@ void monster(mnum)
 					display[mptr->ydpos][mptr->xdpos]);
 				if (mptr->danger == TRUE)
 				{
-					PLOT(newy, newx, monst_names[mnum] | mflash | COLOR_PAIR(mnum+1));
+					textcolor(mnum+10);
+					PLOT(newy, newx, monst_names[mnum] | mflash);
 				}
 				else if (killflg != GOTONE)
 				{
-					PLOT(newy, newx, runner_names[mnum] | rflash | COLOR_PAIR(mnum+1));
+					textcolor(mnum+2);
+					PLOT(newy, newx, runner_names[mnum] | rflash);
 				};
+				textcolor(WHITE);
 				mptr->ydpos = newy;
 				mptr->xdpos = newx;
 			}
@@ -1397,17 +1527,6 @@ int which(mptr, x, y)	/* which directions are available ? */
  * global variables
  */
 
-extern char
-	message[];
-
-extern struct pac
-	monst[];
-
-extern char monst_names[];
-
-extern
-	char *full_names[];
-
 struct pac
 	pac;
 
@@ -1446,6 +1565,9 @@ char **argv;
 	int tries;
 	int c;
 
+	textcolor(WHITE);
+	textbackground(BLACK);
+	
 	game = 0;
 	
 	pflash=mflash=rflash=0;
@@ -1505,7 +1627,7 @@ redraw:
 		 * based on ANSI and HP terminals w/verbose cursor addressing.
 		 */
 		//denom = ((long) delay) * baudrate();
-		denom = ((long) delay) * 2000;
+		denom = ((long) delay) * 3000;
 		monst_often = (chperturn * 10000L + denom - 1) / denom;
 		if (monst_often < 1)
 			monst_often = 1;
@@ -1530,7 +1652,9 @@ redraw:
 		};
 		/* initialize a pacman */
 		pac = pacstart;
+		textcolor(YELLOW);
 		PLOT(pacptr->ypos, pacptr->xpos, pacsymb | pflash);
+		textcolor(WHITE);
 		/* display remaining pacmen */
 		for (tmp = 0; tmp < pac_cnt - 1; tmp++)
 		{
@@ -1547,7 +1671,9 @@ redraw:
 			mptr->dirn = DNULL;
 			mptr->danger = TRUE;
 			mptr->stat = START;
-			PLOT(mptr->ypos, mptr->xpos, monst_names[monstcnt] | COLOR_PAIR(monstcnt+1));
+			textcolor(monstcnt+2);
+			PLOT(mptr->ypos, mptr->xpos, monst_names[monstcnt]);
+			textcolor(WHITE);
 			mptr->xdpos = mptr->xpos;
 			mptr->ydpos = mptr->ypos;
 		};
@@ -1837,7 +1963,9 @@ static void pacman()
 	};
 	if (killflg != TURKEY)
 	{
+		textcolor(YELLOW);
 		PLOT(pacptr->ypos, pacptr->xpos, pacsymb | pflash);
+		textcolor(WHITE);
 	};
 	refresh();
 }
