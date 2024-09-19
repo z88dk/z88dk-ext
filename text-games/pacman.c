@@ -13,25 +13,25 @@
 
 // TODO: shrink or disable extra text to fit in 40 (or 64) columns
 
-// ZX Spectrum, (VT-ANSI terminal type)
-// zcc +zx -clib=ansi -lndos -create-app -pragma-define:ansicolumns=80 pacman.c
+// ZX Spectrum, (VT-ANSI terminal type pr generic console)
+// zcc +zx -clib=ansi -lndos -DHAVE_CLOCK -lndos -create-app -pragma-define:ansicolumns=80 pacman.c
+// zcc +zx -lndos -create-app -DNO_80COL -DHAVE_CLOCK -clib=ansi -pragma-define:ansicolumns=40 pacman.c
+// zcc +zx -lndos -create-app -DNO_80COL -DHAVE_CLOCK pacman.c
 
 // NCR Decision Mate V, Sanyo MBC-200, Otrona Attachè
 // zcc +cpm  -create-app -subtype=dmv --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=mbc200 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=attache --generic-console pacman.c
 
-// Excalibur 64 (colour)
+// Excalibur 64, NEC PC8801 (colour)
 // zcc +cpm  -create-app -subtype=excali64 --generic-console pacman.c
+// zcc +pc88 -create-app --generic-console  -subtype=disk pacman.c
 
 
-
-//#include <getopt.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <conio.h>
-//#include <unistd.h>
 //#include <curses.h>
 
 
@@ -40,8 +40,7 @@
 
 #define napms(a) msleep(a)
 
-#define refresh() {}
-
+//#define refresh() {}   // curses stuff
 
 /* dfp #define POS(row,col)    fputs(tgoto(vs_cm,(col),(row)),stdout)*/
 /* #define POS(row,col)	tputs(tgoto(vs_cm,(col),(row)),1,putch) */
@@ -56,7 +55,8 @@
 #define GAME3	'3'
 
 #ifdef HAVE_FILES
-#define MAXSCORE	"/var/games/pacman.log"
+//#define MAXSCORE	"/var/games/pacman.log"
+#define MAXSCORE	"pacman.log"
 #endif
 
 #define MSSAVE	5	/* maximum scores saved per game type */
@@ -94,7 +94,7 @@
 #define	VACANT		' '	/* space */
 
 #ifdef __DMV__
-#define	WALL		128
+#define	WALL		127
 #else
 #define	WALL		'#'
 #endif
@@ -155,17 +155,6 @@ struct	pac
 };
 
 int  which(struct pac *, int, int);
-
-
-
-/* util.c */
-//extern void syncscreen();
-//extern void reinit();   ***** ?
-//extern void errgen(char *);
-int  dokill(int);
-void init();
-void pollch(int);
-
 
 
 /*
@@ -452,7 +441,8 @@ struct scorebrd
 void leave();
 
 
-
+//------------------------------------------------
+#ifndef NO_MOVIE
 
 /*
  * "Movie" routine for Mark Horton's version of PACMAN which uses the
@@ -483,166 +473,205 @@ char *bigmonster[] = {
 
 static void left1(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "_____    \n"); 
 	SPLOT(11, 0, "     \\   \n");
 	SPLOT(12, 0, " O O |   \n"); 
 	SPLOT(13, 0, "^v^v^v   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void left2(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "____    \n"); 
 	SPLOT(11, 0, "    \\   \n");
 	SPLOT(12, 0, "O O |   \n"); 
  	SPLOT(13, 0, "v^v^v   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void left3(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "___    \n"); 
 	SPLOT(11, 0, "   \\   \n");
 	SPLOT(12, 0, " O |   \n"); 
 	SPLOT(13, 0, "^v^v   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void left4(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "__    \n"); 
 	SPLOT(11, 0, "  \\   \n");
 	SPLOT(12, 0, "O |   \n"); 
 	SPLOT(13, 0, "v^v   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void left5(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "_    \n"); 
 	SPLOT(11, 0, " \\   \n");
 	SPLOT(12, 0, " |   \n"); 
 	SPLOT(13, 0, "^v   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void left6(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "    \n"); 
 	SPLOT(11, 0, "\\   \n");
 	SPLOT(12, 0, "|   \n"); 
 	SPLOT(13, 0, "v   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void left7(void)
 {
+	textcolor(RED);
 	SPLOT(10, 0, "   \n"); 
 	SPLOT(11, 0, "   \n");
 	SPLOT(12, 0, "   \n"); 
 	SPLOT(13, 0, "   \n");
-	refresh();
+	textcolor(WHITE);
+	//refresh();
 }
 
 static void right1(void)
 {
-	SPLOT(10, 69, "   _____ "); 
-	SPLOT(11, 69, "  /     \\");
-	SPLOT(12, 69, "  | O O |"); 
-	SPLOT(13, 69, "  v^v^v^v");
+	textcolor(RED);
+	SPLOT(10, vs_cols-11, "   _____ "); 
+	SPLOT(11, vs_cols-11, "  /     \\");
+	SPLOT(12, vs_cols-11, "  | O O |"); 
+	SPLOT(13, vs_cols-11, "  v^v^v^v");
+	textcolor(WHITE);
 }
 
 static void right2(void)
 {
-	SPLOT(10, 70, "   _____"); 
-	SPLOT(11, 70, "  /     ");
-	SPLOT(12, 70, "  | O O "); 
-	SPLOT(13, 70, "  v^v^v^");
+	textcolor(RED);
+	SPLOT(10, vs_cols-10, "   _____"); 
+	SPLOT(11, vs_cols-10, "  /     ");
+	SPLOT(12, vs_cols-10, "  | O O "); 
+	SPLOT(13, vs_cols-10, "  v^v^v^");
+	textcolor(WHITE);
 }
 
 static void right3(void)
 {
-	SPLOT(10, 71, "   ____"); 
-	SPLOT(11, 71, "  /    ");
-	SPLOT(12, 71, "  | O O"); 
-	SPLOT(13, 71, "  v^v^v");
+	textcolor(RED);
+	SPLOT(10, vs_cols-9, "   ____"); 
+	SPLOT(11, vs_cols-9, "  /    ");
+	SPLOT(12, vs_cols-9, "  | O O"); 
+	SPLOT(13, vs_cols-9, "  v^v^v");
+	textcolor(WHITE);
 }
 
 static void right4(void)
 {
-	SPLOT(10, 72, "   ___"); 
-	SPLOT(11, 72, "  /   ");
-	SPLOT(12, 72, "  | O "); 
-	SPLOT(13, 72, "  v^v^");
+	textcolor(RED);
+	SPLOT(10, vs_cols-8, "   ___"); 
+	SPLOT(11, vs_cols-8, "  /   ");
+	SPLOT(12, vs_cols-8, "  | O "); 
+	SPLOT(13, vs_cols-8, "  v^v^");
+	textcolor(WHITE);
 }
 
 static void right5(void)
 {
-	SPLOT(10, 73, "   __"); 
-	SPLOT(11, 73, "  /  ");
-	SPLOT(12, 73, "  | O"); 
-	SPLOT(13, 73, "  v^v");
+	textcolor(RED);
+	SPLOT(10, vs_cols-7, "   __"); 
+	SPLOT(11, vs_cols-7, "  /  ");
+	SPLOT(12, vs_cols-7, "  | O"); 
+	SPLOT(13, vs_cols-7, "  v^v");
+	textcolor(WHITE);
 }
 
 static void right6(void)
 {
-	SPLOT(10, 74, "   _"); 
-	SPLOT(11, 74, "  / ");
-	SPLOT(12, 74, "  | "); 
-	SPLOT(13, 74, "  v^");
+	textcolor(RED);
+	SPLOT(10, vs_cols-6, "   _"); 
+	SPLOT(11, vs_cols-6, "  / ");
+	SPLOT(12, vs_cols-6, "  | "); 
+	SPLOT(13, vs_cols-6, "  v^");
+	textcolor(WHITE);
 }
 
 static void right7(void)
 {
-	SPLOT(10, 75, "   "); 
-	SPLOT(11, 75, "  /");
-	SPLOT(12, 75, "  |"); 
-	SPLOT(13, 75, "  v");
+	textcolor(RED);
+	SPLOT(10, vs_cols-5, "   "); 
+	SPLOT(11, vs_cols-5, "  /");
+	SPLOT(12, vs_cols-5, "  |"); 
+	SPLOT(13, vs_cols-5, "  v");
+	textcolor(WHITE);
 }
 
 static void right8(void)
 {
-	SPLOT(10, 76, " ");
-	SPLOT(11, 76, " ");
-	SPLOT(12, 76, " ");
-	SPLOT(13, 76, " ");
+	textcolor(RED);
+	SPLOT(10, vs_cols-4, " ");
+	SPLOT(11, vs_cols-4, " ");
+	SPLOT(12, vs_cols-4, " ");
+	SPLOT(13, vs_cols-4, " ");
+	textcolor(WHITE);
 }
 
 static void right9(void)
 {
-	SPLOT(10, 77, " ");
-	SPLOT(11, 77, " ");
-	SPLOT(12, 77, " ");
-	SPLOT(13, 77, " ");
+	textcolor(RED);
+	SPLOT(10, vs_cols-3, " ");
+	SPLOT(11, vs_cols-3, " ");
+	SPLOT(12, vs_cols-3, " ");
+	SPLOT(13, vs_cols-3, " ");
+	textcolor(WHITE);
 }
 
 static void monst7(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT(10, xxx, "     <");
+	textcolor(WHITE);
 }
 
 static void monst6(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT( 9, xxx, "     /");
 	SPLOT(10, xxx, "    < ");
 	SPLOT(11, xxx, "     \\");
+	textcolor(WHITE);
 }
 
 static void monst5(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT( 8, xxx, "     /");
 	SPLOT( 9, xxx, "    / ");
 	SPLOT(10, xxx, "   <  ");
 	SPLOT(11, xxx, "    \\ ");
 	SPLOT(12, xxx, "     \\");
+	textcolor(WHITE);
 }
 
 static void monst4(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT( 7, xxx, "     /");
 	SPLOT( 8, xxx, "    / ");
 	SPLOT( 9, xxx, "   /  ");
@@ -650,11 +679,13 @@ int xxx;
 	SPLOT(11, xxx, "   \\   ");
 	SPLOT(12, xxx, "    \\  ");
 	SPLOT(13, xxx, "     \\ ");
+	textcolor(WHITE);
 }
 
 static void monst3(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT(7 , xxx, "    / ");
 	SPLOT(8 , xxx, "   /  ");
 	SPLOT(9 , xxx, "  /   ");
@@ -662,11 +693,13 @@ int xxx;
 	SPLOT(11, xxx, "  \\   ");
 	SPLOT(12, xxx, "   \\  ");
 	SPLOT(13, xxx, "    \\ ");
+	textcolor(WHITE);
 }
 
 static void monst2(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT( 7, xxx, "   / ");
 	SPLOT( 8, xxx, "  /  ");
 	SPLOT( 9, xxx, "     ");
@@ -674,11 +707,13 @@ int xxx;
 	SPLOT(11, xxx, "     ");
 	SPLOT(12, xxx, "  \\  ");
 	SPLOT(13, xxx, "   \\ ");
+	textcolor(WHITE);
 }
 
 static void monst1(xxx)
 int xxx;
 {
+	textcolor(YELLOW);
 	SPLOT( 7, xxx, "  / ");
 	SPLOT( 8, xxx, "    ");
 	SPLOT( 9, xxx, "    ");
@@ -686,6 +721,7 @@ int xxx;
 	SPLOT(11, xxx, "    ");
 	SPLOT(12, xxx, "    ");
 	SPLOT(13, xxx, "  \\ ");
+	textcolor(WHITE);
 }
 
 void movie(void)
@@ -693,23 +729,26 @@ void movie(void)
 	int i, j;
 
 	clrscr();
-	refresh();
+	//refresh();
 
 	/*
 	 * this loop moves the monster and the small pacman from right to
 	 * left, until it's time to start printing "fractional" monsters
 	 */
-	for (i=70; i > (-1); i--) {
+	for (i=vs_cols-10; i > (-1); i--) {
+		textcolor(RED);
 		for (j=0; j < 4; j++) {
 			SPLOT((j+10), i, bigmonster[j]);
 		}
+		textcolor(YELLOW);
 		if (i > 20) {
 			SPLOT(13, (i-20), "> ");
 		}
 		else {
 			SPLOT(13, 1, " ");
 		}
-		refresh();
+		textcolor(WHITE);
+		//refresh();
 	}
 
 	/*
@@ -734,10 +773,12 @@ void movie(void)
 	 * routines for drawing pieces of the pacman, until the whole thing
 	 * is on the screen.
 	 */
-	for (i=0; i < 70; i++) {
+	for (i=0; i < vs_cols-10; i++) {
+		textcolor(RED);
 		for(j=0; j < 4; j++) {
 			SPLOT((j+10), i, bigmonster[j]);
 		}
+		textcolor(WHITE);
 		if (i > 20) {
 			switch(i) {
 			case 21:
@@ -754,63 +795,67 @@ void movie(void)
 				break;
 			}
 		}
-		refresh();
+		//refresh();
 	}
 	/*
 	 * right1-right9 are partial monster routines, for moving him off to
 	 * the right of the screen.  monst4 prints the whole pacman.
 	 */
-	right1(); monst4(50); refresh();
-	right2(); monst4(51); refresh();
-	right3(); monst4(52); refresh();
-	right4(); monst4(53); refresh();
-	right5(); monst4(54); refresh();
-	right6(); monst4(55); refresh();
-	right7(); monst4(56); refresh();
-	right8(); monst4(57); refresh();
-	right9(); monst4(58); refresh();
+	right1(); monst4(vs_cols-30); //refresh();
+	right2(); monst4(vs_cols-29); //refresh();
+	right3(); monst4(vs_cols-28); //refresh();
+	right4(); monst4(vs_cols-27); //refresh();
+	right5(); monst4(vs_cols-26); //refresh();
+	right6(); monst4(vs_cols-25); //refresh();
+	right7(); monst4(vs_cols-24); //refresh();
+	right8(); monst4(vs_cols-23); //refresh();
+	right9(); monst4(vs_cols-22); //refresh();
 
 	/* Now finish moving the pacman to the end of the screen.  */
-	for (i=59; i < 74; i++) {
+	for (i=vs_cols-21; i < vs_cols-6; i++) {
 		monst4(i);
-		refresh();
+		//refresh();
 	}
 
 	/* monst5-monst7 print pieces of pacman as he moves off the screen */
-	monst5(74); refresh();
-	monst6(75); refresh();
-	monst7(76); refresh();
+	monst5(vs_cols-6); //refresh();
+	monst6(vs_cols-5); //refresh();
+	monst7(vs_cols-4); //refresh();
 
 	/* clean up a little bit */
 	clrscr();
-	refresh();
+	//refresh();
 }
 
-
+#endif
+//------------------------------------------------
 
 
 void beep() {
 	fputc_cons(7);
 }
 
+char	str[10];
 
+#ifndef NO_80COL
 void update()
 {
-	char	str[10];
-
 	sprintf(str, "%6d", pscore);
 	SPLOT(0, 52, str);
 	sprintf(str, "%6d", goldcnt);
 	SPLOT(21, 57, str);
 }
+#endif
 
 void reinit()
 {
 	int locx, locy;
 	char tmp;
 
+#ifndef NO_MOVIE
 	if (boardcount % 2 == 0)
 		movie();
+#endif
 	for (locy = 0; locy < BRDY; locy++)
 	{
 		for (locx = 0; locx < BRDX; locx++)
@@ -828,11 +873,13 @@ void reinit()
 	boardcount++;
 }
 
+#ifndef NO_80COL
 void errgen(string)
 char	*string;
 {
 	SPLOT(23,45,string);
 }
+#endif
 
 int dokill(mnum)
 	int mnum;
@@ -855,9 +902,11 @@ int dokill(mnum)
 			killcnt = 0;
 			treascnt = potintvl;
 		}
+#ifndef NO_80COL
 		SPLOT(5, 45, "MONSTERS KILLED: ");
 		sprintf(message, "%1d", killcnt);
 		SPLOT(5, 62, message);
+#endif
 		mptr = (&monst[mnum]);
 		mptr->ypos = MSTARTY;
 		mptr->xpos = MSTARTX + (2 * mnum);
@@ -876,10 +925,12 @@ int dokill(mnum)
 		}
 		pscore += bscore;
 		bcount = BINTVL;
+#ifndef NO_80COL
 		sprintf(msgbuf, "BONUS: %4d", bscore);
 		SPLOT(7, 45, msgbuf);
 		sprintf(msgbuf, "You got %s!\n", full_names[mnum]);
 		SPLOT(4, 45, msgbuf);
+#endif
 		return(GOTONE);
 	};
 	wmonst = mnum;
@@ -903,7 +954,8 @@ void instruct()
 {
 	clr();
 	POS(0, 0);
-	printf("Attention: you are in a maze, being chased by monsters!\n\n");
+	printf("Attention: you are in a maze,\nbeing chased by monsters!\n\n");
+#ifndef NO_80COL
 	printf("There is food scattered uniformly in the maze, marked by \".\".\n");
 	printf("One magic potion is available at each spot marked \"O\". Each potion will\n");
 	printf("enable you to eat monsters for a limited duration. It will also\n");
@@ -912,16 +964,17 @@ void instruct()
 	printf("results in further treasure appearing magically somewhere in the dungeon,\n");
 	printf("marked by \"$\". There is a magic tunnel connecting the center left and\n");
 	printf("center right parts of the dungeon. The monsters know about it!\n\n");
-	printf("        Type:   h or s  to move left\n");
-	printf("                l or f  to move right\n");
-	printf("                k or e  to move up\n");
-	printf("                j or c  to move down\n");
-	printf("                <space> to halt \n");
-	printf("                q       to quit\n\n");
-	printf("        Type:   1       easy game\n");
-	printf("                2       intelligent monsters\n");
-	printf("                3       very intelligent monsters\n");
-	refresh();
+#endif
+	printf("  Type:   h or s  to move left\n");
+	printf("          l or f  to move right\n");
+	printf("          k or e  to move up\n");
+	printf("          j or c  to move down\n");
+	printf("          <space> to halt \n");
+	printf("          q       to quit\n\n");
+	printf("  Type:   1  easy game\n");
+	printf("          2  intelligent monsters\n");
+	printf("          3  very intelligent monsters\n");
+	//refresh();
 }
 
 /*
@@ -938,7 +991,7 @@ void over(int signo)
 	int i;
 
 	//signo;
-	refresh();
+	//refresh();
 	//signal(SIGINT, SIG_IGN);
 	/* high score to date processing */
 	if (game != 0)
@@ -947,6 +1000,8 @@ void over(int signo)
 		line = 10;
 		POS(line++, col);
 		printf(" ___________________________ ");
+		POS(line++, col);
+		printf("|                           |");
 		POS(line++, col);
 		printf("| G A M E   O V E R         |");
 		POS(line++, col);
@@ -1009,7 +1064,7 @@ void over(int signo)
 	};
 
 
-	refresh();
+	//refresh();
 	leave();
 }
 
@@ -1022,73 +1077,11 @@ void leave()
 {
 	//leaveok(stdscr, FALSE);
 	POS(23, 0);
-	refresh();
+	//refresh();
 //	endwin();
 	exit(0);
 }
 
-
-
-/*
- * init -- does global initialization and spawns a child process to read
- *      the input terminal.
- */
-
-void init()
-{
-	int tries = 0;
-
-	//errno = 0;
-	//() time(&timein);	/* get start time */
-	//srand((unsigned)timein);	/* start rand randomly */
-	srand(clock());	/* start rand randomly */
-	//signal(SIGINT, over);
-	//signal(SIGQUIT, over);
-
-	/* Curses init - could probably eliminate much of stuff below */
-	//initscr();
-	//if ((start_color()) == OK)
-	//{
-	//     init_pair (1, COLOR_YELLOW, COLOR_BLUE);
-	//     init_pair (2, COLOR_BLUE, COLOR_YELLOW);
-	//     init_pair (3, COLOR_YELLOW, COLOR_GREEN);
-	//     init_pair (4, COLOR_MAGENTA, COLOR_CYAN);
-	//     init_pair (5, COLOR_YELLOW, COLOR_RED);
-	//}
-	//noecho();
-	//crmode();
-	//nonl();
-	//leaveok(stdscr, TRUE);
-	//keypad(stdscr, TRUE);
-	//nodelay(stdscr, TRUE);
-
-	//vs_rows = LINES;
-	//vs_cols = COLS;
-
-	screensize(&vs_cols,&vs_rows);
-
-	if (delay == 0)
-		delay = 500;	/* number of ticks per turn */
-
-	/*
-	 * New game starts here
-	 */
-	if (game == 0)
-		instruct();
-	while ((game == 0) && (tries++ < 300))
-	{
-		napms(100);
-		pollch(1);
-	};
-	if (tries >= 300)
-	{
-		/* I give up. Let's call it quits. */
-		leave();
-	};
-	goldcnt = GOLDCNT;
-	pscore = 0;
-	clr();
-}
 
 /*
  * poll -- read characters sent by input subprocess and set global flags
@@ -1098,16 +1091,26 @@ void pollch(int sltime)
 {
 	int stop;
 	int c;
+	int clk;
 
 //	sltime;
 	stop = 0;
 readin:
 
-	refresh();
+	//refresh();
 	if (bufstat == EMPTY) {
-		if (sltime == 1)
+		if (sltime == 1) {
+#ifdef HAVE_CLOCK
 		  c = fgetc_cons();
-		else
+#else
+		  do {
+			  c = getk();
+			  clk++;
+		  }
+		  while (c == 0);
+		  srand(clk);
+#endif
+		} else
 		  c = getk();
 		//if (c < 0) {
 		if (c == 0) {
@@ -1209,25 +1212,91 @@ unsigned int getrand(range)
 }
 
 
-#define FIRSTMSGLINE	13
-#define LASTMSGLINE	13
-/*
- * This function is convenient for debugging pacman.  It isn't used elsewhere.
- * It's like printf and prints in a window on the right hand side of the screen.
- */
-void msgf(fmt, arg1, arg2, arg3, arg4)
-char *fmt;
-int arg1, arg2, arg3, arg4;
-{
-	char msgbuf[100];
-	static char msgline = FIRSTMSGLINE;
 
-	sprintf(msgbuf, fmt, arg1, arg2, arg3, arg4);
-	SPLOT(msgline, 45, msgbuf);
-	if (++msgline > LASTMSGLINE)
-		msgline = FIRSTMSGLINE;
+/*
+ * init -- does global initialization and spawns a child process to read
+ *      the input terminal.
+ */
+
+void init()
+{
+	int tries = 0;
+
+	//errno = 0;
+	//() time(&timein);	/* get start time */
+	//srand((unsigned)timein);	/* start rand randomly */
+#ifdef HAVE_CLOCK
+	srand(clock());	/* start rand randomly */
+#endif
+	//signal(SIGINT, over);
+	//signal(SIGQUIT, over);
+
+	/* Curses init - could probably eliminate much of stuff below */
+	//initscr();
+	//if ((start_color()) == OK)
+	//{
+	//     init_pair (1, COLOR_YELLOW, COLOR_BLUE);
+	//     init_pair (2, COLOR_BLUE, COLOR_YELLOW);
+	//     init_pair (3, COLOR_YELLOW, COLOR_GREEN);
+	//     init_pair (4, COLOR_MAGENTA, COLOR_CYAN);
+	//     init_pair (5, COLOR_YELLOW, COLOR_RED);
+	//}
+	//noecho();
+	//crmode();
+	//nonl();
+	//leaveok(stdscr, TRUE);
+	//keypad(stdscr, TRUE);
+	//nodelay(stdscr, TRUE);
+
+	//vs_rows = LINES;
+	//vs_cols = COLS;
+
+	screensize(&vs_cols,&vs_rows);
+
+	if (delay == 0)
+		delay = 500;	/* number of ticks per turn */
+
+	/*
+	 * New game starts here
+	 */
+	if (game == 0)
+		instruct();
+	while ((game == 0) && (tries++ < 300))
+	{
+		napms(100);
+		pollch(1);
+	};
+	if (tries >= 300)
+	{
+		/* I give up. Let's call it quits. */
+		leave();
+	};
+	goldcnt = GOLDCNT;
+	pscore = 0;
+	clr();
 }
 
+
+
+// #define FIRSTMSGLINE	13
+// #define LASTMSGLINE	13
+// /*
+//  * This function is convenient for debugging pacman.  It isn't used elsewhere.
+//  * It's like printf and prints in a window on the right hand side of the screen.
+//  */
+// void msgf(fmt, arg1, arg2, arg3, arg4)
+// char *fmt;
+// int arg1, arg2, arg3, arg4;
+// {
+// 	char msgbuf[100];
+// 	static char msgline = FIRSTMSGLINE;
+// 
+// 	sprintf(msgbuf, fmt, arg1, arg2, arg3, arg4);
+// 	SPLOT(msgline, 45, msgbuf);
+// 	if (++msgline > LASTMSGLINE)
+// 		msgline = FIRSTMSGLINE;
+// }
+// 
 
 
 void startmonst()
@@ -1354,7 +1423,9 @@ void monster(mnum)
 			break;
 
 		default:
-			//errgen("bad direction");
+#ifndef NO_80COL
+			errgen("bad direction");
+#endif
 			break;
 		};
 	}
@@ -1603,6 +1674,7 @@ char **argv;
 		}
 	
 	init();		/* global init */
+
 	for (pac_cnt = MAXPAC; pac_cnt > 0; pac_cnt--)
 	{
 redraw:
@@ -1611,6 +1683,8 @@ redraw:
 		treascnt = 0;
 		bcount = 0;
 		potion = FALSE;
+
+#ifndef NO_80COL
 		SPLOT(0, 45, "SCORE: ");
 		sprintf(msgbuf, "GAME: %s",	game==1 ? "EASY" :
 							game==2 ? "MEDIUM" :
@@ -1619,6 +1693,7 @@ redraw:
 		SPLOT(21, 45, "food left = ");
 		sprintf(gcnt, "%6d", goldcnt);
 		SPLOT(21, 57, gcnt);
+#endif
 
 		/*
 		 * We update the monsters every monst_often turns, to keep
@@ -1633,17 +1708,22 @@ redraw:
 		if (monst_often < 1)
 			monst_often = 1;
 
+#ifndef NO_80COL
 		if (potion == TRUE)
 		{
 			SPLOT(3, 45, "COUNTDOWN: ");
 			sprintf(message, "%2d", potioncnt);
 			SPLOT(3, 60, message);
 		};
+#endif
+
 		pacsymb = PACMAN;
 		killflg = FALSE;
+#ifndef NO_80COL
 		sprintf(message,
 			"delay = %3d, syncscreen = %3d", delay, monst_often);
 		SPLOT(22, 45, message);
+#endif
 		/*
 		 * PLOT maze
 		 */
@@ -1679,8 +1759,10 @@ redraw:
 			mptr->ydpos = mptr->ypos;
 		};
 		rounds = 0;	/* timing mechanism */
+#ifndef NO_80COL
 		update();
-		refresh();
+#endif
+		//refresh();
 		tries = 0;
 		while ((pacptr->dirn == DNULL) && (tries++ < 300))
 		{
@@ -1718,15 +1800,19 @@ redraw:
 				break;
 			if (potion == TRUE)
 			{
+#ifndef NO_80COL
 				sprintf(message, "%2d", potioncnt);
 				SPLOT(3, 60, message);
+#endif
 				if (potioncnt == 10 || potioncnt < 5)
 					beep();
 				if (--potioncnt <= 0)
 				{
+#ifndef NO_80COL
 					SPLOT(3,45,"                        ");
 					SPLOT(4,45,"                        ");
 					SPLOT(5,45,"                        ");
+#endif
 					potion = FALSE;
 					pacptr->speed = SLOW;
 					pacptr->danger = FALSE;
@@ -1736,36 +1822,59 @@ redraw:
 					}
 				}
 			}
+#ifndef NO_80COL
 			if (bcount && --bcount == 0) {
 				SPLOT(7,45,"                   ");
 			}
+#endif
 			if (treascnt && --treascnt == 0) {
 				display[TRYPOS][TRXPOS] = VACANT;
 				PLOT(TRYPOS, TRXPOS, VACANT);
 			}
+#ifndef NO_80COL
 			if (rounds % monst_often == 0)
 				update();	/* score display etc */
-			refresh();
+#endif
+			//refresh();
 			if (goldcnt <= 0)
 			{
 				potintvl -= 5;
 				if (potintvl <= 0)
 					potintvl = 5;
-				//reinit();
+				reinit();
 				goto redraw;
 			};
 		} while (killflg != TURKEY);
+#ifndef NO_80COL
 		sprintf(msgbuf, "Oops!  %s got you!\n", full_names[wmonst]);
 		SPLOT(5, 45, msgbuf);
+#endif
 		//flushinp();
 		getk();  //  throws away any typeahead that has been typed by the user and has not yet been read by the program.
-		refresh();
+		//refresh();
 		sleep(2);
 	}
+#ifndef NO_80COL
 	SPLOT(8, 45, "THE MONSTERS ALWAYS TRIUMPH");
 	SPLOT(9, 45, "IN THE END!");
 	update();
-	refresh();
+#else
+
+	clrscr();
+
+	sprintf(msgbuf, "Oops!  %s got you!\n", full_names[wmonst]);
+	SPLOT(5, 5, msgbuf);
+
+	SPLOT(8, 5, "THE MONSTERS ALWAYS TRIUMPH");
+	SPLOT(9, 5, "IN THE END!");
+
+	SPLOT(0, 5, "SCORE: ");
+	sprintf(str, "%6d", pscore);
+	SPLOT(0, 12, str);
+	sprintf(str, "%6d", goldcnt);
+	SPLOT(21, 17, str);
+#endif
+	//refresh();
 	over(0);
 }
 
@@ -1778,7 +1887,7 @@ static void pacman()
 	int tmpx, tmpy;
 	int bscore;
 
-	refresh();
+	//refresh();
 
 	/* pause; this is the main delay on each turn */
 	napms(delay);
@@ -1931,13 +2040,17 @@ static void pacman()
 			case 9: case 10: bscore = 2000; break;
 		}
 		pscore += bscore;
+#ifndef NO_80COL
 		sprintf(msgbuf, "BONUS: %4d", bscore);
 		SPLOT(7, 45, msgbuf);
+#endif
 		bcount = BINTVL;
 		break;
 
 	case POTION:
+#ifndef NO_80COL
 		SPLOT(3, 45, "COUNTDOWN: ");
+#endif
 		potion = TRUE;
 		potioncnt = potintvl;
 		monsthere = 0;
@@ -1968,6 +2081,6 @@ static void pacman()
 		PLOT(pacptr->ypos, pacptr->xpos, pacsymb | pflash);
 		textcolor(WHITE);
 	};
-	refresh();
+	//refresh();
 }
 
