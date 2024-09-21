@@ -335,21 +335,28 @@ char runner_names[] = "bipc";
 #endif
 
 
+#ifdef __PC88__
+#define	WALL2		134
+#undef	PACMAN
+#define	PACMAN		236
+#undef	CUP
+#define CUP	150
+#undef	CDOWN
+#define CDOWN	150
+#endif
+
 #ifdef __DMV__
-#undef WALL	
-#define	WALL		127 // in octal = 177
+#define	WALL2		127 // in octal = 177
 #endif
 
 #ifdef __SANYO__
-#undef  WALL	
-#define	WALL		146  // in octal = 222
+#define	WALL2		146  // in octal = 222
 #undef	PACMAN
 #define	PACMAN		249
 #endif
 
 #ifdef USE_UDGS
-#undef WALL	
-#define	WALL		128  // in octal = 222
+#define	WALL2		128  // in octal = 222
 #endif
 
 
@@ -1719,13 +1726,14 @@ int which(mptr, x, y)	/* which directions are available ? */
 }
 
 
+#ifdef WALL2
 char* replacechar(char *str, char orig, char rep) {
     char *ix = str;
     while((ix = strchr(ix, orig)) != NULL)
         *ix++ = rep;
     return str;
 }
-
+#endif
  
 /*
  * global variables
@@ -1863,7 +1871,9 @@ redraw:
 		textcolor(BLUE);
 		for (tmp = 0; tmp < BRDY; tmp++)
 		{
-			replacechar(&(display[tmp][0]),'#',WALL);
+#ifdef WALL2
+			replacechar(&(display[tmp][0]),'#',WALL2);
+#endif
 			SPLOT(tmp, 0, &(display[tmp][0]));
 		};
 		/* initialize a pacman */
