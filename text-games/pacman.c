@@ -42,6 +42,10 @@
 // C128 in 40 columns mode, UDG and redefined font (keyboard scanning stil hangs the game)
 // zcc +c128 -create-app -DNO_80COL -clib=gencon -DUSE_UDGS pacman.c
 
+// Xerox 820 (in 40 columns to deal with memory limits)
+// zcc +cpm  -create-app -subtype=x820 --generic-console -DNO_80COL pacman.c
+
+ 
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -353,6 +357,12 @@ char runner_names[] = "bipc";
 #define	WALL2		146  // in octal = 222
 #undef	PACMAN
 #define	PACMAN		249
+#endif
+
+#ifdef __X820__
+#define	WALL2		141   // 129 for a full block
+#undef	PACMAN
+#define	PACMAN		152   // try also 156 or 159
 #endif
 
 #ifdef USE_UDGS
@@ -1777,8 +1787,9 @@ char **argv;
 	int tries;
 	int c;
 
-// Debugging, print the special characters available
-//for (c=128;c<=255;c++) printf("%c - %d\t",c,c);
+// Debugging, print the special characters available to look for the nice ones
+// fputc_cons(12);
+// for (c=128;c<=255;c++) printf("%c-%d   ",c,c);
 //	while(1){};
 
 	game = 0;
