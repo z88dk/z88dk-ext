@@ -27,10 +27,13 @@
 // zcc +zx -lndos -create-app -DNO_80COL -DHAVE_CLOCK -clib=ansi -pragma-define:ansicolumns=40 pacman.c
 // zcc +zx -lndos -create-app -DNO_80COL -DHAVE_CLOCK pacman.c
 
-// NCR Decision Mate V, Sanyo MBC-200, Otrona Attachè
-// zcc +cpm  -create-app -subtype=dmv --generic-console pacman.c
+// NCR Decision Mate V, Kaypro, Sanyo, Otrona Attachè, Televideo..
+// zcc +cpm  -create-app -subtype=dmv -DUSE_CHR127 --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=kaypro83 -DUSE_CHR127 --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=kaypro84 -DUSE_CHR127 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=mbc200 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=attache --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=televideo --generic-console pacman.c
 
 // Excalibur 64, NEC PC8801 (colour)
 // zcc +cpm  -create-app -subtype=excali64 -DUSE_UDGS --generic-console pacman.c
@@ -349,7 +352,7 @@ char runner_names[] = "bipc";
 #define CDOWN	150
 #endif
 
-#ifdef __DMV__
+#ifdef USE_CHR127
 #define	WALL2		127 // in octal = 177
 #endif
 
