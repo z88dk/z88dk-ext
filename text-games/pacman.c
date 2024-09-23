@@ -35,9 +35,14 @@
 // zcc +cpm  -create-app -subtype=attache --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=televideo --generic-console pacman.c
 
-// Excalibur 64, NEC PC8801 (colour)
+// CP/M on Sharp MZ
+// zcc +cpm  -create-app -subtype=mz80 -DMZ80B --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=mz800 --generic-console pacman.c
+
+// Excalibur 64, NEC PC8801, BIC A5105 (colour)
 // zcc +cpm  -create-app -subtype=excali64 -DUSE_UDGS --generic-console pacman.c
 // zcc +pc88 -create-app --generic-console  -subtype=disk pacman.c
+// zcc +cpm  -create-app -subtype=bic --generic-console pacman.c
 
 // Visual 1050 (UDG)
 // zcc +cpm  -create-app -subtype=v1050 -DUSE_UDGS --generic-console pacman.c
@@ -341,6 +346,22 @@ char runner_names[] = "bipc";
 
 #endif
 
+#ifdef __SHARPMZ__
+#ifdef MZ80B
+#define	WALL2		160 // or 141
+#undef	PACMAN
+#define	PACMAN		147
+//#define CDOWN	129
+//#define CUP		130
+//#define CLEFT	131
+//#define CRIGHT	132
+#else
+// MZ ASCII classic
+#define	WALL2		208
+#undef	PACMAN
+#define	PACMAN		242
+ #endif
+#endif
 
 #ifdef __PC88__
 #define	WALL2		134
@@ -352,8 +373,13 @@ char runner_names[] = "bipc";
 #define CDOWN	150
 #endif
 
-#ifdef USE_CHR127
-#define	WALL2		127 // in octal = 177
+#ifdef __BIC__
+#undef	PACMAN
+#define	PACMAN		'*'
+#undef	CUP
+#define CUP	252
+#undef	CDOWN
+#define CDOWN	252
 #endif
 
 #ifdef __SANYO__
@@ -368,7 +394,17 @@ char runner_names[] = "bipc";
 #define	PACMAN		152   // try also 156 or 159
 #endif
 
+#ifdef USE_CHR127
+#ifdef	WALL2
+#undef WALL2
+#endif
+#define	WALL2		127 // in octal = 177
+#endif
+
 #ifdef USE_UDGS
+#ifdef	WALL2
+#undef WALL2
+#endif
 #define	WALL2		128  // in octal = 222
 #endif
 
@@ -1793,7 +1829,7 @@ char **argv;
 // Debugging, print the special characters available to look for the nice ones
 // fputc_cons(12);
 // for (c=128;c<=255;c++) printf("%c-%d   ",c,c);
-//	while(1){};
+// while(1){};
 
 	game = 0;
 	
