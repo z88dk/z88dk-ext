@@ -20,7 +20,7 @@
 
 
 
-// TODO: shrink or disable extra text to fit in 40 (or 64) columns
+// -DNO_80COL: shrinks or disables extra text to fit in less than 80 (at most 40) columns
 
 // ZX Spectrum, (VT-ANSI terminal type pr generic console)
 // zcc +zx -clib=ansi -lndos -DHAVE_CLOCK -lndos -create-app -pragma-define:ansicolumns=80 pacman.c
@@ -38,9 +38,13 @@
 // CP/M on Sharp MZ
 // zcc +cpm  -create-app -subtype=mz80 -DMZ80B --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=mz800 --generic-console pacman.c
+// zcc +mz2500  -create-app -DNO_80COL pacman.c
+// zcc +mz2500  -create-app -DSWITCH_MODE=1 pacman.c
+// zcc +cpm  -subtype=mz2500 -create-app --generic-console pacman.c
 
-// Excalibur 64, NEC PC8801, BIC A5105 (colour)
+// Excalibur 64, Sony SMC-777, NEC PC8801, BIC A5105 (colour)
 // zcc +cpm  -create-app -subtype=excali64 -DUSE_UDGS --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=smc777 -DUSE_UDGS --generic-console pacman.c
 // zcc +pc88 -create-app --generic-console  -subtype=disk pacman.c
 // zcc +cpm  -create-app -subtype=bic --generic-console pacman.c
 
@@ -361,6 +365,10 @@ char runner_names[] = "bipc";
 #undef	PACMAN
 #define	PACMAN		242
  #endif
+#endif
+
+#ifdef __MZ2500__
+#define	WALL2		254
 #endif
 
 #ifdef __PC88__
