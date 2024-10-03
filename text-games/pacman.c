@@ -27,13 +27,15 @@
 // zcc +zx -lndos -create-app -DNO_80COL -DHAVE_CLOCK -clib=ansi -pragma-define:ansicolumns=40 pacman.c
 // zcc +zx -lndos -create-app -DNO_80COL -DHAVE_CLOCK pacman.c
 
-// NCR Decision Mate V, Kaypro, Sanyo, Otrona Attachè, Televideo..
+// NCR Decision Mate V, Kaypro, Sanyo, Otrona Attachè, Televideo, EPSON QX10..
 // zcc +cpm  -create-app -subtype=dmv -DUSE_CHR127 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=kaypro83 -DUSE_CHR127 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=kaypro84 -DUSE_CHR127 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=mbc200 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=attache --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=televideo --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=qc10 --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=qc10m1 --generic-console pacman.c
 
 // CP/M on Sharp MZ
 // zcc +cpm  -create-app -subtype=mz80 -DMZ80B --generic-console pacman.c
@@ -400,6 +402,20 @@ char runner_names[] = "bipc";
 #define	WALL2		141   // 129 for a full block
 #undef	PACMAN
 #define	PACMAN		152   // try also 156 or 159
+#endif
+
+#ifdef __QX10__
+#define	WALL2		139
+#undef	PACMAN
+#define	PACMAN		143
+#undef	CUP
+#define CUP		134		// 230
+#undef	CDOWN
+#define CDOWN	134
+#undef	CLEFT
+#define CLEFT	133		// 229
+#undef	CRIGHT
+#define CRIGHT	133
 #endif
 
 #ifdef USE_CHR127
@@ -1836,7 +1852,7 @@ char **argv;
 
 // Debugging, print the special characters available to look for the nice ones
 // fputc_cons(12);
-// for (c=128;c<=255;c++) printf("%c-%d   ",c,c);
+// for (c=128;c<=255;c++) printf("%c %d   ",c,c);
 // while(1){};
 
 	game = 0;
