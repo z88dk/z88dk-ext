@@ -1,10 +1,16 @@
 ;   .Z80
 
 
+; How to build:
 ;    z88dk-z80asm -b -odate.com cpm3_date_y2k.asm
 
-; Example on to create a CP/M disk image
+; How to create a CP/M disk image:
+
+; Visual 1050 with CP/M Plus
 ;    z88dk-appmake +cpmdisk -f v1050 -b date.com
+
+; Epson QX-10 / QC-10 with CP/M Plus
+;    z88dk-appmake +cpmdisk -f qc10m1 -b date.com
 
 
 ; Y2K fixed DATE
