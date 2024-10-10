@@ -12,6 +12,8 @@
 ; Epson QX-10 / QC-10 with CP/M Plus
 ;    z88dk-appmake +cpmdisk -f qc10m1 -b date.com
 
+; TRS-80 Model 4 with CP/M Plus
+;    z88dk-appmake +cpmdisk -f m4cpm3 --container imd -b date.com
 
 ; Y2K fixed DATE
 ;
