@@ -29,8 +29,8 @@ DATES:	;Start here, folks
 
 	LD		c,12		; BDOS return version number
 	CALL	bdos
-	CP		031h		; Check that the right version of CP/M
-	JP		NZ,notcpm3
+	CP		024h		; Check that the version of CP/M is reasonably hight
+	JP		C,notcpm3
 	LD		A,H
 	OR		a
 
@@ -58,7 +58,7 @@ notcpm3:
 cpm3msg:
 ;;	defm	"Epson Time and Utility -"
 ;;	defm	" Requires CP/M + on Epson QX-10",0dH,0aH,0
-	defm	" Requires CP/M +",0dH,0aH,0
+	defm	" Requires CP/M + or MP/M II",0dH,0aH,0
 ;silly wally
 
 onwards_confidently:
