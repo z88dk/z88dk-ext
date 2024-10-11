@@ -12,6 +12,9 @@
 ; Epson QX-10 / QC-10 with CP/M Plus
 ;    z88dk-appmake +cpmdisk -f qc10m1 -b date.com
 
+; TRS-80 Model II with CP/M Plus
+;    z88dk-appmake +cpmdisk -f ptcpm --container imd -b date.com
+
 ; TRS-80 Model 4 with CP/M Plus
 ;    z88dk-appmake +cpmdisk -f m4cpm3 --container imd -b date.com
 
@@ -27,9 +30,10 @@
 
 org 100h
 
-DEFC SETTIME  =  68h 
-DEFC GETTIME  =  69h 
-;
+DEFC SETTIME  =  68h
+DEFC GETTIME  =  69h
+
+; Valuse for P2DOS
 ;;SETTIME EQU   201
 ;;GETTIME EQU   200
 ;
@@ -76,15 +80,15 @@ EXPLA:
     DEFB    CR,LF,CR,LF
     DEFM    "With this program you can get and set the current date and time"
     DEFB    CR,LF,CR,LF
-    DEFM    "usage :  'DATE'                   gives current date and time"
+    DEFM    "usage :  'DATE'                 gives current date and time"
     DEFB    CR,LF
-    DEFM    "         'DATE dd/mm/yy hh:mm:ss' sets current date and time"
+    DEFM    "         'DATE dd/mm/yy hh:mm'  sets current date and time"
     DEFB    CR,LF
-    DEFM    "         'DATE s{et}'             sets current date and time in dialog mode"
+    DEFM    "         'DATE s{et}'           sets current date and time in dialog mode"
     DEFB    CR,LF
-    DEFM    "         'DATE c{ontinuous}'      display date and time continuous"
+    DEFM    "         'DATE c{ontinuous}'    display date and time continuous"
     DEFB    CR,LF
-    DEFM    "         'DATE [HELP]'            display this help info"
+    DEFM    "         'DATE [HELP]'          display this help info"
     DEFB    '$'
 BVMES:  DEFM    "This is a CP/M program!",CR,LF,'$'
 
@@ -99,12 +103,11 @@ START0: CP  0
     CP  's'
     JP  Z,SET
     PUSH    HL
-    LD  DE,TIMEDT
-    LD  C,GETTIME
-    CALL    5
+    CALL  BDOS_GETTM
     POP HL
-    CALL    GETDAT
+    CALL    GETDAT  ; Check the result
     JP  C,ERROR
+
     PUSH    HL
     LD  L,E         ; YEAR
     LD  H,019H
@@ -129,9 +132,13 @@ START0: CP  0
     LD  (HOUR),A
     LD  A,C         ; MINUTE
     LD  (MINUTE),A
+
+
     LD  A,E         ; SECOND
     LD  (SECOND),A  
-START1: LD  DE,PRESS
+
+START1:
+    LD  DE,PRESS
     LD  C,9
     CALL    5
     LD  C,1
@@ -144,29 +151,26 @@ START1: LD  DE,PRESS
     LD  A,LF
     CALL    OUTCH
 ;   
-GET:    LD  DE,TIMEDT
-    LD  C,GETTIME
-    CALL    5
+GET:
+    CALL  BDOS_GETTM
+
     LD  BC,(TIMEDT)
-    CALL    DMJ
-    CALL    PRDMJ
+    CALL    DMY     ; CALCULATE YEAR,MONTH,DAY
+    CALL    PRDMY	; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
     JP  EXIT
 ;
-CONT:   LD  DE,TIMEDT
-    LD  C,GETTIME
-    CALL    5
+CONT:
+    CALL  BDOS_GETTM
     LD  BC,(TIMEDT)
-    CALL    DMJ
-    CALL    PRDMJ
+    CALL    DMY     ; CALCULATE YEAR,MONTH,DAY
+    CALL    PRDMY	; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
 CONT0:  LD  C,11
     CALL    5
     OR  A
     JR  NZ,CONT1
     LD  A,(SECOND)
     PUSH    AF
-    LD  DE,TIMEDT
-    LD  C,GETTIME
-    CALL    5
+    CALL  BDOS_GETTM
     POP AF
     LD  B,A
     LD  A,(SECOND)
@@ -257,7 +261,8 @@ SET0:   LD  A,0FFH
     LD  (MINUTE),A
     LD  A,E         ; SECOND
     LD  (SECOND),A  
-SET1:   LD  DE,TIMEDT
+SET1:
+    LD  DE,TIMEDT
     LD  C,SETTIME
     CALL    5
     JP  GET
@@ -278,9 +283,29 @@ ERRMSG: DEFM    "Error in data input"
 ;
 DATMSG: DEFM    "Enter today's date (DD/MM/YY): $"
 ;
-TIMMSG: DEFM    "Enter the time (HH:MM:SS): $"
+TIMMSG: DEFM    "Enter the time (HH:MM): $"
 ;
 PRESS:  DEFM    "Press any key to set time $"
+
+BDOS_GETTM:
+	XOR A
+	LD  (SECOND),A
+    LD  DE,TIMEDT
+    LD  C,GETTIME   ; Do we have the time services in BDOS ?
+    CALL    5       ; Try it
+	PUSH AF
+	; CP/M Plus sometimes puts the seconds in A.
+	; If A is in the range 1..59, we consider it good.
+	; Othewise we keep it clean, it may be zero or filled by the BDOS call
+	CP  60
+	JR  NC,NO_VALID_SEC
+	AND A
+	JR  Z,NO_VALID_SEC
+	LD  (SECOND),A
+NO_VALID_SEC:
+	POP AF			; We keep the flags, just in case
+    RET
+
 ;
 ; GET DATE
 ;
@@ -342,15 +367,16 @@ GETT0:  LD  A,(HL)
     RET C
     LD  C,E         ; MINUTE
     LD  E,0
-GETT1:  LD  A,(HL)
-    OR  A
-    RET Z
-    INC HL
-    CALL    DIGIT
-    JR  C,GETT1
-    DEC HL
-    CALL    NUMBER          ; SECOND
+;GETT1:  LD  A,(HL)
+;    OR  A
+;    RET Z
+;    INC HL
+;    CALL    DIGIT
+;    JR  C,GETT1
+;    DEC HL
+;    CALL    NUMBER          ; SECOND
     RET
+
 ;
 ; CHECK DATE
 ;
@@ -390,10 +416,10 @@ CHKTIM: LD  A,B
     LD  A,C
     CP  60H
     CCF
-    RET C
-    LD  A,E
-    CP  60H
-    CCF
+;    RET C
+;    LD  A,E
+;    CP  60H
+;    CCF
     RET
 ;
 ; CALCULATE DAYS
@@ -449,6 +475,7 @@ DAYS3:  INC HL
     JR  DAYS2
 DAYS4:  POP HL
     RET
+
 ;
 ; CALCULATE YEAR,MONTH,DAY
 ;  ENTRY : BC=DAYS
@@ -460,17 +487,18 @@ DAYS4:  POP HL
 ;          B =DAY OF WEEK (1..7, 1=SUNDAY)
 ;          C =DAYS (1..31)
 ;
-DMJ:    PUSH    BC
+DMY:
+    PUSH    BC
     LD  HL,1978
-DMJ0:   LD  DE,365
+DMY0:   LD  DE,365
     CALL    LEAPYR
-    JR  NZ,DMJ1
+    JR  NZ,DMY1
     INC DE
-DMJ1:   LD  A,E
+DMY1:   LD  A,E
     SUB C
     LD  A,D
     SBC A,B
-    JR  NC,DMJ2
+    JR  NC,DMY2
     LD  A,C
     SUB E
     LD  C,A
@@ -478,24 +506,24 @@ DMJ1:   LD  A,E
     SBC A,D
     LD  B,A
     INC HL
-    JR  DMJ0
-DMJ2:   LD  E,1
+    JR  DMY0
+DMY2:   LD  E,1
     PUSH    HL
     LD  HL,DM
-DMJ3:   LD  D,(HL)
+DMY3:   LD  D,(HL)
     LD  A,E
     CP  2
-    JR  NZ,DMJ4
+    JR  NZ,DMY4
     EX  (SP),HL
     CALL    LEAPYR
     EX  (SP),HL
-    JR  NZ,DMJ4
+    JR  NZ,DMY4
     INC D
-DMJ4:   LD  A,D
+DMY4:   LD  A,D
     SUB C
     LD  A,0
     SBC A,B
-    JR  NC,DMJ5
+    JR  NC,DMY5
     LD  A,C
     SUB D
     LD  C,A
@@ -504,20 +532,20 @@ DMJ4:   LD  A,D
     LD  B,A
     INC HL
     INC E
-    JR  DMJ3
-DMJ5:   POP HL
+    JR  DMY3
+DMY5:   POP HL
     EX  (SP),HL
     PUSH    BC
     DEC HL
     LD  BC,16*256+7
     XOR A
-DMJ6:   RL  L
+DMY6:   RL  L
     RL  H
     RLA
     CP  C
-    JR  C,DMJ7
+    JR  C,DMY7
     SUB C
-DMJ7:   DJNZ    DMJ6    
+DMY7:   DJNZ    DMY6    
     INC A
     POP BC
     LD  B,A
@@ -587,10 +615,11 @@ CONHX1: LD  DE,1978
     ADD HL,DE
 CONHX2: POP DE
     RET
+
 ;
 ; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
 ;
-PRDMJ:  PUSH    HL
+PRDMY:  PUSH    HL
     PUSH    BC
     LD  HL,DAYSWK-3
     LD  C,B
@@ -641,9 +670,9 @@ PRDMJ:  PUSH    HL
     LD  A,-1
     LD  DE,100
     OR  A
-PRDMJ0: INC A
+PRDMY0: INC A
     SBC HL,DE
-    JR  NC,PRDMJ0
+    JR  NC,PRDMY0
     ADD HL,DE
     CALL    HEXBCD
     LD  H,A
@@ -737,7 +766,8 @@ OUTCH:  PUSH    AF
 ;
 ; INPUT NUMBER
 ;
-NUMBER: CALL    BLANK
+NUMBER:
+    CALL    BLANK
     LD  A,(HL)
     CALL    DIGIT
     RET C
