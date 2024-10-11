@@ -56,7 +56,7 @@ BASE:
 
 
 BEGIN:
-	LD (SPSAVE),SP
+    LD (SPSAVE),SP
     LD  SP,STACK
     LD  A,(00080H)
     ADD 81H
@@ -132,10 +132,8 @@ START0: CP  0
     LD  (HOUR),A
     LD  A,C         ; MINUTE
     LD  (MINUTE),A
-
-
-    LD  A,E         ; SECOND
-    LD  (SECOND),A  
+;    LD  A,E         ; SECOND
+;    LD  (SECOND),A  
 
 START1:
     LD  DE,PRESS
@@ -156,14 +154,14 @@ GET:
 
     LD  BC,(TIMEDT)
     CALL    DMY     ; CALCULATE YEAR,MONTH,DAY
-    CALL    PRDMY	; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
+    CALL    PRDMY   ; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
     JP  EXIT
 ;
 CONT:
     CALL  BDOS_GETTM
     LD  BC,(TIMEDT)
     CALL    DMY     ; CALCULATE YEAR,MONTH,DAY
-    CALL    PRDMY	; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
+    CALL    PRDMY   ; PRINT: DAY IN WEEK,DAYS,MONTH,YEAR
 CONT0:  LD  C,11
     CALL    5
     OR  A
@@ -259,8 +257,8 @@ SET0:   LD  A,0FFH
     LD  (HOUR),A
     LD  A,C         ; MINUTE
     LD  (MINUTE),A
-    LD  A,E         ; SECOND
-    LD  (SECOND),A  
+    ;LD  A,E         ; SECOND
+    ;LD  (SECOND),A  
 SET1:
     LD  DE,TIMEDT
     LD  C,SETTIME
@@ -288,22 +286,29 @@ TIMMSG: DEFM    "Enter the time (HH:MM): $"
 PRESS:  DEFM    "Press any key to set time $"
 
 BDOS_GETTM:
-	XOR A
-	LD  (SECOND),A
+    XOR A
+    LD  (SECOND),A
     LD  DE,TIMEDT
     LD  C,GETTIME   ; Do we have the time services in BDOS ?
     CALL    5       ; Try it
-	PUSH AF
-	; CP/M Plus sometimes puts the seconds in A.
-	; If A is in the range 1..59, we consider it good.
-	; Othewise we keep it clean, it may be zero or filled by the BDOS call
-	CP  60
-	JR  NC,NO_VALID_SEC
-	AND A
-	JR  Z,NO_VALID_SEC
-	LD  (SECOND),A
+    PUSH AF
+    ; CP/M Plus sometimes puts the seconds in A.
+    ; If A is in the range 1..59, we consider it good.
+    ; Othewise we keep it clean, it may be zero or filled by the BDOS call
+    CP  60
+    JR  NC,NO_VALID_SEC
+    AND A
+    JR  Z,NO_VALID_SEC
+    LD  (SECOND),A
 NO_VALID_SEC:
-	POP AF			; We keep the flags, just in case
+    LD  A,E
+    CP  60
+    JR  NC,NO_VALID_SEC_E
+    AND A
+    JR  Z,NO_VALID_SEC_E
+    LD  (SECOND),A
+NO_VALID_SEC_E:
+    POP AF          ; We keep the flags, just in case
     RET
 
 ;
