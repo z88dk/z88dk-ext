@@ -18,7 +18,10 @@
 ; TRS-80 Model 4 with CP/M Plus
 ;    z88dk-appmake +cpmdisk -f m4cpm3 --container imd -b date.com
 
-; Y2K fixed DATE
+; Y2K fixed DATE.
+
+; Add '-DSECOND_E' if seconds are not grabbed properly (different BDOS behaviour)
+
 ;
 ; John Elliott 20/2/1999: Modified to use CP/M3 / Z80DOS / DOS+ calls rather than P2DOS ones. 
 ;
@@ -76,7 +79,7 @@ HELP:
     JP  EXIT
 ;
 EXPLA:
-    DEFM    "DATE. Date 20-Feb-1999. Version 5.01"
+    DEFM    "DATE - z88dk version"
     DEFB    CR,LF,CR,LF
     DEFM    "With this program you can get and set the current date and time"
     DEFB    CR,LF,CR,LF
@@ -292,22 +295,18 @@ BDOS_GETTM:
     LD  C,GETTIME   ; Do we have the time services in BDOS ?
     CALL    5       ; Try it
     PUSH AF
+
     ; CP/M Plus sometimes puts the seconds in A.
     ; If A is in the range 1..59, we consider it good.
     ; Othewise we keep it clean, it may be zero or filled by the BDOS call
-    CP  60
-    JR  NC,NO_VALID_SEC
-    AND A
-    JR  Z,NO_VALID_SEC
-    LD  (SECOND),A
-NO_VALID_SEC:
+	;
+	; Other CP/M versions put "seconds" in E
+
+IF SECOND_E
     LD  A,E
-    CP  60
-    JR  NC,NO_VALID_SEC_E
-    AND A
-    JR  Z,NO_VALID_SEC_E
+ENDIF
     LD  (SECOND),A
-NO_VALID_SEC_E:
+
     POP AF          ; We keep the flags, just in case
     RET
 
