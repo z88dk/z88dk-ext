@@ -12,7 +12,7 @@
 ; Epson QX-10 / QC-10 with CP/M Plus
 ;    z88dk-appmake +cpmdisk -f qc10m1 -b date.com
 
-; TRS-80 Model II with CP/M Plus
+; TRS-80 Model II with CP/M Plus (probably requires -DNOSECOND)
 ;    z88dk-appmake +cpmdisk -f ptcpm --container imd -b date.com
 
 ; TRS-80 Model 4 with CP/M Plus
@@ -20,7 +20,9 @@
 
 ; Y2K fixed DATE.
 
-; Add '-DSECOND_E' if seconds are not grabbed properly (different BDOS behaviour)
+; If seconds are not displayed properly, 
+; - try '-DSECOND_E'
+; - or  '-DNOSECOND' not to display them at all
 
 ;
 ; John Elliott 20/2/1999: Modified to use CP/M3 / Z80DOS / DOS+ calls rather than P2DOS ones. 
@@ -696,10 +698,12 @@ PRDMY0: INC A
     CALL    OUTCH
     LD  A,(MINUTE)
     CALL    OUTBCD
+IF !NOSECOND
     LD  A,':'
     CALL    OUTCH
     LD  A,(SECOND)
     CALL    OUTBCD
+ENDIF
     RET
 ;
 ; DAYS IN WEEK
