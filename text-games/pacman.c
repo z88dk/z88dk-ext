@@ -37,6 +37,11 @@
 // zcc +cpm  -create-app -subtype=qc10 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=qc10m1 --generic-console pacman.c
 
+// EACA Genie III
+// zcc +cpm -subtype=g3holte30 -create-app -DUSE_CHR127 --generic-console pacman.c
+// zcc +cpm -subtype=g3holte22 -create-app -DUSE_CHR127 --generic-console pacman.c
+// zcc +cpm -subtype=g3lowe22 -create-app -DUSE_CHR127 --generic-console pacman.c
+ 
 // CP/M on Sharp MZ
 // zcc +cpm  -create-app -subtype=mz80 -DMZ80B --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=mz800 --generic-console pacman.c
