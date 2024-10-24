@@ -41,6 +41,13 @@
 // zcc +cpm -subtype=g3holte30 -create-app -DUSE_CHR127 --generic-console pacman.c
 // zcc +cpm -subtype=g3holte22 -create-app -DUSE_CHR127 --generic-console pacman.c
 // zcc +cpm -subtype=g3lowe22 -create-app -DUSE_CHR127 --generic-console pacman.c
+
+// TRS80 Model II
+// zcc +cpm -subtype=lifeboat -create-app --generic-console -DWALL2=160 -o pacman pacman.c
+// TRS80 Model II, P&T CP/M, only if configured with ADM3A module
+// zcc +cpm -subtype=ptcpm -create-app --generic-console -o pacman pacman.c
+// TRS80 Model 4, Montezuma CP/M
+// zcc +cpm -subtype=montezuma -create-app --generic-console -o pacman -DWALL2=160 pacman.c
  
 // CP/M on Sharp MZ
 // zcc +cpm  -create-app -subtype=mz80 -DMZ80B --generic-console pacman.c
