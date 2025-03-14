@@ -59,24 +59,13 @@
 #elif __RC2014
 // zcc +rc2014 -subtype=cpm -SO3 -v -m --list --max-allocs-per-node400000 -llib/rc2014/ff yash.c -o yash -create-app
 // zcc +rc2014 -subtype=cpm -clib=new -O2 -v -m --list -llib/rc2014/ff yash.c -o yash -create-app
-// This is for the RC2014 when it has any HBIOS or CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
+// This is for the RC2014 when it has any CPM firmware and a 82C55 IDE Interface. The output will be written to the first FAT file system found on the drive.
 // Most likely to be used with CP/M-IDE firmware, but any CPM that supports the standard 82C55 Hard Drive Module or CF Module interface will work.
 // Drive 0:
 #include <arch/rc2014.h>
 #include <lib/rc2014/ffconf.h>      /* Declarations of FatFs configuration */
 #include <lib/rc2014/ff.h>          /* Declarations of FatFs API */
 #include <arch/rc2014/diskio.h>     /* Declarations of diskio functions */
-
-// zcc +rc2014 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/hbios/diskio_hbios -llib/hbios/ff yash.c -o yash -create-app
-// This is for the RC2014 when it has RomWBW firmware and any type of drive. The drive number is the same as the logical drive number reported on boot.
-// The HEX program is loaded in the dbgmon monitor M L, and started by R100.
-// Drive 2: (or whichever is nominated by hbios).
-// Relative directories are not working, use the full directory i.e "ls 2:/example" or "cp 2:/test.bin 2:/test/test2.bin"
-//#include <arch/hbios.h>             /* Declarations of HBIOS functions */
-//#include <lib/hbios/ffconf.h>       /* Declarations of FatFs configuration */
-//#include <lib/hbios/ff.h>           /* Declarations of FatFs API */
-//#include <lib/hbios/diskio_hbios.h> /* Declarations of HBIOS diskio functions */
-//#pragma output CRT_ORG_BSS = 0x9000 /* move bss origin to address 0x9000 (check to confirm there is no overlap between data and bss sections, and set as needed) */
 
 #elif __SCZ180
 // zcc +scz180 -subtype=hbios -SO3 -v -m --list --max-allocs-per-node400000 -llib/scz180/time -llib/scz180/diskio_sd -llib/scz180/ff yash.c -o yash -create-app
@@ -217,7 +206,7 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-        defc _cpm_dsk0_base = 0xF800    ; For RC2014 Builds
+        defc _cpm_dsk0_base = 0xF700    ; For RC2014 Builds
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX uncomment only for cpm/sccz80/classic/z80
     __endasm;
