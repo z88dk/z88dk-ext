@@ -102,11 +102,13 @@
 
 #elif __CPM
 // a hacked solution for __RC2014 8085 CPU running CP/M from classic library
-//  zcc +cpm -clib=8085 -O2 --opt-code-speed=all -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+// uncomment below XXX include file
+// zcc +cpm -clib=8085 -O2 --opt-code-speed=all -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff_85 -l../../lib/clibs/rc2014-8085_clib yash.c -o yash85 -create-app
 #include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085.h>
 
 // a hacked solution for __RC2014 Z80 CPU running CP/M from classic library
-//  zcc +cpm -clib=default -O2 --opt-code-speed=all -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
+// uncomment below XXX include file
+// zcc +cpm -clib=default -O2 --opt-code-speed=all -v -m --list -DAMALLOC -l../../libsrc/_DEVELOPMENT/lib/sccz80/lib/rc2014/ff -l../../lib/clibs/rc2014-8085_clib yash.c -o yash -create-app
 //#include <../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014.h>
 
 #include <_DEVELOPMENT/sccz80/arch/rc2014.h>            /* Declarations of RC2014 specifics */
@@ -206,7 +208,7 @@ static void dsk0_helper (void);
 static void dsk0_helper(void) __naked
 {
     __asm
-        defc _cpm_dsk0_base = 0xF700    ; For RC2014 Builds
+        defc _cpm_dsk0_base = 0xF800    ; For all RC2014 Builds
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014-8085_public.inc" ; XXX uncommment only for cpm/sccz80/classic/8085
 ;       INCLUDE "../libsrc/_DEVELOPMENT/target/rc2014/config_rc2014_public.inc" ; XXX uncomment only for cpm/sccz80/classic/z80
     __endasm;
@@ -227,9 +229,9 @@ static void dsk0_helper(void) __naked
  */
 
 struct Builtin {
-  const char * name;
-  int8_t (*func) (char ** args);
-  const char * help;
+    const char * name;
+    int8_t (*func) (char ** args);
+    const char * help;
 };
 
 struct Builtin builtins[] = {
@@ -269,7 +271,7 @@ struct Builtin builtins[] = {
 };
 
 uint8_t ya_num_builtins(void) {
-  return sizeof(builtins) / sizeof(struct Builtin);
+    return sizeof(builtins) / sizeof(struct Builtin);
 }
 
 
@@ -407,7 +409,7 @@ int8_t ya_help(char ** args)    /* print some help. */
     uint8_t i;
     (void *)args;
 
-    fprintf(stdout,"yash v1.1 2022\n");
+    fprintf(stdout,"yash v1.2 2025\n");
     fprintf(stdout,"The following functions are built in:\n");
 
     for (i = 0; i < ya_num_builtins(); ++i) {
@@ -1023,12 +1025,13 @@ int main(int argc, char ** argv)
     set_system_time(1661990400 - UNIX_OFFSET);      /* Initial time: 00.00 September 1, 2022 UTC */
 #endif
 
-    fs = (FATFS *)malloc(sizeof(FATFS));                /* Get work area for the volume */
-    buffer = (char *)malloc(sizeof(char)*BUFFER_SIZE);  /* Get working buffer space */
+    fs = (FATFS *)malloc(sizeof(FATFS));                    /* Get work area for the volume */
+    buffer = (char *)malloc(BUFFER_SIZE * sizeof(char));    /* Get working buffer space */
 
     // Run command loop if we got all the memory allocations we need.
-    if ( fs && buffer)
+    if (fs && buffer) {
         ya_loop();
+    }
 
     // Perform any shutdown/cleanup.
     free(buffer);
