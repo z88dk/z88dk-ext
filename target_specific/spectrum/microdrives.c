@@ -68,7 +68,7 @@ char a_mask[] = { 6, 6, 0x30 , 0x78 , 0xFC , 0xFC , 0xFC , 0xFC  };
 
          if (if1_load_record(i, "run", 0, myrec) != -1) {
             runcount++;
-            printf ( "%u: volume %s has the 'run' autoboot program\n",i, if1_getname(myrec->hdname) );
+            printf ( "%u: volume %s has the 'run' autoboot program\n",i, if1_getname(myrec.hdname) );
             putsprite (spr_and,i*26+11,10,a_mask);
             putsprite (spr_or,i*26+11,10,a_char);
          }
