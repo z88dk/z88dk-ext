@@ -360,7 +360,7 @@ int8_t ya_mkdrv(char ** args)  /* create a file for CP/M drive */
         lbaBase = (&File[0])->obj.fs->database + ((&File[0])->obj.fs->csize * ((&File[0])->obj.sclust - 2));
         f_close(&File[0]);
 
-        fprintf(stdout," at base sector LBA %lu", lbaBase);
+        fprintf(stdout," at base sector LBA %lu\n", lbaBase);
     }
     return 1;
 }
@@ -641,6 +641,7 @@ int8_t ya_cp(char ** args)      /* copy a file */
         timersub(&endTime, &startTime, &resTime);
         fprintf(stdout, ", the time taken was %li.%.4lu seconds", resTime.tv_sec, resTime.tv_nsec/100000);
 #endif
+        fprintf(stdout, "\n");
     }
     return 1;
 }
