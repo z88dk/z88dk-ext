@@ -1,0 +1,532 @@
+/* 
+HEADER: 	CUG
+TITLE:		Cubic Spline Functions Theory;
+VERSION:	3.00;
+DATE:		09/26/86;
+DESCRIPTION:	"Mathematical background and development of
+		equations used in SPLINE, a full emulation of
+		Unix's 'spline' utility.";
+KEYWORDS:	spline, graphics, plot, filter, UNIX;
+SYSTEM:
+FILENAME:	SPLINE.DOC;
+WARNINGS:
+CRC:		xxxx
+SEE-ALSO:	SPLINE.C;
+AUTHORS:	Ian Ashdown - byHeart Software;
+COMPILERS:
+REFERENCES:	AUTHORS: R.W. Hamming;
+		TITLE:	 Numerical Methods for Scientists and
+			 Engineers, 2nd Edition
+			 pp. 349 - 355, McGraw-Hill (1973);
+		AUTHORS: Forsythe, Malcolm & Moler;
+		TITLE:	 Computer Methods for Mathematical
+			 Computations
+			 pp. 70 - 83, Prentice-Hall;
+ENDREF
+*/
+
+
+byHeart Software
+620 Ballantree Road
+West Vancouver, B.C.
+Canada V7S 1W3
+September 13th, 1986
+
+
+		Curve Fitting With Cubic Splines
+		--------------------------------
+
+			 Ian E. Ashdown
+			byHeart Software
+
+
+========================================================================
+
+Abstract: CURVE FITTING WITH CUBIC SPLINES
+------------------------------------------
+
+	A rigorous development of the mathematical theory of cubic
+splines and their use in curve fitting in two and three dimensions.
+Emphasis is on the implementation of efficent computer algorithms to
+calculate coefficients of both nonperiodic and periodic splines using
+Gaussian Elimination and sparse matrix representations. Accompanying
+program listing presents C source code for a full emulation of the UNIX
+(registered trademark Bell Laboratories) SPLINE curve interpolation
+utlity.
+
+========================================================================
+
+
+
+    Before computer-aided drafting workstations completely replace the
+draftsman's pencil and paper, let's examine one of his tools: the
+spline. Presented with data in the form of points on an x-y plane, the
+draftsman will use a spline - a flexible strip of metal or plastic - to
+draw a smooth curve between them.
+
+    The technique is very simple. After plotting the data on a sheet of
+paper, an appropriately sized spline is held in place at these points
+(referred to as "knots") with weights or pins. The draftsman then traces
+the curve formed by the spline. For any given set of knots, the curve
+generated is independent of the spline chosen, and is thus exactly
+reproducible.
+
+    From mechanical engineering, elementary beam theory shows that if
+the spline is not too severely stressed, it will conform to a curve
+described by a set of cubic polynomial equations, one between each pair
+of adjacent knots. Adjacent polynomials meet at their common endpoints
+(the knots), and their slopes and rates of curvature at these points are
+equal. Stated in mathematical terms, these polynomials join continuously
+at the knots with continuous first and second derivatives.
+
+    Knowing this, we can develop a mathematical model of the draftsman's
+splines, and from this model construct a computer program for
+interpolating a smooth curve between a set of knots. With a bit of
+care in choosing algorithms, such a program can quickly and accurately
+generate a curve for a thousand or more data points on the smallest of
+personal computers. It can even be adapted to interpolate a smooth
+surface between points plotted in three dimensions.
+
+    Developing the model involves basic calculus and matrix theory. If
+you are unfamiliar with such mathematics, rest assured that the
+resultant algorithms are very easy to program, and using a cubic spline
+program requires no understanding of the underlying mathematical theory.
+Give the program a set of knots and it will dutifully interpolate a
+smooth curve in all (well, almost) cases.
+
+    Why then discuss the mathematics of cubic splines at all? There are
+two answers. One is that seeing how the algorithms are developed gives
+you the confidence to use them. The other is that there may be cases
+where the algorithms will not perform exactly as desired. Knowing their
+theory may enable you to create a modified algorithm to fit the problem
+at hand.
+
+A Simple Explanation
+--------------------
+
+    Whether you understand calculus and matrices or not, it helps to
+have in mind a mental image of what you are trying to accomplish. Even
+if you aren't comfortable with the mathematics, a conceptual model will
+serve to illustrate the principles involved.
+
+    A cubic polynomial equation is nothing more than a simple algebraic
+equation of the form:
+
+              3     2
+        y = ax  + bx  + cx + d
+
+where a,b,c and d are constants. If you plot the knots on a grid and
+actually bend a draftsman's spline to fit between them, each section of
+the spline between adjacent knots can be matched by a curve generated
+by the above equation ... if the appropriate constants are chosen. The
+trick is to find those constants for each section of the spline.
+
+    Common sense says three things about these curves. One is that they
+should join at the knots. Next, the slopes of the curves should be the
+same where they join. Third, the curvature of the curves where the join
+should be the same. The first is obvious - the curves must form a
+continuous line. The second and third are more intuitive, but a few
+moments thought should convince you. A semirigid object such as a
+spline does not permit abrupt changes in angle or curvature as it is
+bent around a rigid pin.
+
+    Stating these ideas mathematically will enable you to calculate the
+constants for all the cubic polynomial equations needed to model the
+spline.
+
+A Rigorous Explanation
+----------------------
+
+    Beginning in this section, the mathematical theory of cubic splines
+will be rigorously developed. If this approach does not appeal to you,
+simply skim the text for the information on how to implement the spline
+algorithms, then examine the accompanying program listing. The program
+header provides all the information you will need to use the program.
+
+    Starting with a set of data points (the knots) stated as horizontal
+coordinates x[i] (i = 1,...,n) and corresponding vertical coordinates
+y[i], the curve-to-be is defined as the composite function:
+
+	y(x) = f[i](x) for x[i] <= x < x[i+1], i = 1,...,n-2
+        	       and x[n-1] <= x <= x[n]
+
+where each function f[i](x) is a cubic polynomial as described above.
+In other words, y(x) is really a set of functions, each of which is
+defined over an interval between two adjacent knots at (x[i],y[i]) and
+(x[i+1],y[i+1]).
+
+    Furthermore, let's define y'[i] and y"[i] as the first and second
+derivatives of y(x) at x = x[i]. Knowing that the set of functions
+f[i](x) must join at their endpoints (the knots of the spline) and also
+that their first and second derivatives are continuous at these points,
+we have the following continuity conditions:
+
+	f[i](x[i]) = y[i]		i = 1,...,n-1
+	f[i-1](x[i]) = y[i]		i = 2,...,n
+	f'[i-1](x[i]) = f'[i](x[i])	i = 2,...,n-1
+	f"[i-1](x[i]) = f"[i](x[i])	i = 2,...,n-1
+
+    Since each function f[i](x) is a cubic polynomial, it follows that
+its second derivative is a linear function (a straight line) between its
+endpoints. If we define:
+
+	h[i] = x[i+1] - x[i]
+
+then linear interpolation gives us:
+
+		   y"[i] * (x[i+1] - x) + y"[i+1] * (x - x[i])
+	f"[i](x) = -------------------------------------------
+				     h[i]
+
+    Integrating this equation twice and selecting the constants of
+integration such that the continuity conditions are satisfied, we can
+derive the following interpolation equation:
+
+		  y[i] * (x[i+1] - x) + y[i+1] * (x - x[i])
+	f[i](x) = ----------------------------------------- -
+				   h[i]
+
+		      2  +-	   +-
+		  h[i]	 |	   | (x[i+1] - x)
+		  ---- * | y"[i] * |------------- -
+		   6	 |	   |    h[i]
+			 +-	   +-
+
+		  +-	      -+ 3 -+		   +-
+		  | x[i+1] - x |    |		   | (x - x[i])
+		  | ---------- |    | +  y"[i+1] * | ---------- -
+		  |    h[i]    |    |		   |   h[i]
+		  +-	      -+   -+		   +-
+
+		  +-	    -+ 3 -+  -+
+		  | x - x[i] |	  |   |
+		  | -------- |	  |   |
+		  |   h[i]   |	  |   |
+		  +-	    -+	 -+  -+
+
+	for i = 1,...,n-1
+
+			 Interpolation Equation
+			 ----------------------
+
+    Remember this equation - we will later use it to interpolate the
+curve defined by y(x) between the given knots. However, we first need to
+calculate the unknown coefficients y"[i] for all i between 1 and n.
+
+    Differentiating and evaluating the above equation for x[i] yields:
+
+		      y[i+1] - y[i]   h[i]
+	f'[i](x[i]) = ------------- - ---- * (2 * y"[i] + y"[i+1])
+			  h[i]	       6
+and
+			y[i] - y[i-1]	h[i-1]
+	f'[i-1](x[i]) =	------------- + ------ * (y"[i-1] + 2 * y"[i])
+			    h[i-1]	  6
+
+    Since the first derivatives of the functions at their endpoints are
+continuous, these two equations are equivalent. We can rearrange the
+terms of their right-hand sides to get:
+
+	h[i-1] * y"[i-1] + 2 * (h[i-1] + h[i]) * y"[i] + h[i] * y"[i+1]
+
+	      +-			     -+
+	      | y[i+1] - y[i]   y[i] - y[i-1] |
+	= 6 * | ------------- - ------------- |
+	      |	    h[i]	    h[i-1]    |
+	      +-			     -+
+
+	for i = 2,...,n-1
+
+    Expressed in matrix form, the above equations show an interesting
+diagonal symmetry that we will later take good advantage of. Using n = 6
+as an example, they look like this:
+
++-			       -++-     -+   +-    -+
+| h[1] c[2] h[2] 0    0    0    || y"[1] | = | d[2] |
+| 0    h[2] c[3] h[3] 0    0    || y"[2] |   | d[3] |
+| 0    0    h[3] c[4] h[4] 0    || y"[3] |   | d[4] |
+| 0    0    0    h[4] c[5] h[5] || y"[4] |   | d[5] |
++-			       -+| y"[5] |   +-    -+
+				 | y"[6] |
+				 +-     -+
+
+where c[i] = 2 * (h[i-1] + h[i])
+
+		 +-				-+
+		 | y[i+1] - y[i]   y[i] - y[i-1] |
+and   d[i] = 6 * | ------------- - ------------- |
+		 |    h[i]	      h[i-1]	 |
+		 +-				-+
+
+A Variety Of End Conditions
+---------------------------
+
+    So far, we have n unknowns y"[i], but only n-2 conditions as
+expressed by the above equations. Two more conditions are required to
+obtain a unique solution for our curve y(x). Several variations are
+possible; we will look at two of the more useful ones here.
+
+    The first is to specify that:
+
+	y"[1] = j * y"[2] and y"[n] = k * y"[n-1]
+
+where j and k are arbitrary constants. With a bit of matrix
+manipulation, we get:
+
++-					  -++-       -+   +-      -+
+| c[2]  h[2]  0     ....    0       0      || y"[2]   | = | d[2]   |
+| h[2]  c[3]  h[3]  ....    0       0      || y"[3]   |   | d[3]   |
+| 0     h[3]  c[4]  ....    0       0      || y"[4]   |   | d[4]   |
+| ....  ....  ....  ....    ....    ....   || .....   |   | ....   |
+| 0     0     ....  h[n-3]  c[n-2]  h[n-2] || y"[n-2] |   | d[n-2] |
+| 0     0     ....  0       h[n-2]  c[n-1] || y"[n-1] |   | d[n-1] |
++-					  -++-       -+   +-      -+
+
+where c[2] = (2 + j) * h[1] + 2 * h[2]
+      c[i] = 2 * (h[i-1] + h[i]), i = 3,...,n-2
+      c[n-1] = 2 * h[n-2] + (2 + k) * h[n-1]
+
+		 +-				-+
+	         | y[i+1] - y[i]   y[i] - y[i-1] |
+      d[i] = 6 * | ------------- - ------------- | , i = 2,...,n-1
+		 |     h[i]	      h[i-1]	 |
+		 +-				-+
+
+    If the values of j and k are zero, we have y"[1] = y"[n] = 0. This
+is equivalent to a spline whose ends are not constrained beyond the end
+knots, and is known as the "natural" cubic spline. A nonzero value for j
+or k is equivalent to bending an end of the draftsman's spline, and will
+affect all of the interior cubic polynomial functions. However, the
+effect on the interior polynomials rapidly decreases as one moves away
+from the endpoints.
+
+    For some sets of knots, a nonzero value of j or k will result in a
+smoother interpolating curve at its corresponding end. A value of 0.5 is
+often appropriate. Be forewarned, however, that for some negative values
+the curve will be discontinuous. As it approaches these values, the end
+of the curve begins to oscillate, the peaks becoming larger and larger
+until they reach infinity at the exact values.
+
+    The above set of linear equations can be solved using Gaussian
+Elimination. However, we must be careful. In its most general form, this
+method can require prodigious amounts of memory and millions of floating
+point computations. Given 1000 unknowns, Gaussian Elimination needs
+storage for over one million floating point numbers and performs some
+334 million multiplications and divisions! The loss of accuracy due to
+so many calculations can render the results meaningless.
+
+    Fortunately, our coefficient matrix is very sparse and symmetrical.
+The non-zero elements can be stored in a few linear arrays, and the
+remainder ignored. By observing how Gaussian Elimination solves the
+equations, we can modify the method to eliminate operations involving
+multiplication by and addition of zero. The result is Algorithm 1, which
+has very reasonable memory requirements and execution times - a cubic
+spline problem with 1,000 knots can be quickly solved on most personal
+computers, even those with less than 64K of memory!
+
+---------------------------------------------------------
+Algorithm 1: Nonperiodic Spline Coefficient Determination
+---------------------------------------------------------
+
+/* Reduce matrix to upper triangular form */
+
+for i = 2 to i = n-2
+  begin
+    c[i+1] = c[i+1] - h[i] * h[i]/c[i]
+    d[i+1] = d[i+1] - d[i] * h[i]/c[i]
+  end
+
+/* Solve using back substitution */
+
+y"[n-1] = d[n-1]/c[n-1]
+for i = n-2 to i = 2
+  begin
+    y"[i] = (d[i] - h[i] * y"[i+1])/c[i]
+  end
+
+y"[1] = j * y"[2]	/* End conditions */
+y"[n] = k * y"[n-1]
+
+---------------------------------------------------------
+
+    In practice, array y"[] would initially be used to store the
+elements of array d[]. Then, as the elements of y"[] are solved during
+back substitution, they overlay the values of d[]. To implement this
+space saving technique in the above algorithm, change every instance of
+d[] to y"[].
+
+    The second variation is more interesting, and comes from the need to
+interpolate data extracted from periodic phenomenon. If we plot any
+periodic data in polar co-ordinates, a smooth curve between them forms a
+closed curve, with the endpoints of the curve meeting. Plotting the same
+data in rectilinear co-ordinates with the abscissae expressed over 360
+degrees, it's easy to see that we can model the curve with a cubic
+spline function.
+
+    Since the curve is periodic, the endpoint ordinates are by
+definition equal. In other words, y[1] = y[n]. We need to specify the
+end conditions such that the first and second derivatives of the curve
+are continuous with respect to each other at these points. Stated in
+mathematical terms, y'[1] = y'[n] and y"[1] = y"[n].
+
+    The second derivatives are easy - they can be expressed directly in
+matrix form. To utilize the first derivatives of y(x) at the end points,
+we need an equation that relates them to y(x) and its second derivative.
+Going back to our derivations for f'[i](x[i]) and f'[i-1](x[i]), and
+evaluating them for x[1] and x[n] respectively, we have:
+
+		      y[2] - y[1]   h[1]
+	f'[1](x[1]) = ----------- - ---- * (2 * y"[1] + y"[2])
+			  h[1]	     6
+and
+			y[n] - y[n-1]	h[n-1]
+	f'[n-1](x[n]) = ------------- + ------ * (y"[n-1] + 2 * y"[n])
+			   h[n-1]	  6
+
+But y'[1] = y'[n], so that
+
+	    +-				 -+
+	    | y[2] - y[1]   y[n] - y[n-1] |
+	6 * | ----------- - ------------- | =
+	    |	 h[1]	       h[n-1]	  |
+	    +-				 -+
+
+	h[n-1] * (y"[n-1] + 2 * y"[n]) + h[1] * (2 * y"[1] + y"[2])
+
+    Again with some matrix manipulation, we get:
+
++-					  -++-       -+   +-      -+
+| c[2]  h[2]  0     ....    0       h[1]   || y"[2]   | = | d[2]   |
+| h[2]  c[3]  h[3]  ....    0       0      || y"[3]   |   | d[3]   |
+| 0     h[3]  c[4]  ....    0       0      || y"[4]   |   | d[4]   |
+| ....  ....  ....  ....    ....    ....   || .....   |   | ....   |
+| 0     0     ....  h[n-2]  c[n-1]  h[n-1] || y"[n-1] |   | d[n-1] |
+| h[1]  0     ....  0       h[n-1]  c[n]   || y"[n]   |   | d[n]   |
++-					  -++-       -+   +-      -+
+
+where c[i] = 2 * (h[i-1] + h[i]), i = 2,...,n-1
+      c[n] = 2 * (h[1] + h[n-1])
+
+		 +-				-+
+		 | y[i+1] - y[i]   y[i] - y[i-1] |
+      d[i] = 6 * | ------------- - ------------- | , i = 2,...,n-1
+		 |     h[i]	      h[i-1]	 |
+		 +-				-+
+
+		 +-			      -+
+		 | y[2] - y[1]   y[n] - y[n-1] |
+      d[n] = 6 * | ----------- - ------------- |
+		 |    h[1]	   h[n-1]      |
+		 +-			      -+
+
+    These equations can be solved efficiently and quickly with another
+modified version of Gaussian Elimination:
+
+------------------------------------------------------
+Algorithm 2: Periodic Spline Coefficient Determination
+------------------------------------------------------
+
+/* Initialize array e[] as nth column of matrix M[][] */
+
+e[2] = h[1]
+for i = 3 to i = n-2
+  begin
+    e[i] = 0
+  end
+e[n-1] = h[n-1]
+e[n] = c[n]
+
+/* Initialize variable f as matrix element M[n][1] */
+
+f = h[1]
+
+/* Reduce matrix to upper triangular form */
+
+for i = 2 to i = n-2
+  begin
+    c[i+1] = c[i+1] - h[i] * h[i]/c[i]
+    d[i+1] = d[i+1] - d[i] * h[i]/c[i]
+    e[i+1] = e[i+1] - e[i] * h[i]/c[i]
+    d[n] = d[n] - d[i] * f/c[i]
+    e[n] = e[n] - e[i] * f/c[i]
+    f = -f * h[i]/c[i]	/* Now matrix element M[n][i] */
+  end
+  f = f + h[n-1]  /* Now matrix element M[n][n-1] */
+  d[n] = d[n] - d[n-1] * f/c[n-1]
+  e[n] = e[n] - e[n-1] * f/c[n-1]
+
+/* Solve using back substitution */
+
+y"[n] = d[n]/e[n]
+y"[n-1] = (d[n-1] - e[n-1] * y"[n])/c[n-1]
+for i = n-2 to i = 2
+  begin
+    y"[i] = (d[i] - h[i] * y"[i+1] - e[i] * y"[n])/c[i]
+  end
+
+y"[1] = y"[n] /* End condition */
+
+-------------------------------------------------------
+
+    Other end conditions are possible. For example, you can specify the
+slope of the spline at its endpoints by specifying the first derivatives
+at y[1] and y[n]. You can also specify a linear combination of first and
+second derivatives at the endpoints. However, the two examples presented
+here will generally prove the most useful for interpolative curve
+fitting.
+
+    Specifying the end conditions and solving the appropriate set of
+linear equations gives us the coefficients we need to solve our
+interpolation equation. (Note that this equation remains the same no
+matter what end conditions have been specified.) For any given value of
+x within the range of abscissae spanned by the knots, we need only
+determine the two knots between whose abscissae the value lies. This
+gives us the value of i to insert in the interpolation equation, and with
+it the appropriate coefficients y"[i] and y"[i+1] to use in solving for
+the curve's corresponding ordinate y.
+
+    What about the related problem of fitting a smooth surface to data
+plotted in three dimensions? Well, if the data is regularly spaced in
+two of those dimensions (say the x-y plane), we can calculate a family
+of curves in parallel x-z planes. Each curve is the intersection of the
+x-z plane with the surface. Then, for any perpendicular y-z plane, our
+knots are the intersection of the x-z plane curves with the y-z plane.
+From these, we can calculate the intersection of our surface with the
+y-z plane. With this method, we can uniquely determine any point on the
+surface.
+
+Final Words
+-----------
+
+    Demonstrating the above algorithms could have been done using a
+small BASIC program. However, the UNIX operating system (see reference
+4) offers a utility called SPLINE that is much more comprehensive.
+Heeding once again Richard Stallman's (The GNU Manifesto - DDJ Mar.'85)
+call for placing UNIX in the public domain (FGREP - DDJ Sept.'85 was my
+previous response), the accompanying "demonstration" program is a full
+emulation of the UNIX SPLINE utility.
+
+    Cubic splines are an elegant solution to the problem of fitting
+curves to a set of given points in an x-y plane. A understanding of the
+mathematics used to develop them is not essential. The simplicity and
+efficiency of the algorithms involved should encourage anyone interested
+in graphics or data analysis to add cubic splines to their software
+toolboxes.
+
+References
+----------
+
+1. Numerical Methods for Scientists and Engineers
+   R.W. Hamming, 2nd Edition
+   pp.349 - 355, McGraw-Hill (1973)
+2. Computer Methods for Mathematical Computations
+   Forsythe, Malcolm & Moler
+   pp. 70 - 83, Prentice-Hall (1977)
+3. Introduction to Numerical Analysis (2nd Edition)
+   F.B. Hildebrand
+   pp.478 - 494, McGraw-Hill (1974)
+4. UNIX Programmer's Manual, Volume 1
+   Bell Telephone Laboratories
+   p.145, Holt, Rinehart and Winston (1983)
+
+			     - End -
