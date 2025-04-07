@@ -647,12 +647,12 @@ char **argv;
     }
     else		/* Abscissae supplied with input data */
     {
-      if(gets(buffer))
+      if(gets(buffer) && (*buffer))
 	x[n] = atof(buffer);
       else
 	break;
     }
-    if(gets(buffer))	/* Read in the corresponding ordinate */
+    if(gets(buffer) && (*buffer))	/* Read in the corresponding ordinate */
       y[n] = atof(buffer);
     else
     {
