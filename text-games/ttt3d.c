@@ -195,7 +195,7 @@ void user()
 	board();
  	for(;;) {
  		printf("Your move? ");
- 		if(gets(buf) == NULL) {
+ 		if((gets(buf) == NULL) || (! *buf)) {
  			printf("Chicken.\n");
  			exit(0);
  		}
@@ -332,4 +332,3 @@ int main()
 		user();
  	}
  }
-
