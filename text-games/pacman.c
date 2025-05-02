@@ -36,6 +36,7 @@
 // zcc +cpm  -create-app -subtype=televideo --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=qc10 --generic-console pacman.c
 // zcc +cpm  -create-app -subtype=qc10m1 --generic-console pacman.c
+// zcc +cpm  -create-app -subtype=rc700 --generic-console pacman.c
 
 // EACA Genie III
 // zcc +cpm -subtype=g3holte30 -create-app -DUSE_CHR127 --generic-console pacman.c
@@ -430,18 +431,32 @@ char runner_names[] = "bipc";
 #define CRIGHT	133
 #endif
 
-#ifdef USE_CHR127
-#ifdef	WALL2
-#undef WALL2
+#ifdef __RC700__
+#define  WALL2    127
+#undef   PACMAN
+#define  PACMAN   0x7c
+#undef   CUP
+#define  CUP      0x1c
+#undef   CDOWN
+#define  CDOWN    0x1c
+#undef   PUP
+#define  PUP      'v'
+#undef   PDOWN
+#define  PDOWN    '_'
 #endif
-#define	WALL2		127 // in octal = 177
+
+#ifdef USE_CHR127
+#ifdef  WALL2
+#undef  WALL2
+#endif
+#define WALL2  127 // in octal = 177
 #endif
 
 #ifdef USE_UDGS
-#ifdef	WALL2
-#undef WALL2
+#ifdef  WALL2
+#undef  WALL2
 #endif
-#define	WALL2		128  // in octal = 222
+#define WALL2  128  // in octal = 222
 #endif
 
 
@@ -2314,4 +2329,3 @@ static void pacman()
 	};
 	//refresh();
 }
-
