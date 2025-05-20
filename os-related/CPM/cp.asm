@@ -8,7 +8,14 @@
 ;
 ; Usage:  cp [destination][source]
 ;
-; zcc +cpm --list cp.asm -ocp -create-app
+; Reference CP/M PIP RC2014    DOM 46.9 Seconds
+;
+; Copy 1MB file on RC2014 from CF  47.5 seconds
+;                              DOM 43.7 seconds
+;
+; 2025 repeated test           DOM 43.7 seconds
+;
+; zcc +cpm --list cp.asm -ocpa -create-app
 ;
 DEFC    REBOOT      =   00000H  ;system reboot
 DEFC    IOBYTE      =   00003H  ;i/o definition byte
