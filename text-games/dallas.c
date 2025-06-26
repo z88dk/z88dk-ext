@@ -1,12 +1,13 @@
 
 // Language options: -DLANG_IT, -DLANG_ES, -DLANG_FR, -DLANG_EN (default)
+// In case of text misalignments, try adding -DYSHIFT
 
 // ZX Spectrum
 // zcc +zx -DUSE_UDGS -DGRAPHICS  -DVT_COLORS -DUSE_SOUND -lndos -create-app -lm dallas.c
 // zcc +zx -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
 // MSXDOS
-// zcc +msx -subtype=msxdos  -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
+// zcc +msx -subtype=msxdos -DUSE_UDGS -DGRAPHICS -DUSE_SOUND -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
 
 // Tatung Einstein
 // zcc +cpm -subtype=einstein  -DUSE_UDGS -DGRAPHICS -DVT_COLORS -clib=ansi -pragma-define:ansicolumns=32 -DUDG_FONT -pragma-redirect:CRT_FONT=_font_8x8_bbc_system -lndos -create-app -lm dallas.c
@@ -52,6 +53,9 @@
 
 // Visual 1050 CP/M
 // zcc +cpm -subtype=v1050 --generic-console -DUSE_UDGS -lndos -create-app -lm -DGRAPHICS dallas.c
+
+// Xerox 820
+// zcc +cpm -subtype=x820 --generic-console -lndos -create-app -lm dallas.c
 
 
 
@@ -202,10 +206,7 @@
 
 #include <windows.h>
 
-void cputs(char *x) {
-	_cputs(x);
-	printf("\n");
-}
+#define cputs(x) printf("%s\n",x);
 
 COORD GetConsoleCursorPosition(HANDLE hConsoleOutput)
 {
@@ -277,23 +278,34 @@ int getk () {
 #define t_delay(x) usleep(x/10)
 
 void clear_screen() {
-	system("mode con: cols=32 lines=24");
-	printf ("%c[%um%c[%um",27,47,27,30);
-	printf ("%c[2J",27);
+	//system("color f0");
 	system("cls");
-}
+	system("mode con: cols=32 lines=24");
+};
+//	textbackground(15); textcolor(0);
+//	system("mode con: cols=32 lines=24");
+//	printf ("%c[%um%c[%um",27,47,27,30);
+//	printf ("%c[2J",27);
+//	system("cls");
+//	for (int x=0; x<=24; x++) {
+//		gotoxy(x,0);
+//		cputs ("                                ");
+//	}
+//
+//}
 
 #endif
 
 
 
-#ifdef Z80
-	#ifdef __SANYO__
-		#define clear_screen(); putch(26);
-	#else
-		#define clear_screen(); putch(12);
-	#endif
+#ifdef __SANYO__
+	#define clear_screen() putch(26)
+#else
+#ifndef _WIN32
+	#define clear_screen() putch(12)
 #endif
+#endif
+
 
 
 char opponent[] = "EWING ASSOCIATES";
@@ -454,7 +466,7 @@ void dj(float VV){
 		gotoxy(32-strlen(total),wherey());
 	#endif
 #else
-	#if defined(__X820__) | defined(__SHARPMZ__)
+	#ifndef YSHIFT
 		gotoxy(32-strlen(total),wherey());
 	#else
 		gotoxy(32-strlen(total),wherey()-1);
@@ -2489,11 +2501,6 @@ __endasm
 
 int main() {
 
-
-#ifdef _WIN32
-	system(" ");
-#endif
-
 #ifdef VT_COLORS
  textbackground(1); textcolor(14);
 #endif
@@ -2504,7 +2511,10 @@ int main() {
    //set_crtc_reg(1,0x28);   // Horiz. displayed characters per line
 #endif
 
+#ifdef SPECTRUM 
 putch(1); putch(32);
+#endif
+
 clear_screen();
 
 #ifdef GRAPHICS
@@ -2743,7 +2753,7 @@ outp(0xd018,0x8c);
 #if defined(__V1050__)
 	gotoxy(1,2);
 #else
-#if defined(__ZX81__) | defined(__SANYO__) | defined(__X820__) | defined(__SHARPMZ__)
+#ifndef YSHIFT
 	gotoxy(1,1);
 #else
 	gotoxy(1,0);
