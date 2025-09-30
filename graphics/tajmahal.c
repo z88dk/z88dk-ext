@@ -1,5 +1,8 @@
 
 //  zcc +ts2068  -DGFXSCALEX=1/3 -DGFXSCALEY=1/4 -create-app -lm -pragma-define:CLIB_DEFAULT_SCREEN_MODE=6  tajmahal.c
+//  zcc +zx81 -clib=wrxi -subtype=wrxi -DGFXSCALEX=2/11 -DGFXSCALEY=1/2 -create-app -lm -pragma-define:hrgpage=36000 tajmahal.c
+//  zcc +cpm -subtype=v1050 -create-app -DGFXSCALEX=9/19 -DGFXSCALEY=2/5 tajmahal.c
+
 //  replace bgi.h with graphics.h to build with Turbo C
 
 #include <conio.h> 
@@ -288,4 +291,11 @@ void right_minars()
     line(1130, 345, 1150, 345); 
     line(1130, 345, 1140, 325); 
     line(1140, 325, 1150, 345); 
+
+// ZX81 WRXi sync hack
+//while (getk()!=' ') {
+//	  if (getk()=='p') hrg_phase();
+//	  if (getk()=='p') {}
+//	}
+
 }
