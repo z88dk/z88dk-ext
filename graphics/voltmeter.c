@@ -7,10 +7,25 @@
 // This program requires an interface built around the ADC0808/ADC0809 interface
 // such as the LX.746 board published in Nuova Elettronica n.107, Apr. 1986
 //
-// IN/OUT communication is hardcoded for port #1, but it can be easily adjusted
-// by changing "inp(1)" and "outp(1,ch)" with a different port number.
-// (e.g. Change to 31 for the Mageco Electronic "8 Entrees Analogiques ZX" card)
+// LX.746 works on port #1, but it can be easily adjusted
+// by changing "-DPORT=1" with a different port number.
+// (e.g. Change to 31 for the Mageco Electronic "8 Entrees Analogiques ZX" card
+//       or for the DCP Interspec).
 //
+// Incomplete list of known interfaces in the Timex/Sinclair world
+// ===============================================================
+
+// DCP Microdevelopments (Interspec and DCP A-Pack)
+// Zebra Systems (ZAD Analog Digital Interface)
+// Ener-Z (Report Generator)
+// Componedex (RAMPORT)
+// Byte-Back (BB-1 or BB-68 with Analog-Digital Module)
+//
+
+
+// zcc +zx -DPORT=1 -lndos -create-app -lm -o voltmeter voltmeter.c
+// zcc +zx81 -DPORT=31 -subtype=wrx -clib=wrxansi -pragma-export:ansicolumns=64 -pragma-output:hrgpage=32768 -lndos -create-app -lm -o voltmeter voltmeter.c
+
 
 
 #include <graphics.h>
@@ -184,8 +199,6 @@ void main() {
 	
 	ch=0;
 
-	//tiny (40,10,"Tiny text 1234567890");
-
 	r=getmaxy()/2;
 
 	for (i=0;i<=128;i+=8) {
@@ -207,12 +220,12 @@ void main() {
 	gotoxy(6,1);
 	puts ("Channel: 0  -  Press 'P' to read the current value");
 
-// Loop infinito
+// Neverending loop
 while(1) {
-	outp(1,ch);
+	outp(PORT,ch);
 	undraw(cx,cy,cx+icos(a2)*r/256,cy+isin(a2)*r/256);
 	a2=a;
-	b=inp(1);
+	b=inp(PORT);
 	if (c) {
 		a=334-((127-(b>127?127:b))/2);
 	} else
