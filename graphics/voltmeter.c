@@ -24,6 +24,8 @@
 
 
 // zcc +zx -DPORT=1 -lndos -create-app -lm -o voltmeter voltmeter.c
+
+// For the Zebra A/D Interfacem replace "-DPORT=31" with -DZEBRA
 // zcc +zx81 -DPORT=31 -subtype=wrx -clib=wrxansi -pragma-export:ansicolumns=64 -pragma-output:hrgpage=32768 -lndos -create-app -lm -o voltmeter voltmeter.c
 
 
@@ -222,10 +224,18 @@ void main() {
 
 // Neverending loop
 while(1) {
+#ifdef ZEBRA
+    inp(ch*2);
+#else
 	outp(PORT,ch);
+#endif
 	undraw(cx,cy,cx+icos(a2)*r/256,cy+isin(a2)*r/256);
 	a2=a;
+#ifdef ZEBRA
+    b=inp(ch*2);
+#else
 	b=inp(PORT);
+#endif
 	if (c) {
 		a=334-((127-(b>127?127:b))/2);
 	} else
