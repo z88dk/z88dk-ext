@@ -15,7 +15,7 @@
 // Incomplete list of known interfaces in the Timex/Sinclair world
 // ===============================================================
 
-// DCP Microdevelopments (Interspec and DCP A-Pack)
+// DCP Microdevelopments Interspec, and DCP A-Pack (a.k.a. Port 'A' on INTERPACK 1 in later version) 
 // Zebra Systems (ZAD Analog Digital Interface)
 // Ener-Z (Report Generator)
 // Componedex (RAMPORT)
@@ -47,6 +47,7 @@ int ch=0;
 char k;
 char msg[20];
 
+#ifndef LOMEM
 char voltmeter_pic[] = { 70, 52, 
   0x1F , 0xFF , 0xFF , 0xFF , 0xFF , 0xFF , 0xFF , 0xFF , 0xC0 , 0x70 , 0x00 
 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x70 , 0xC0 , 0x00 , 0x00 , 0x00 
@@ -146,7 +147,7 @@ char friendly[] = { 88, 50,
 , 0x00 , 0x00 , 0x00 , 0x60 , 0x00 , 0xFF , 0xE0 , 0x00 , 0x00 , 0x00 , 0x00 
 , 0x00 , 0x00 , 0x00 , 0x3F , 0xFF , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 , 0x00 
  };
-
+#endif
 
 
 void tiny (int x, int y, char* text) {
@@ -168,8 +169,10 @@ void main() {
 	cx=getmaxx()/2;	cy=40+getmaxy()/2;
 	fputc_cons(12);
 	
+#ifndef LOMEM
 	putsprite (spr_or,160,7,&voltmeter_pic);
 	putsprite (spr_or,5,130,&friendly);
+#endif
 	
 	printf ("Precision:\n\n\n            [A] 2.5 Volt\n\n            [B] 5 Volt\n\n            [C] 50 Volt\n\n            [D] 100 Volt");
 	k=getk();
