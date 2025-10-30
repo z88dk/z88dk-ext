@@ -51,7 +51,7 @@ int main() {
 	rds = 1.0;
 	r = 5.0;
 	rd = 0.0;
-	rs = mh/4.3;
+	rs = mh/6.3;
 	a = 0.0;
 	ad = ads;
 
