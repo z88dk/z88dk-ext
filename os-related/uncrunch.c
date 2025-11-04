@@ -378,7 +378,7 @@ int suff;		/*suffix byte represented by this entry*/
  returns pointer to token within string if found, NULL otherwise
 */
 
-#ifdef Z80
+#ifdef __Z88DK
 #define cisubstr(s,t) strstr(s,t)
 #else
 	
