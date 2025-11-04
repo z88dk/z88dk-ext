@@ -114,7 +114,7 @@ char	ffflag;		/* should formfeed separate preview from different files */
 
 /* get 16-bit word from file */
 
-#ifdef Z80
+#ifdef __Z88DK
 int getw16(FILE *iob) __z88dk_fastcall
 #else
 int getw16(FILE *iob)
@@ -132,7 +132,7 @@ return temp;
 
 /* get 16-bit (unsigned) word from file */
 
-#ifdef Z80
+#ifdef __Z88DK
 int getx16(FILE *iob) __z88dk_fastcall
 #else
 int getx16(FILE *iob)
@@ -163,7 +163,7 @@ void init_huff()
  * repetition encoding remaining.
  */
 
-#ifdef Z80
+#ifdef __Z88DK
 int getuhuff(FILE *ib) __z88dk_fastcall
 #else
 int getuhuff(FILE *ib)
@@ -200,7 +200,7 @@ int getuhuff(FILE *ib)
  * repeated more than twice are encoded as value-DLE-count.
  */
 
-#ifdef Z80
+#ifdef __Z88DK
 int getcr(FILE *ib) __z88dk_fastcall
 #else
 int getcr(FILE *ib)
@@ -236,7 +236,7 @@ int getcr(FILE *ib)
 
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void unsqueeze(char *infile) __z88dk_fastcall
 #else
 void unsqueeze(char *infile)
