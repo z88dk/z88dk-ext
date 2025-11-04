@@ -542,7 +542,7 @@ int main(int argc, char **argv)
 	//dioinit(&argc, argv);
 	opt_l = opt_v = OFF;
 	nl = 1; i = 0;
-#ifdef Z80
+#ifdef __Z88DK
 //	argv+=2;
 #endif
 	while (--argc > 0) {
