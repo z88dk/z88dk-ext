@@ -1,12 +1,12 @@
 
 
-// ****  z88dk   ****
+// ****  z88dk  ****
 // zcc +cpm -create-app -DS_CHAR=char -DAMALLOC -O3 lookup.c getopt.c rat4.c
 
-// ****  z88dk + sdcc ****
+// ****  z88dk + sdcc  ****
 // zcc +cpm -create-app -DS_CHAR=char --fsigned-char -DAMALLOC -compiler=sdcc -SO3 --max-allocs-per-node400000 lookup.c getopt.c rat4.c
 
-// ****  GCC   ****
+// ****  GCC  ****
 // gcc -DS_CHAR=char lookup.c getopt.c rat4.c
 
 
@@ -298,8 +298,9 @@ int main(int argc, char *argv[])
 {
 	int c, errflg = 0;
 //	extern int optind77;
-//	extern char *optarg;
-
+#ifdef __GNUC__
+	extern char *optarg;
+#endif
 	progname = argv[0];
 
 	while ((c=our_getopt(argc, argv, "Chn:o:6:")) != EOF)
