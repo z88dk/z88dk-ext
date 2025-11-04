@@ -130,7 +130,7 @@ struct sqrptr {
 };
 
 
-#ifdef	Z80
+#ifdef __Z88DK
 
 #define LARGEPRIME 32749
 #define fgetss fgets
