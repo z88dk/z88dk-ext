@@ -150,7 +150,7 @@ int		buflen;		/* Number of bytes to output		*/
 }
 #endif
 
-#ifdef Z80
+#ifdef __Z88DK
 char	clrscr[]	=	{ 12 };
 #else
 char	clrscr[]	=	{ HOME, ERASEEOS };
