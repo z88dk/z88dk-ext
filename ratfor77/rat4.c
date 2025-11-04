@@ -878,7 +878,7 @@ int gtok(S_CHAR lexstr[], int toksiz, FILE *fd)
  * lex - return lexical type of token
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	int lex(S_CHAR lexstr[]) __z88dk_fastcall
 #else
 	int lex(S_CHAR lexstr[])
@@ -982,7 +982,7 @@ S_CHAR ngetch(S_CHAR *c, FILE *fd)
  * pbstr - push string back onto input
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void pbstr(S_CHAR in[]) __z88dk_fastcall
 #else
 	void pbstr(S_CHAR in[])
@@ -998,7 +998,7 @@ S_CHAR ngetch(S_CHAR *c, FILE *fd)
  * putbak - push char back onto input
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void putbak(S_CHAR c) __z88dk_fastcall
 #else
 	void putbak(S_CHAR c)
@@ -1072,7 +1072,7 @@ int relate(S_CHAR token[], FILE *fd)
  * skpblk - skip blanks and tabs in file  fd
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void skpblk(FILE *fd) __z88dk_fastcall
 #else
 	void skpblk(FILE *fd)
@@ -1091,7 +1091,7 @@ int relate(S_CHAR token[], FILE *fd)
  *
  */
 
-#ifdef Z80
+#ifdef __Z88DK
 	int type(S_CHAR c) __z88dk_fastcall
 #else
 	int type(S_CHAR c)
@@ -1158,7 +1158,7 @@ void brknxt(int sp, int lextyp[], int labval[], int token)
  * docode - generate code for beginning of do
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void docode(int *lab) __z88dk_fastcall
 #else
 	void docode(int *lab)
@@ -1177,7 +1177,7 @@ void brknxt(int sp, int lextyp[], int labval[], int token)
  * dostat - generate code for end of do statement
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void dostat(int lab) __z88dk_fastcall
 #else
 	void dostat(int lab)
@@ -1191,7 +1191,7 @@ void brknxt(int sp, int lextyp[], int labval[], int token)
  * elseif - generate code for end of if before else
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void elseif(int lab) __z88dk_fastcall
 #else
 	void elseif(int lab)
@@ -1212,7 +1212,7 @@ void brknxt(int sp, int lextyp[], int labval[], int token)
  * forcod - beginning of for statement
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void forcod(int *lab) __z88dk_fastcall
 #else
 	void forcod(int *lab)
@@ -1298,7 +1298,7 @@ void brknxt(int sp, int lextyp[], int labval[], int token)
  * fors - process end of for statement
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void fors(int lab) __z88dk_fastcall
 #else
 	void fors(int lab)
@@ -1340,7 +1340,7 @@ void ifthen()
  * ifcode - generate initial code for if
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void ifcode(int *lab) __z88dk_fastcall
 #else
 	void ifcode(int *lab)
@@ -1373,7 +1373,7 @@ void ifend()
  * ifgo - generate "if(.not.(...))goto lab"
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void ifgo(int lab) __z88dk_fastcall
 #else
 	void ifgo(int lab)
@@ -1391,7 +1391,7 @@ void ifend()
  * labelc - output statement number
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void labelc(S_CHAR lexstr[]) __z88dk_fastcall
 #else
 	void labelc(S_CHAR lexstr[])
@@ -1410,7 +1410,7 @@ void ifend()
  * labgen - generate  n  consecutive labels, return first one
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	int labgen(int n) __z88dk_fastcall
 #else
 	int labgen(int n)
@@ -1427,7 +1427,7 @@ void ifend()
  * otherc - output ordinary Fortran statement
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void otherc(S_CHAR lexstr[]) __z88dk_fastcall
 #else
 	void otherc(S_CHAR lexstr[])
@@ -1444,7 +1444,7 @@ void ifend()
  * outch - put one char into output buffer
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outch(S_CHAR c) __z88dk_fastcall
 #else
 	void outch(S_CHAR c)
@@ -1467,7 +1467,7 @@ void ifend()
  * outcon - output "n   continue"
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outcon(int n) __z88dk_fastcall
 #else
 	void outcon(int n)
@@ -1500,7 +1500,7 @@ void outdon()
  * outcmnt - copy comment to output
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outcmnt(FILE * fd) __z88dk_fastcall
 #else
 	void outcmnt(FILE * fd)
@@ -1533,7 +1533,7 @@ void outdon()
  * outasis - copy directly out
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outasis(FILE * fd) __z88dk_fastcall
 #else
 	void outasis(FILE * fd)
@@ -1549,7 +1549,7 @@ void outdon()
  * outgo - output "goto  n"
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outgo(int n) __z88dk_fastcall
 #else
 	void outgo(int n)
@@ -1567,7 +1567,7 @@ void outdon()
  * outnum - output decimal number
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outnum(int n) __z88dk_fastcall
 #else
 	void outnum(int n)
@@ -1597,7 +1597,7 @@ void outdon()
  * outstr - output string
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void outstr(S_CHAR str[]) __z88dk_fastcall
 #else
 	void outstr(S_CHAR str[])
@@ -1624,7 +1624,7 @@ void outtab()
  * repcod - generate code for beginning of repeat
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void repcod(int *lab) __z88dk_fastcall
 #else
 	void repcod(int *lab)
@@ -1793,7 +1793,7 @@ void untils(int lab, int token)
  * whilec - generate code for beginning of while
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void whilec(int *lab) __z88dk_fastcall
 #else
 	void whilec(int *lab)
@@ -1817,7 +1817,7 @@ void untils(int lab, int token)
  * whiles - generate code for end of while
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void whiles(int lab) __z88dk_fastcall
 #else
 	void whiles(int lab)
@@ -1837,7 +1837,7 @@ void untils(int lab, int token)
 /*
  *  baderr - print error message, then die
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void baderr(S_CHAR msg[]) __z88dk_fastcall
 #else
 	void baderr(S_CHAR msg[])
@@ -1859,7 +1859,7 @@ void error(char *msg, S_CHAR *s)
 /*
  * synerr - report Ratfor syntax error
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void synerr(S_CHAR *msg) __z88dk_fastcall
 #else
 	void synerr(S_CHAR *msg)
@@ -1912,7 +1912,7 @@ int ctoi(S_CHAR in[], int *i)
  * fold - convert alphabetic token to single case
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void fold(S_CHAR token[]) __z88dk_fastcall
 #else
 	void fold(S_CHAR token[])
@@ -2108,7 +2108,7 @@ int caslab(int *n, int *t)
  * swcode - generate code for switch stmt.
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void swcode(int *lab) __z88dk_fastcall
 #else
 	void swcode(int *lab)
@@ -2145,7 +2145,7 @@ int caslab(int *n, int *t)
  * swend  - finish off switch statement; generate dispatch code
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void swend(int lab) __z88dk_fastcall
 #else
 	void swend(int lab)
@@ -2252,7 +2252,7 @@ static	char *sand  	= ".and.";
 /*
  * swvar  - output switch variable Innn, where nnn = lab
  */
-#ifdef Z80
+#ifdef __Z88DK
 	void swvar(int lab) __z88dk_fastcall
 #else
 	void swvar(int lab)
