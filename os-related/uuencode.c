@@ -83,7 +83,7 @@ main(int argc, char *argv[])
       }
 
       /* figure out the input file mode */
-#ifdef Z80
+#ifdef __Z88DK
 	  mode = 0777;
 #else
       fstat(fileno(in), &sbuf);
