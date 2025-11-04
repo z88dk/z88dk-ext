@@ -172,7 +172,7 @@ extern	FILE		*fnext();	/* Open next wild card file	*/
 #endif
 
 /* z88dk */
-#ifdef Z80
+#ifdef __Z88DK
 #define unlink(a) remove(a)
 #endif
 
