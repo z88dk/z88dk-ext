@@ -231,7 +231,7 @@ char *argv[];
 			fprintf(stderr, "Bad number of rings!\n");
 			exit(1);
 		}
-#ifndef Z80
+#ifndef __Z88DK
 	if ((vt_fd = fopen("ti:", "wn")) == NULL)
 		error("Can't open terminal");
 #endif
