@@ -640,7 +640,7 @@ int i,j,k,r;
 	orig_checksum+=256*rawinput();
 
 	/* see how the checksum turned out */
-	#ifndef Z80
+	#ifndef __Z88DK
 	checksum&=0xffff;
 	#endif
 	if(checktype==0 && checksum!=orig_checksum)
@@ -1484,7 +1484,7 @@ typedef struct {
 } word;
 #endif
 
-#ifndef Z80
+#ifndef __Z88DK
 /* convert word to int */
 #ifdef OPT_SIZE
 int wtoi(word w) {
