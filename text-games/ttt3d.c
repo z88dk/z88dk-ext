@@ -140,7 +140,7 @@ void rules()
   * `s' of the board.
   */
   
-#ifdef Z80
+#ifdef __Z88DK
 void psq(int s) __z88dk_fastcall
 #else
 void psq(int s)
@@ -224,7 +224,7 @@ void user()
   * value.
   */
 
-#ifdef SCCZ80
+#ifdef __Z88DK
 int weight(int at) __z88dk_fastcall
 #else
 int weight(int at)
