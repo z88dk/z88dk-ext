@@ -89,7 +89,7 @@ struct hashlist *install(S_CHAR *name, S_CHAR *def);
 
 int our_getopt(int argc, char *argv[], char *optstring);
 
-#ifdef Z80
+#ifdef __Z88DK
 //	void dostat(int lab) __z88dk_fastcall;
 //	void fors(int lab) __z88dk_fastcall;
 	void swvar(int lab) __z88dk_fastcall;
