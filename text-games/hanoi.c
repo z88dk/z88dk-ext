@@ -16,7 +16,7 @@
 
 int	top[3]	= { 22, 22, 22 };
 
-#ifdef	Z80
+#ifdef __Z88DK
 
 ttyput(buffer, buflen)
 char		*buffer;	/* What to output			*/
@@ -57,7 +57,7 @@ static char dcastring[] = { ESC, 'Y', '?', '?' };
 
 
 
-#ifdef	Z80
+#ifdef __Z88DK
 
 dca(vtcol, vtrow)
 int	vtcol;		/* X -- Row on the screen			*/
@@ -95,7 +95,7 @@ erase()
 }
 
 
-#ifdef	Z80
+#ifdef __Z88DK
 
 cput(x, y, c)
 {
@@ -119,14 +119,14 @@ draw(ring, centre, y, ch)
 
 	dca(centre-ring, y);
 	for (i=0; i<ring; ++i)
-#ifdef	Z80
+#ifdef __Z88DK
 		fputc_cons(ch);
 #else
 		putc(ch, vt_fd);
 #endif
 	dca(centre+1, y);
 	for (i=0; i<ring; ++i)
-#ifdef	Z80
+#ifdef __Z88DK
 		fputc_cons(ch);
 #else
 		putc(ch, vt_fd);
@@ -194,7 +194,7 @@ setup(n)
 	}
 	dca(5, 23);
 	for (i=5; i<76; ++i)
-#ifdef	Z80
+#ifdef __Z88DK
 		fputc_cons('-');
 #else
 		putc('-', vt_fd);
