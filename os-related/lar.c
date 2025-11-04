@@ -337,7 +337,7 @@ return(-1);
 }*/
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void rawoutput(int byte) __z88dk_fastcall
 #else
 void rawoutput(int byte)
@@ -560,7 +560,7 @@ return c | (i & (oldver?0x3f:0x1f));	/* 0x1f, or 0x3f for 1.x */
 
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void unlzh(char *infile) __z88dk_fastcall
 #else
 void unlzh(char *infile)
@@ -770,7 +770,7 @@ int getcr()
 }
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void unsqueeze(char *infile) __z88dk_fastcall
 #else
 void unsqueeze(char *infile)
@@ -889,7 +889,7 @@ void unsqueeze(char *infile)
 			goto closeall;
 		}
 
-#ifdef Z80
+#ifdef __Z88DK
 		if(filecrc != crc )
 #else
 		if((filecrc && 0xFFFF) != (crc && 0xFFFF))
@@ -1010,7 +1010,7 @@ void figure(int pred, int suff)
 	p=hash(pred,suff,&disp);
 
 	/*follow secondary hash chain as necessary to find an empty slot*/
-#ifdef Z80
+#ifdef __Z88DK
 	while((*p) != EMPTY)
 #else
 	while(((*p)&0xffff) != EMPTY)
@@ -1136,7 +1136,7 @@ unsigned int getcode()
 /*write a byte to output file*/
 /*repeat byte (0x90) expanded here*/
 /*checksumming of output stream done here*/
-#ifdef Z80
+#ifdef __Z88DK
 void send(unsigned char c) __z88dk_fastcall
 #else
 void send(unsigned char c)
@@ -1181,7 +1181,7 @@ void send(unsigned char c)
 	
 
 /*decode this code*/
-#ifdef Z80
+#ifdef __Z88DK
 int decode(int code) __z88dk_fastcall
 #else
 int decode(int code)
@@ -1261,7 +1261,7 @@ void entfil(int pred, int suff)
 
 
 /*uncrunch a single file*/
-#ifdef Z80
+#ifdef __Z88DK
 void uncrunch(char *filename) __z88dk_fastcall
 #else
 void uncrunch(char *filename)
@@ -1416,7 +1416,7 @@ void uncrunch(char *filename)
 		{
 		file_cksum=getc(infd);
 		file_cksum|=getc(infd)<<8;
-#ifdef Z80
+#ifdef __Z88DK
 		if(file_cksum!=cksum)
 #else
 		if(file_cksum!=(cksum & (0xffff)))
@@ -1473,7 +1473,7 @@ char   *fname[MAXFILES];
 bool ftouched[MAXFILES];
 
 
-#ifdef Z80
+#ifdef __Z88DK
 #define word unsigned int
 #define wtoi (unsigned int)
 #define itow (unsigned int)
@@ -1551,7 +1551,7 @@ void conflict() {
 }
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void error (char *str) __z88dk_fastcall
 #else
 void error (char *str)
@@ -1562,7 +1562,7 @@ void error (char *str)
 }
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void cant (char *name) __z88dk_fastcall
 #else
 void cant (char *name)
@@ -1599,7 +1599,7 @@ void filenames (int ac, char **av)
 }
 
 
-#ifdef Z80
+#ifdef __Z88DK
 void getdir (FILE *f) __z88dk_fastcall
 #else
 void getdir (FILE *f)
@@ -1629,7 +1629,7 @@ int entry;
 
 
 /* filarg - check if name matches argument list */
-#ifdef Z80
+#ifdef __Z88DK
 int filarg (char *name) __z88dk_fastcall
 #else
 int filarg (char *name)
