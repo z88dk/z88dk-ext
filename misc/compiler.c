@@ -1,4 +1,4 @@
-/* Extended with Z88DK related stuff  in 2019/2025 */
+/* Extended with Z88DK related stuff  in 2019*/
 
 /* +++Date last modified: 05-Jul-1997 */
 
@@ -67,19 +67,17 @@ main()
                   version / 100, version % 100);
       else  printf ("IBM C Set++ %d.%d\n", version / 100, version % 100);
 #elif defined(__SDCC)
- #if defined(__Z80)||defined(__GBZ80)||defined(__8080)
+ #if defined(__Z88DK)
 	printf ("ZSDCC - Small Device C Compiler (z88dk variant)\n");
  #else
     printf ("ZSDCC - Small Device C Compiler\n");
  #endif
-#elif defined(__SMALLC)
- #if defined(Z80)||defined(__Z80)||defined(__GBZ80)||defined(__8080)
+#elif defined(__SMALLC)|defined(SMALL_C)
+ #if defined(SCCZ80) || defined (__Z88DK)
 	printf ("SCCZ80 - z88dk C+\n");
  #else
     printf ("Small C Compiler\n");
  #endif
-#elif defined(Z80)||defined(__Z80)||defined(__GBZ80)||defined(__8080)
-	printf ("SCCZ80 - z88dk C+\n");
 #else
       puts("Unknown compiler!");
 #endif
