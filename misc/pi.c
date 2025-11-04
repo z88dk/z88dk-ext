@@ -2,7 +2,7 @@
 
 /* zcc +cpm -create-app -O3 -lm -DAMALLOC pi.c */
 
-#ifdef Z80
+#ifdef __Z88DK
 #define FAR
 #define PASCAL
 #define Size_T size_t
