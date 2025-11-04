@@ -50,7 +50,7 @@ Examples:
 #include "scottzx.h"
 
 
-#ifdef Z80
+#ifdef __Z88DK
 	#include <malloc.h>
 	
 	#pragma printf = "%s %9s %c %u "
@@ -1348,7 +1348,7 @@ void main(int argc, char *argv[])
 	FILE *f;
 	int vb,no;
 
-#ifdef Z80
+#ifdef __Z88DK
 //	heapinit(HPSIZE);
 	mallinit();
 	#ifdef __CPM__
