@@ -13,7 +13,7 @@ struct	hashlist *hashtab[HASHMAX];
  * hash - for a hash value for string s
  *
  */
-#ifdef Z80
+#ifdef __Z88DK
 	int hash(S_CHAR *s) __z88dk_fastcall
 #else
 	int hash(S_CHAR *s)
