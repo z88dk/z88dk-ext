@@ -413,13 +413,13 @@ kaleid()
 int main(int argc, char **argv)
 {
 	int	count;
-#ifndef	Z80
+#ifndef __Z88DK
 	extern char	*getenv();
 #endif
 	/*
  	 * Determine the terminal type and initialize the screen handler
 	 */
-#ifndef	Z80
+#ifndef __Z88DK
 	isvt52 = (strcmp(getenv("TERM"), "vt52") == 0
 	       || strcmp(getenv("TERM"), "VT52") == 0);
 #endif
