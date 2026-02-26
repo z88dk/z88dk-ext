@@ -24,6 +24,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <spectrum.h>   /* zx_break(), inp(), outp() */
+#include <time.h>   	/* clock()  */
+
 
 #define MAX_LINES     200
 #define MAX_LINE_LEN  50
@@ -63,7 +65,6 @@ static void set_output_bit(uint8_t bit, uint8_t val) {
     else     outv &= (uint8_t)~mask;
     write_output_port(outv);
 }
-
 
 static void set_memory_bit(uint8_t bit, uint8_t val) {
     if (bit > 7) return;
@@ -250,6 +251,14 @@ static uint8_t eval_factor(Scanner *sc, uint8_t in_byte, int *ok) {
         return (uint8_t)((mem_reg >> bit) & 1);
     }
 
+	// T<n> (timer), read a specific bit from clock()
+	if (bit = sc_match_bit_index(sc, 'T')) {
+		bit--;
+		uint8_t t = (uint8_t)(clock() & 0xFF);
+		return (uint8_t)((t >> bit) & 1);
+	}
+
+
     // Constant 0 or 1
     if (isdigit((unsigned char)*sc->cur)) {
         int v = -1;
@@ -393,7 +402,7 @@ static int exec_statement(const char *stmt_raw, int *out_goto) {
       }
       /* Optional single-bit condition: I<n> | O<n> | M<n> */
       char typ = *sc.cur;
-      if (typ=='I' || typ=='O' || typ=='M') {
+      if (typ=='I' || typ=='O' || typ=='M' || typ=='T') {
         sc.cur++; /* consume designator */
         int bit = -1;
         if (!sc_read_uint(&sc, &bit) || bit < 0 || bit > 7) {
@@ -410,6 +419,7 @@ static int exec_statement(const char *stmt_raw, int *out_goto) {
         uint8_t v = 0;
         if (typ=='I')      v = (inb          >> bit) & 1;
         else if (typ=='O') v = (output_latch >> bit) & 1;
+        else if (typ=='T') v = ((uint8_t)(clock() & 0xFF) >> bit) & 1;
         else               v = (mem_reg      >> bit) & 1; /* 'M' */
         *out_goto = v ? target : -1;
         return 1;
