@@ -1,5 +1,5 @@
 /*
- * BO-BIT - I/O control language
+ * BIO-BIT - I/O control language
  * for 8bit IN + 8bit OUT digital interfaces
  *
  * By Stefano Bodrato, 2026
@@ -234,19 +234,19 @@ static uint8_t eval_factor(Scanner *sc, uint8_t in_byte, int *ok) {
     int bit;
     // I<n>
     if (bit = sc_match_bit_index(sc, 'I')) {
-		bit--;
+        bit--;
         return (uint8_t)((in_byte >> bit) & 1);
     }
 
     // O<n> (read from output latch)
     if (bit = sc_match_bit_index(sc, 'O')) {
-		bit--;
+        bit--;
         return (uint8_t)((output_latch >> bit) & 1);
     }
 
     // M<n> (read from internal memory register)
     if (bit = sc_match_bit_index(sc, 'M')) {
-		bit--;
+        bit--;
         return (uint8_t)((mem_reg >> bit) & 1);
     }
 
@@ -302,8 +302,7 @@ static uint8_t eval_prefix_expr(Scanner *sc, uint8_t in_byte, int *ok) {
     // Detect function keyword
     enum { F_NONE, F_NOT, F_AND, F_OR, F_XOR, F_NAND, F_NOR, F_XNOR } fn = F_NONE;
 
-    if      (sc_match_kw(sc, "NOT"))  fn = F_NOT;
-    else if (sc_match_kw(sc, "AND"))  fn = F_AND;
+    if (sc_match_kw(sc, "AND"))  fn = F_AND;
     else if (sc_match_kw(sc, "OR"))   fn = F_OR;
     else if (sc_match_kw(sc, "XOR"))  fn = F_XOR;
     else if (sc_match_kw(sc, "NAND")) fn = F_NAND;
@@ -317,14 +316,6 @@ static uint8_t eval_prefix_expr(Scanner *sc, uint8_t in_byte, int *ok) {
     // Read at least one term for NOT, at least two for n-ary
     uint8_t acc = 0;
     int term_count = 0;
-
-    if (fn == F_NOT) {
-        uint8_t v = eval_term(sc, in_byte, ok);
-        if (!*ok) return 0;
-        sc_skip_ws(sc);
-        if (*sc->cur != '\0') { *ok = 0; return 0; } // allow only one operand for NOT
-        return (uint8_t)(v ? 0 : 1);
-    }
 
     // Read first two terms
     uint8_t t1 = eval_term(sc, in_byte, ok);
@@ -387,7 +378,7 @@ static int exec_statement(const char *stmt_raw, int *out_goto) {
     Scanner sc;
     sc_init(&sc, buf);
 
-	/* --- GOTO with optional conditional bit test --- */
+    /* --- GOTO with optional conditional bit test --- */
     if (sc_match_kw(&sc, "GOTO")) {
       int target = -1;
       if (!sc_read_uint(&sc, &target)) {
@@ -428,73 +419,84 @@ static int exec_statement(const char *stmt_raw, int *out_goto) {
       }
     }
 
+    /* --- PIN <address> as runtime statement --- */
+    if (sc_match_kw(&sc, "PIN")) {
+        int addr = -1;
+        if (!sc_read_uint(&sc, &addr) || addr < 0 || addr > 255) {
+            printf("ERR: PIN requires 0..255\n");
+            return 0;
+        }
+        sc_skip_ws(&sc);
+        if (*sc.cur != '\0') {
+            printf("ERR: trailing garbage after PIN\n");
+            return 0;
+        }
+        input_addr = (uint8_t)addr;   /* change only the address */
+        return 1;
+    }
 
-    // /* Try GOTO first */
-    // int target = -1;
-    // int g = parse_stmt_one_arg(&sc, &target, "GOTO");
-    // if (g < 0) { printf("ERR: bad GOTO syntax\n"); return 0; }
-    // else if (g > 0) { *out_goto = target; return 1; }
 
-	int target_is_output = 0;
+    /* Recognize O or M */
 
-	/* Recognize O or M */
-	if (sc_match_char_ci(&sc, 'O')) {
-		target_is_output = 1;
-	} else if (!sc_match_char_ci(&sc, 'M')) {
-		printf("ERR: expected O or M assignment\n");
-		return 0;
-	}
+    int target_is_output = 0;
 
-	/* Read bit number */
-	int bit = -1;
-	if (!sc_read_uint(&sc, &bit) || bit < 0 || bit > 7) {
-		printf("ERR: bad bit (0..7)\n");
-		return 0;
-	}
+    if (sc_match_char_ci(&sc, 'O')) {
+        target_is_output = 1;
+    } else if (!sc_match_char_ci(&sc, 'M')) {
+        printf("ERR: expected O or M assignment\n");
+        return 0;
+    }
 
-	/* Expect '=' */
-	if (!sc_consume_char(&sc, '=')) {
-		printf("ERR: expected '='\n");
-		return 0;
-	}
+    /* Read bit number */
+    int bit = -1;
+    if (!sc_read_uint(&sc, &bit) || bit < 0 || bit > 7) {
+        printf("ERR: bad bit (0..7)\n");
+        return 0;
+    }
 
-	/* Evaluate expression */
-	uint8_t in_byte = read_input_port();
-	int ok = 1;
+    /* Expect '=' */
+    if (!sc_consume_char(&sc, '=')) {
+        printf("ERR: expected '='\n");
+        return 0;
+    }
 
-	//uint8_t val = eval_expr(&sc, in_byte, &ok);
+    /* Evaluate expression */
+    uint8_t in_byte = read_input_port();
+    int ok = 1;
+
+    //uint8_t val = eval_expr(&sc, in_byte, &ok);
     //
-	//if (!ok) {
-	//	printf("ERR: bad expression\n");
-	//	return 0;
-	//}
+    //if (!ok) {
+    //  printf("ERR: bad expression\n");
+    //  return 0;
+    //}
 
-	// NEW SYNTAX: n-ary operators with function in prefix
-	const char *save = sc.cur;
-	uint8_t val = eval_prefix_expr(&sc, in_byte, &ok);
-	if (ok) {
-		// ok prefix path
-	} else {
-		// fallback alla forma infissa esistente
-		sc.cur = save;
-		ok = 1;
-		val = eval_expr(&sc, in_byte, &ok);
-		if (!ok) { printf("ERR: bad expression\n"); return 0; }
-	}
+    // NEW SYNTAX: n-ary operators with function in prefix
+    const char *save = sc.cur;
+    uint8_t val = eval_prefix_expr(&sc, in_byte, &ok);
+    if (ok) {
+        // ok prefix path
+    } else {
+        // fallback alla forma infissa esistente
+        sc.cur = save;
+        ok = 1;
+        val = eval_expr(&sc, in_byte, &ok);
+        if (!ok) { printf("ERR: bad expression\n"); return 0; }
+    }
 
-	sc_skip_ws(&sc);
-	if (*sc.cur != '\0') {
-		printf("ERR: unexpected trailing characters\n");
-		return 0;
-	}
+    sc_skip_ws(&sc);
+    if (*sc.cur != '\0') {
+        printf("ERR: unexpected trailing characters\n");
+        return 0;
+    }
 
-	/* Write destination bit */
-	if (target_is_output)
-		set_output_bit((uint8_t)bit, val);
-	else
-		set_memory_bit((uint8_t)bit, val);
+    /* Write destination bit */
+    if (target_is_output)
+        set_output_bit((uint8_t)bit, val);
+    else
+        set_memory_bit((uint8_t)bit, val);
 
-	return 1;
+    return 1;
 }
 
 /* Run once from the first line to the end, honoring GOTO and user BREAK.
@@ -610,9 +612,9 @@ static int cmd_run(const char *args) {
 }
 
 static int cmd_save(const char *args) {
-	program_mem[MAX_LINES].number=line_count;
-	program_mem[MAX_LINES].text[MAX_LINE_LEN-1]=input_addr;
-	program_mem[MAX_LINES].text[MAX_LINE_LEN-2]=output_addr;
+    program_mem[MAX_LINES].number=line_count;
+    program_mem[MAX_LINES].text[MAX_LINE_LEN-1]=input_addr;
+    program_mem[MAX_LINES].text[MAX_LINE_LEN-2]=output_addr;
 
     // Save also an optional comment
     while (isspace((unsigned char)*args)) args++;
@@ -629,11 +631,11 @@ static int cmd_save(const char *args) {
 }
 
 static int cmd_load(const char *args) {
-	tape_load_block(program_mem, sizeof(program_mem), 1);
+    tape_load_block(program_mem, sizeof(program_mem), 1);
 
-	line_count=program_mem[MAX_LINES].number;
-	input_addr=program_mem[MAX_LINES].text[MAX_LINE_LEN-1];
-	output_addr=program_mem[MAX_LINES].text[MAX_LINE_LEN-2];
+    line_count=program_mem[MAX_LINES].number;
+    input_addr=program_mem[MAX_LINES].text[MAX_LINE_LEN-1];
+    output_addr=program_mem[MAX_LINES].text[MAX_LINE_LEN-2];
 
     if (program_mem[MAX_LINES].text[0]) {
         printf("Loaded %u program lines - %s\n", line_count, program_mem[MAX_LINES].text);
