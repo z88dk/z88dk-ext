@@ -1,0 +1,253 @@
+
+BIO-BIT – I/O Language Manual (v1.2, English Edition)
+============================================================
+BIO-BIT – BASIC-like I/O Control Language
+For microcomputers with 8-bit IN / 8-bit OUT digital ports
+Author: Stefano Bodrato, 2026
+============================================================
+
+
+
+============================================================
+1. INTRODUCTION
+============================================================
+
+BIO-BIT is a small BASIC-style interpreter designed for
+controlling digital interfaces through one 8-bit input
+port and one 8-bit output port.
+
+The language provides:
+
+BASIC-like line editor (line numbers)
+Direct I/O commands
+Program memory, save/load
+Control instructions (conditional GOTO, timer loops)
+Boolean expressions in infix or n-ary prefix form
+
+Requirement: system functions inp() and outp().
+
+
+
+============================================================
+2. PROMPT AND DIRECT COMMANDS
+============================================================
+
+At the ">" prompt you may enter the following commands.
+
+------------------------------------------------------------
+2.1 Program management
+------------------------------------------------------------
+n <stmt>   Insert or replace line n
+n          Delete line n
+LIST       List program
+NEW        Erase program
+RUN [k]    Run program k times (default 1)
+
+
+------------------------------------------------------------
+2.2 I/O and settings
+------------------------------------------------------------
+PIN          Show input port address and current value
+PIN <n>      Set input port address (0–255)
+POUT         Show output port address and current value
+POUT <n>     Set output port address (0–255)
+MONITOR      Enable/disable real-time I/O bit monitor
+
+
+------------------------------------------------------------
+2.3 Storage
+------------------------------------------------------------
+SAVE [comment]   Save program, I/O ports and notes
+LOAD             Load program and parameters
+
+
+------------------------------------------------------------
+2.4 Utility
+------------------------------------------------------------
+HELP      List commands
+QUIT      Exit interpreter
+
+
+
+============================================================
+3. REGISTERS AND I/O SPACES
+============================================================
+
+------------------------------------------------------------
+3.1 Input (I0..I7)
+------------------------------------------------------------
+Reads one bit from the currently selected input port (PIN).
+The read occurs once per statement.
+Example:
+I3   -> value of bit 3 of input port
+
+
+------------------------------------------------------------
+3.2 Output (O0..O7)
+------------------------------------------------------------
+Bits of the output port latch.
+Writing:
+O2 = <expr>
+
+
+------------------------------------------------------------
+3.3 Internal memory (M0..M7)
+------------------------------------------------------------
+Eight software 8-bit registers.
+Example:
+M1 = I0 AND NOT I1
+
+
+------------------------------------------------------------
+3.4 Timers (A, B, C, D)
+------------------------------------------------------------
+Four timers based on clock().
+ATIME <sec>   start timer A
+ALOOP <line>  loop until timer expires
+
+Fractional values allowed: 2.6, 0.250, etc.
+
+------------------------------------------------------------
+3.5 Timer bits (T0..T7)
+------------------------------------------------------------
+Boolean values from low bits of clock().
+Example:
+O0 = T0
+
+Good for basic clock driven operations or
+pseudo-random patterns.
+
+------------------------------------------------------------
+3.6 Byte-level operations (on O and M)
+------------------------------------------------------------
+BIO-BIT allows byte-level modifications of the full O or M register.
+These operations require no arguments and use the register itself as source.
+RL   Rotate left
+RR   Rotate right
+NEG  Bitwise invert
+REV  Reverse bit order
+
+Examples:
+RL – Rotate Left
+Before: 10010110
+After : 00101101
+M = RL
+
+RR – Rotate Right
+Before: 10010110
+After : 01001011
+O = RR
+
+NEG – Invert all bits
+Before: 10010110
+After : 01101001
+M = NEG
+
+REV – Reverse bit order
+Before: 10100000
+After : 00000101
+O = REV
+
+
+
+============================================================
+4. RUNTIME INSTRUCTIONS
+============================================================
+
+------------------------------------------------------------
+4.1 Assignments
+------------------------------------------------------------
+O<bit> = <expr>
+M<bit> = <expr>
+
+
+------------------------------------------------------------
+4.2 Boolean expressions
+------------------------------------------------------------
+Infix form:
+Operators: AND, OR, XOR, NOT
+Examples:
+O0 = I1 AND I2
+O4 = O0 XOR I7
+M3 = 1 OR I0
+O1 = NOT I0
+
+Prefix n-ary form:
+Operators: AND, OR, XOR, NAND, NOR, XNOR
+Examples:
+O0 = AND I0 I1 I2 I3
+O1 = NOR I0 I1 I2
+O2 = XNOR M0 M1
+
+
+------------------------------------------------------------
+4.3 GOTO and conditional GOTO
+------------------------------------------------------------
+GOTO <line>
+GOTO <line> I<n>
+GOTO <line> O<n>
+GOTO <line> M<n>
+GOTO <line> T<n>
+
+Negation:
+GOTO <line> !I3
+
+
+------------------------------------------------------------
+4.4 Timers
+------------------------------------------------------------
+ATIME <sec>
+BTIME <sec>
+CTIME <sec>
+DTIME <sec>
+
+ALOOP <line>
+BLOOP <line>
+CLOOP <line>
+DLOOP <line>
+
+Jump occurs only if timer has not expired.
+
+------------------------------------------------------------
+4.5 Change input port at runtime
+------------------------------------------------------------
+PIN <addr>
+
+
+
+============================================================
+5. EXAMPLES
+============================================================
+
+Logical combinator
+10 O0 = I0 AND I1
+20 O1 = OR I2 I3 I4
+RUN
+
+
+Constant-frequency blinking
+10 O0 = T4
+RUN
+
+
+Store a state
+10 M0 = I0
+10 M1 = T3
+20 O0 = M0 AND M1
+RUN
+
+
+Short timer delay (debounce)
+10 ATIME 0.1
+20 ALOOP 20
+30 O0 = I0
+RUN
+
+
+Timed cycle
+10 ATIME 2.5
+20 O0 = NOT O0
+30 O1 = O0 XOR O1
+40 ALOOP 20
+RUN
+
