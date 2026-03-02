@@ -1,0 +1,306 @@
+============================================================
+ BIO BIT – Manuale del Linguaggio I/O  (v1.2)
+ Per microcomputer con porte digitali 8 bit IN / 8 bit OUT
+ Autore: Stefano Bodrato, 2026
+============================================================
+
+
+============================================================
+ 1. INTRODUZIONE
+============================================================
+BIO BIT è un mini interprete BASIC-like progettato per il 
+controllo di interfacce digitali tramite una porta input 
+e una output a 8 bit.
+
+Il linguaggio offre:
+ - Editor di linee in stile BASIC (con numeri di riga)
+ - Comandi diretti per gestione I/O immediata
+ - Memoria interna, salvataggio/caricamento
+ - Istruzioni di controllo (GOTO condizionale, timer, loop)
+ - Espressioni logiche infisse o prefisse n-arie
+
+Requisito: funzioni di sistema inp() e outp().
+
+Per caricare il programma su ZX81 occorrono 32K di RAM
+Digitare:  POKE 16389,255 | NEW | LOAD ""
+
+
+============================================================
+ 2. PROMPT E COMANDI DIRETTI
+============================================================
+Al prompt ">" si possono digitare i comandi seguenti.
+
+------------------------------------------------------------
+ 2.1 Gestione del programma
+------------------------------------------------------------
+ Comando              Funzione
+ ------------------------------------------------------------
+ n <stmt>             Inserisce/sostituisce la linea n
+ n                    Cancella la linea n
+ LIST                 Elenca il programma
+ NEW                  Cancella tutto
+ RUN [k]              Esegue il programma k volte (default 1)
+
+
+------------------------------------------------------------
+ 2.2 I/O e impostazioni
+------------------------------------------------------------
+ Comando              Descrizione
+ ------------------------------------------------------------
+ PIN                  Mostra porta di input e valore corrente
+ PIN <n>              Imposta indirizzo input (0–255)
+ POUT                 Mostra porta di output e valore corrente
+ POUT <n>             Imposta indirizzo output (0–255)
+ MONITOR              Attiva/disattiva monitor grafico/ASCII
+                      realtime dei bit I/O
+
+
+------------------------------------------------------------
+ 2.3 Archiviazione
+------------------------------------------------------------
+ Comando              Descrizione
+ ------------------------------------------------------------
+ SAVE [commento]      Salva programma, porte I/O e appunti
+ LOAD                 Carica programma e parametri
+
+
+------------------------------------------------------------
+ 2.4 Utility
+------------------------------------------------------------
+ Comando              Descrizione
+ ------------------------------------------------------------
+ HELP                 Elenco comandi
+ QUIT                 Esce dall’interprete
+
+
+============================================================
+ 3. REGISTRI E SPAZI DI I/O
+============================================================
+
+------------------------------------------------------------
+ 3.1 Input  (I0..I7)
+------------------------------------------------------------
+Lettura di un bit della porta indicata da PIN.
+La lettura avviene una sola volta per istruzione.
+
+ Esempio:
+   I3     => valore del bit 3 della porta di input
+
+
+------------------------------------------------------------
+ 3.2 Output (O0..O7)
+------------------------------------------------------------
+Bit della porta di uscita, mantenuti in un latch software.
+
+ Scrittura:
+   O2 = <expr>
+
+
+------------------------------------------------------------
+ 3.3 Memoria interna (M0..M7)
+------------------------------------------------------------
+Otto registri software ad 8 bit.
+
+ Esempio:
+   M1 = I0 AND NOT I1
+
+
+------------------------------------------------------------
+ 3.4 Timer (A, B, C, D)
+------------------------------------------------------------
+Quattro timer indipendenti basati su clock().
+
+ - ATIME <sec>   avvia il timer A
+ - ALOOP <line>   GOTO finché il timer non scade
+
+Valori anche frazionari (es: 2.6, 0.250).
+
+
+------------------------------------------------------------
+ 3.5 Timer Bit (T0..T7)
+------------------------------------------------------------
+Valori booleani dai bit meno significativi del clock.
+
+ Esempio:
+   O3 = T3
+
+Utile come semplice clock interno o pseudo-random.
+
+
+------------------------------------------------------------
+ 3.6 Operazioni a byte-level (su O e M)
+------------------------------------------------------------
+
+BIO-BIT permette di modificare l'intero byte dei registri O
+(output latch) e M (memoria interna) tramite quattro
+operazioni di assegnazione speciali, non richiedono argomenti
+e utilizzano come sorgente lo stesso registro di destinazione.
+
+------------------------------------------------------------
+ RL – ROTAZIONE A SINISTRA (BYTE)
+------------------------------------------------------------
+Ruota il byte verso sinistra: il bit 7 rientra nel bit 0.
+
+Esempio:
+  Prima: 10010110
+  Dopo : 00101101
+
+Istruzione:
+  M = RL
+
+------------------------------------------------------------
+ RR – ROTAZIONE A DESTRA (BYTE)
+------------------------------------------------------------
+Ruota il byte verso destra: il bit 0 rientra nel bit 7.
+
+Esempio:
+  Prima: 10010110
+  Dopo : 01001011
+
+Istruzione:
+  O = RR
+
+------------------------------------------------------------
+ NEG – INVERSIONE DI TUTTI I BIT
+------------------------------------------------------------
+Applica NOT all'intero byte.
+
+Esempio:
+  Prima: 10010110
+  Dopo : 01101001
+
+Istruzione:
+  M = NEG
+
+------------------------------------------------------------
+ REV – INVERSIONE DELL'ORDINE DEI BIT
+------------------------------------------------------------
+Scambia bit 7 con 0, bit 6 con 1, e cosi via.
+
+Esempio:
+  Prima: 10100000
+  Dopo : 00000101
+
+Istruzione:
+  O = REV
+
+
+============================================================
+ 4. ISTRUZIONI RUNTIME
+============================================================
+
+------------------------------------------------------------
+ 4.1 Assegnazioni
+------------------------------------------------------------
+ Output:
+   O<bit> = <expr>
+
+ Memoria:
+   M<bit> = <expr>
+
+
+------------------------------------------------------------
+ 4.2 Espressioni booleane
+------------------------------------------------------------
+ Forma INFISSA:
+   AND, OR, XOR, NOT
+
+ Esempi:
+   O0 = I1 AND I2
+   O4 = O0 XOR I7
+   M3 = 1 OR I0
+   O1 = NOT I0
+
+ Forma PREFISSA (n-aria):
+   AND, OR, XOR, NAND, NOR, XNOR
+
+ Esempi:
+   O0 = AND I0 I1 I2 I3
+   O1 = NOR I0 I1 I2
+   O2 = XNOR M0 M1
+
+
+
+------------------------------------------------------------
+ 4.3 GOTO e GOTO condizionale
+------------------------------------------------------------
+ GOTO <line>
+ GOTO <line> I<n>
+ GOTO <line> O<n>
+ GOTO <line> M<n>
+ GOTO <line> T<n>
+
+ Negazione:
+   GOTO <line> !I3
+
+
+------------------------------------------------------------
+ 4.4 Timer
+------------------------------------------------------------
+ Impostazione:
+   ATIME <sec>
+   BTIME <sec>
+   CTIME <sec>
+   DTIME <sec>
+
+ Loop temporizzato:
+   ALOOP <line>
+   BLOOP <line>
+   CLOOP <line>
+   DLOOP <line>
+
+Il salto avviene solo se il timer non ha superato il tempo impostato.
+
+
+------------------------------------------------------------
+ 4.5 Cambio porta di input a runtime
+------------------------------------------------------------
+   PIN <addr>
+
+
+============================================================
+ 5. ESEMPI
+============================================================
+
+------------------------------------------------------------
+ Combinatore logico
+------------------------------------------------------------
+ 10 O0 = I0 AND I1
+ 20 O1 = OR I2 I3 I4
+ RUN
+
+
+------------------------------------------------------------
+ Lampeggio a frequenza costante
+------------------------------------------------------------
+ 10 O0 = T4
+ RUN
+
+
+------------------------------------------------------------
+ Memorizzazione di uno stato
+------------------------------------------------------------
+ 10 M0 = I0
+ 10 M1 = T3
+ 20 O0 = M0 AND M1
+ RUN
+
+
+------------------------------------------------------------
+ Breve pausa "anti-rimbalzo" con timer (senza istruzioni)
+------------------------------------------------------------
+ 10 ATIME 0.1
+ 20 ALOOP 20
+ 30 O0 = I0
+ RUN
+
+
+------------------------------------------------------------
+ 5.5 Ciclo temporizzato
+------------------------------------------------------------
+ 10 ATIME 2.5
+ 20 O0 = NOT O0
+ 30 O1 = O0 XOR O1
+ 40 ALOOP 20
+ RUN
+
