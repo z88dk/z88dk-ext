@@ -15,6 +15,9 @@
  * zcc +cpm -osq -create-app -O3 --opt-code-size -custom-copt-rules sq.opt -DCOMPACT sq.c
  * Building with SDCC (faster code):
  * zcc +cpm -osq -create-app -SO3 --max-allocs-per-node400000 -compiler=sdcc -DCOMPACT -DWILDCARD sq.c
+ *
+ * Build (z88dk - Heath/Zenith HDOS):
+ *  zcc +hdos -create-app -pragma-define:CRT_ENABLE_COMMANDLINE=0 -O3 -o sq sq.c
  * 
  * Build (gcc):
  * gcc -osq sq.c
