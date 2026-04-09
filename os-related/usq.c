@@ -10,6 +10,9 @@
  *   -- or --)
  * zcc +cpm -ousq -create-app -SO3 --max-allocs-per-node400000 -pragma-define:CRT_INITIALIZE_BSS=0 -DWILDCARD -compiler=sdcc usq.c
  * 
+ * Build (z88dk - Heath/Zenith HDOS):
+ * zcc +hdos -create-app -pragma-define:CRT_ENABLE_COMMANDLINE=0 -O3 -o usq --opt-code-size usq.c
+ *
  * Build (gcc):
  * gcc -ousq usq.c
  *
