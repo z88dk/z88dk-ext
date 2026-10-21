@@ -1,0 +1,10 @@
+# Apple junk
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.fseventsd
+.Spotlight-V100
+.Trashes
+.TemporaryItems
+.apdisk
