@@ -11,7 +11,13 @@
 ; dmap           - map every drive A: through P:
 ; dmap X         - map drive X only (optional trailing colon)
 ;
-; Each count is extent 0 for one user, so each file is counted once.
+; Each count is the number of files for one user. The search matches every
+; directory extent ('?' in ex). A file is counted from its first physical
+; entry: (ex AND NOT EXM) = 0 and (s2 AND 3Fh) = 0. EXM is byte 4 of that
+; drive's DPB, and the entry's ex is 0 through EXM. A file past 16 KB can
+; have a non-zero ex when EXM is not 0. EXM = 0 keeps the test at ex = 0,
+; so a later 16 KB extent is not counted again. CP/M 2.2 SAMEXT and
+; CP/M 3 compext apply this extent mask. qdirfcb1 uses both tests.
 ; Users are 0 through 15. A zero count is blank. 1000 or more is ***.
 ;
         SECTION code_user
@@ -31,8 +37,10 @@ FN_GETUSR       EQU     32
 FN_SETUSR       EQU     32
 FN_SRCHF        EQU     17
 FN_SRCHN        EQU     18
+FN_SELDSK       EQU     14              ; select, so function 31 is that drive
 FN_CURDSK       EQU     25
 FN_SETDMA       EQU     26
+FN_GETDPB       EQU     31              ; HL = DPB of the current drive
 
 NO_DRIVE        EQU     0FFH            ; no drive on the command line
 
@@ -43,14 +51,14 @@ NO_DRIVE        EQU     0FFH            ; no drive on the command line
 _main:
         LD      HL,0
         ADD     HL,SP
-        LD      (SAVED_SP),HL           ; CRT return address sits here
+        LD      (SAVED_SP),HL           ; entry SP; the CRT return is on top
 
         LD      E,0FFH
         LD      C,FN_GETUSR
         CALL    BDOS
         LD      (SAVED_USER),A
 
-        LD      C,FN_CURDSK             ; logged-in drive, restored with E = 1
+        LD      C,FN_CURDSK             ; default drive, selected again on exit
         CALL    BDOS
         LD      (ORIG_DRIVE),A
 
@@ -156,6 +164,10 @@ EXIT_TO_CRT:
         LD      E,A
         LD      C,FN_SETUSR
         CALL    BDOS
+        LD      A,(ORIG_DRIVE)          ; DRIVE_MAP selects drives with
+        LD      E,A                     ; function 14, so put this drive
+        LD      C,FN_SELDSK             ; back. The current drive returns
+        CALL    BDOS                    ; without a new login.
         LD      HL,(SAVED_SP)
         LD      SP,HL
         LD      HL,(EXIT_CODE)
@@ -164,8 +176,8 @@ EXIT_TO_CRT:
 ; ------------------------------------------------
 ; DRIVE_MAP
 ; Entry: A = drive number (0 = A: ... 15 = P:)
-; Prints one row: "  X:>" followed by the extent-0 file
-; count for users 0..15, then CR/LF.
+; Prints one row: "  X:>" followed by the file count for
+; users 0..15, then CR/LF.
 ; ------------------------------------------------
 
 DRIVE_MAP:
@@ -179,6 +191,21 @@ DRIVE_MAP:
         CALL    OUTCHAR
         LD      A,'>'
         CALL    OUTCHAR
+
+; Function 31 returns the DPB of the current drive. EXM is byte 4.
+; EXT_MASK is (NOT EXM) AND 1Fh: the low bits SAMEXT / compext remove.
+        LD      A,(DSK)
+        LD      E,A
+        LD      C,FN_SELDSK
+        CALL    BDOS
+        LD      C,FN_GETDPB
+        CALL    BDOS                    ; HL = DPB address
+        LD      DE,4
+        ADD     HL,DE
+        LD      A,(HL)                  ; EXM
+        CPL
+        AND     1FH
+        LD      (EXT_MASK),A
 
         XOR     A
         LD      (USER),A
@@ -195,8 +222,10 @@ MAP_USER_LOOP:
         INC     A
         LD      (SEARCH_FCB),A
 
-; Rebuild the name and extent. Search rewrites the FCB, and a later
-; user would otherwise match with leftover attribute or extent bytes.
+; Rebuild the name. Search rewrites the FCB, so each user starts
+; clean. ex is '?' and s2 is 0: every extent of module 0 matches.
+; The BDOS ignores bit 7 of s2. s1 and rc are not compared.
+; Banked CP/M 3 Search Next reads the FCB from DE.
         LD      HL,SEARCH_FCB+1
         LD      B,11
         LD      A,'?'
@@ -204,7 +233,9 @@ SET_WILD:
         LD      (HL),A
         INC     HL
         DJNZ    SET_WILD
-        LD      B,4
+        LD      (HL),'?'                ; byte 12: every extent
+        INC     HL
+        LD      B,3                     ; bytes 13..15 = 0
 CLR_EXT:
         LD      (HL),0
         INC     HL
@@ -219,6 +250,8 @@ CLR_EXT:
 MAP_SEARCH:
         CP      0FFH
         JR      Z,MAP_COUNTED
+        CALL    IS_FIRST_ENTRY          ; A = directory code 0..3
+        JR      NZ,SEARCH_AGAIN
         LD      HL,(COUNT)
         INC     HL
         LD      A,H
@@ -227,6 +260,7 @@ MAP_SEARCH:
         DEC     HL                      ; stay at 65535, which prints as ***
 COUNT_STORE:
         LD      (COUNT),HL
+SEARCH_AGAIN:
         LD      DE,SEARCH_FCB
         LD      C,FN_SRCHN
         CALL    BDOS
@@ -245,6 +279,37 @@ MAP_COUNTED:
         JR      C,MAP_USER_LOOP
 
         JP      PRINT_CRLF
+
+; ------------------------------------------------
+; IS_FIRST_ENTRY
+; Entry: A = directory code 0..3 from search. The 128-byte
+;        directory record is at DMABUF. The entry starts at
+;        DMABUF + A * 32.
+; Exit : Z  = first physical entry of the file
+;        NZ = a later extent, or s2 bits 0..5 are not 0
+; (ex AND NOT EXM) = 0 and (s2 AND 3Fh) = 0. The mask drops
+; bit 7, the write flag, and bit 6, the CP/M 3 stamp flag.
+; Uses A, DE, HL.
+; ------------------------------------------------
+
+IS_FIRST_ENTRY:
+        ADD     A,A
+        ADD     A,A
+        ADD     A,A
+        ADD     A,A
+        ADD     A,A                     ; A * 32, and A is 0..3
+        LD      E,A
+        LD      D,0
+        LD      HL,DMABUF+12            ; extent byte
+        ADD     HL,DE
+        LD      A,(EXT_MASK)
+        AND     (HL)                    ; ex AND NOT EXM
+        RET     NZ
+        INC     HL
+        INC     HL                      ; byte 14, s2
+        LD      A,(HL)
+        AND     3FH
+        RET
 
 ; ------------------------------------------------
 ; Parse the command tail at 0080H.
@@ -320,9 +385,10 @@ PC_BAD:
         JP      USAGE_EXIT
 
 ; ------------------------------------------------
-; Detect drives with SELDSK; marks absent ones '*'
-; in DRIVE_LIST, then selects the logged-in drive again
-; without reading it.
+; Detect drives with SELDSK. Absent drives are marked '*'
+; in DRIVE_LIST. The entry drive is selected again with E = 1.
+; CP/M 3 treats that as already logged and does not read it.
+; A CP/M 2.2 BIOS ignores E.
 ; ------------------------------------------------
 
 DETECT_DRIVES:
@@ -360,9 +426,9 @@ DRIVE_PRESENT:
         OR      L
         RET
 
-; Select the drive that was logged in at entry.
-; E = 1 tells the BIOS this disk is already logged, so it
-; returns the DPH and does not touch the media.
+; Select the drive that was logged in at entry, with E = 1.
+; CP/M 3 treats E bit 0 as already logged and does not read
+; the disk. A CP/M 2.2 BIOS ignores E.
 RESTORE_DRIVE:
         LD      A,1
         LD      (SEL_FLAG),A
@@ -398,7 +464,8 @@ SET_SELDSK:
 ; Common entry point.
 ; Call this from anywhere: CALL SELDSK
 ; Entry: A = drive number (0=A:, 1=B:, etc.)
-; Exit : HL = DPH address, or 0 if no such drive
+; Exit : HL = DPH address, or 0 if the drive is absent
+;        or the login failed. Banked CP/M 3 may return a copy.
 ; ------------------------------------------------
 
 SELDSK:
@@ -406,7 +473,8 @@ SELDSK_CALL:
         JP      SELDSK2                 ; address replaced at initialisation
 
 ; ------------------------------------------------
-; CP/M 2.2 BIOS SELDSK
+; Direct BIOS SELDSK, for CP/M 2.2 and MP/M.
+; E is loaded from SEL_FLAG. A CP/M 2.2 BIOS ignores E.
 ; ------------------------------------------------
 
 SELDSK2:
@@ -428,8 +496,8 @@ SELDSK3:
         LD      B,0
         LD      (BCREG),BC              ; C = drive, B = 0
 
-; Function 50 on a banked system copies the DPH onto this block,
-; so every field has to be written again for the next drive.
+; A banked function 50 may copy the 25-byte DPH onto this block,
+; so every field is written again on the next call.
 ; E = 0 logs the drive in. HL = 0 when it is absent or cannot be logged.
 ; E = 1 returns the DPH of a drive that is already logged.
         LD      A,(SEL_FLAG)
@@ -446,7 +514,8 @@ SELDSK3:
 
         LD      DE,BIOSPB
         LD      C,50                    ; BDOS function 50
-        JP      BDOS                    ; DPH address, or 0, comes back in HL
+        JP      BDOS                    ; HL = DPH or 0; banked CP/M 3 may
+                                        ; return the common-memory copy
 
 ; ------------------------------------------------
 ; Console polling: quit on ESC or CTRL-C, never waits
@@ -659,6 +728,7 @@ NEXT_DRV:   DB  0
 SAVED_USER: DB  0
 ORIG_DRIVE: DB  0
 SEL_FLAG:   DB  0                       ; 0 = login select, 1 = already logged
+EXT_MASK:   DB  0                       ; (NOT EXM) AND 1Fh for this drive
 COUNT:      DW  0
 SAVED_SP:   DW  0
 EXIT_CODE:  DW  0
