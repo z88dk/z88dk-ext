@@ -3,6 +3,7 @@
 ; Richard Deane, modified by feilipu for z88dk.
 ;
 ; zcc +cpm -vn dmap.asm -o dmap -create-app
+; zcc +cpm -clib=8085 -vn dmap.asm -o dmap -create-app
 ;
 ; The z88dk CP/M CRT sets the stack and calls _main. _main returns
 ; to that CRT. ESC, Ctrl-C, and a finished map take the same return.
