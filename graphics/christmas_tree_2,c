@@ -1,7 +1,8 @@
 /*
- * A less mathemagical Christmas Tree Demo
+ * Christmas Tree Demo
  *
  * zcc +zx -lm -create-app christmas.c -o christmas
+ * zcc +ts2068 -pragma-define:CLIB_ZX_CONIO32=1 -pragma-define:CLIB_DEFAULT_SCREEN_MODE=6 -DDETAILED -create-app  -Dhires -lm -o christmas christmas.c
  *
  */
 
@@ -9,14 +10,18 @@
 #include <math.h>
 #include <stdlib.h>
 
-#define WIDTH   256
-#define HEIGHT  192
+//#define WIDTH   256
+//#define HEIGHT  192
 
-#define TREE_TOP_Y      25
-#define TREE_HEIGHT     150
-#define TREE_HALF_BASE  70
+//#define TREE_TOP_Y      25
+//#define TREE_HEIGHT     150
+//#define TREE_HALF_BASE  70
 
-int cx = WIDTH / 2;
+int cx;
+
+int TREE_TOP_Y;
+int TREE_HEIGHT;
+int TREE_HALF_BASE;
 
 
 /* --------------------------------------------------------- */
@@ -143,8 +148,8 @@ void draw_snow(void)
 
     for (i = 0; i < 200; i++) {
 
-        plot(rand() % WIDTH,
-             rand() % HEIGHT);
+        plot(rand() % getmaxx(),
+             rand() % getmaxy());
     }
 }
 
@@ -181,6 +186,12 @@ void letit_snow(void)
 
 int main(void)
 {
+
+	cx = getmaxx() / 2;
+	TREE_TOP_Y      = 25;
+	TREE_HEIGHT     = getmaxy()/19*15;
+	TREE_HALF_BASE  = getmaxy()/34*14;
+
     clg();
 
     srand(1);
